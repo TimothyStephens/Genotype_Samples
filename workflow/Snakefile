@@ -1,0 +1,22 @@
+# The main entry point of your workflow.
+# After configuring, running snakemake -n in a clone of this repository should successfully execute a dry-run of the workflow.
+from snakemake.utils import min_version
+
+min_version("6.5")
+
+
+report: "report/workflow.rst"
+
+
+rule all:
+    input:
+        "results/merged_calls/all.vcf.gz",
+        "results/qc/multiqc.html",
+
+
+include: "rules/common.smk"
+include: "rules/ref.smk"
+include: "rules/trimming.smk"
+include: "rules/mapping.smk"
+include: "rules/calling.smk"
+include: "rules/qc.smk"
