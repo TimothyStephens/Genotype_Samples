@@ -17,11 +17,8 @@ fastp_pe:
   extra: '--correction'
   threads: 2
 
-bwa_mem:
-  wrapper: 'bwa-mem2/mem' # bwa/mem or bwa-mem2/mem
+bwa_mem2:
   extra: ''
-  sort: 'samtools'
-  sort_order: 'coordinate'
   sort_extra: ''
   threads: 24
 

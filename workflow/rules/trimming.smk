@@ -15,7 +15,7 @@ rule fastp_se:
         extra=config["fastp_se"]["extra"],
     threads: config["fastp_se"]["threads"]
     wrapper:
-        "0.75.0/bio/fastp"
+        "v1.23.4/bio/fastp"
 
 
 rule fastp_pe:
@@ -35,4 +35,4 @@ rule fastp_pe:
         extra=config["fastp_pe"]["extra"],
     threads: config["fastp_pe"]["threads"]
     wrapper:
-        "0.75.0/bio/fastp"
+        "v1.23.4/bio/fastp"

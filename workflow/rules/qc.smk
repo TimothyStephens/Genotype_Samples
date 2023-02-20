@@ -1,3 +1,5 @@
+
+
 rule fastqc:
     input:
         unpack(get_fastq),
@@ -10,12 +12,12 @@ rule fastqc:
         "results/logs/fastqc/{sample}-{unit}.log",
     threads: 14
     wrapper:
-        "0.75.0/bio/fastqc"
+        "v1.23.4/bio/fastqc"
 
 
 rule samtools_stats:
     input:
-        rules.samtools_merge.output.bam,
+        bam=rules.samtools_merge.output,
     output:
         "results/qc/samtools_stats/{sample}.txt",
     params:
@@ -24,7 +26,7 @@ rule samtools_stats:
     log:
         "results/logs/samtools_stats/{sample}.log",
     wrapper:
-        "0.75.0/bio/samtools/stats"
+        "v1.23.4/bio/samtools/stats"
 
 
 rule multiqc:
@@ -47,3 +49,5 @@ rule multiqc:
         "results/logs/multiqc.log",
     wrapper:
         "v1.23.4/bio/multiqc"
+
+

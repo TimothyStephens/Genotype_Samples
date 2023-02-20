@@ -21,21 +21,7 @@ rule genome_faidx:
         "results/logs/genome-faidx.log",
     cache: True
     wrapper:
-        "0.75.0/bio/samtools/faidx"
-
-
-rule bwa_index:
-    input:
-        "resources/genome.fasta",
-    output:
-        multiext("resources/genome.fasta", ".amb", ".ann", ".bwt", ".pac", ".sa"),
-    log:
-        "results/logs/bwa_index.log",
-    resources:
-        mem_mb=config["bwa_index"]["mem_mb"],
-    cache: True
-    wrapper:
-        "0.75.0/bio/bwa/index"
+        "v1.23.4/bio/samtools/faidx"
 
 
 rule bwa_mem2_index:
@@ -49,6 +35,6 @@ rule bwa_mem2_index:
         "results/logs/bwa-mem2_index.log",
     cache: True
     wrapper:
-        "0.75.0/bio/bwa-mem2/index"
+        "v1.23.4/bio/bwa-mem2/index"
 
 

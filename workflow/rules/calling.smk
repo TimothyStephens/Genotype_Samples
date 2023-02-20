@@ -2,8 +2,7 @@
 
 rule deepvariant:
     input:
-        bam=rules.samtools_merge.output.bam,
-        idx=rules.samtools_merge.output.idx,
+        bam=rules.samtools_merge.output,
         ref=rules.get_genome.output,
         ref_idx=rules.genome_faidx.output,
     output:
@@ -19,7 +18,10 @@ rule deepvariant:
         tmp_dir="results/calls/{sample}.tmp",
     threads: config["deepvariant"]["threads"]
     log:
-        "results/logs/deepvariant/{sample}/stdout.log",
+        top="results/logs/deepvariant/{sample}/stdout.log",
+        make_examples="results/logs/deepvariant/{sample}/make_examples.log",
+	call_variants="results/logs/deepvariant/{sample}/call_variants.log",
+        postprocess_variants="results/logs/deepvariant/{sample}/postprocess_variants.log",
     conda:
         "../envs/deepvariant.yaml"
     shell:
@@ -32,23 +34,26 @@ rule deepvariant:
         "--sample {wildcards.sample} "
         "--examples {params.tmp_dir} "
         "--logdir results/logs/deepvariant/{wildcards.sample} "
-        "{params.extra}; "
+        "{params.extra} "
+        "1>{log.make_examples} 2>&1; "
         "dv_call_variants.py "
         "--cores {threads} "
         "--outfile {params.tmp_dir}/{wildcards.sample}.tmp "
         "--sample {wildcards.sample} "
         "--examples {params.tmp_dir} "
-        "--model {params.model} ;"
+        "--model {params.model} "
+        " 1>{log.call_variants} 2>&1; "
         "dv_postprocess_variants.py "
         "--ref {input.ref} "
         "--infile {params.tmp_dir}/{wildcards.sample}.tmp "
-        "--outfile {output.vcf} ) 1>{log} 2>&1"
+        "--outfile {output.vcf} "
+        "1>{log.postprocess_variants} 2>&1"
+        ") 1>{log.top} 2>&1"
 
 
 rule deepvariant_gvcf:
     input:
-        bam=rules.samtools_merge.output.bam,
-        idx=rules.samtools_merge.output.idx,
+        bam=rules.samtools_merge.output,
         ref=rules.get_genome.output,
         ref_idx=rules.genome_faidx.output,
     output:
@@ -65,7 +70,10 @@ rule deepvariant_gvcf:
         tmp_dir="results/individual_calls/{sample}.tmp",
     threads: config["deepvariant_gvcf"]["threads"]
     log:
-        "results/logs/deepvariant_gvcf/{sample}/stdout.log",
+        top="results/logs/deepvariant_gvcf/{sample}/stdout.log",
+        make_examples="results/logs/deepvariant_gvcf/{sample}/make_examples.log",
+        call_variants="results/logs/deepvariant_gvcf/{sample}/call_variants.log",
+        postprocess_variants="results/logs/deepvarianti_gvcf/{sample}/postprocess_variants.log",
     conda:
         "../envs/deepvariant.yaml"
     shell:
@@ -79,20 +87,23 @@ rule deepvariant_gvcf:
         "--examples {params.tmp_dir} "
         "--logdir results/logs/deepvariant_gvcf/{wildcards.sample} "
         "--gvcf {params.tmp_dir} "
-        "{params.extra}; "
+        "{params.extra} "
+        "1>{log.make_examples} 2>&1; "
         "dv_call_variants.py "
         "--cores {threads} "
         "--outfile {params.tmp_dir}/{wildcards.sample}.tmp "
         "--sample {wildcards.sample} "
         "--examples {params.tmp_dir} "
-        "--model {params.model} ;"
+        "--model {params.model} "
+        " 1>{log.call_variants} 2>&1; "
         "dv_postprocess_variants.py "
         "--ref {input.ref} "
         "--gvcf_infile {params.tmp_dir}/{wildcards.sample}.gvcf.tfrecord@{threads}.gz "
         "--gvcf_outfile {output.gvcf} "
         "--infile {params.tmp_dir}/{wildcards.sample}.tmp "
-        "--outfile {output.vcf} ) 1>{log} 2>&1"
-
+        "--outfile {output.vcf} "
+        "1>{log.postprocess_variants} 2>&1"
+        ") 1>{log.top} 2>&1"
 
 
 rule glnexus:
@@ -112,7 +123,7 @@ rule glnexus:
     log:
         "results/logs/glnexus/{joint_calling_group}/stdout.log",
     container:
-        "docker://quay.io/mlin/glnexus:v1.3.1"
+        "docker://ghcr.io/dnanexus-rnd/glnexus:v1.4.1"
     shell:
         "glnexus_cli "
         "--config DeepVariantWGS "
@@ -138,7 +149,7 @@ rule bcftools_index:
         "results/logs/bcftools_index/{vcffile}.log",
     threads: config["bcftools_index"]["threads"]
     wrapper:
-        "0.75.0/bio/bcftools/index"
+        "v1.23.4/bio/bcftools/index"
 
 
 rule create_reheader_sample_file:
@@ -173,7 +184,7 @@ rule update_sample_names:
         extra="",
         view_extra="-O z",
     wrapper:
-        "0.75.0/bio/bcftools/reheader"
+        "v1.23.4/bio/bcftools/reheader"
 
 
 rule bcftools_merge:
@@ -223,13 +234,13 @@ rule bcftools_merge:
             ),
         ],
     output:
-        calls=temp("results/merged_calls/all.unfiltered.vcf.gz"),
+        calls="results/merged_calls/all.unfiltered.vcf.gz",
     log:
         "results/logs/bcftools_merge/bcftools_merge.log",
     params:
         config["bcftools_merge"]["params"] + " -Oz",  # optional parameters for bcftools concat (except -o)
     wrapper:
-        "0.75.0/bio/bcftools/merge"
+        "v1.23.4/bio/bcftools/merge"
 
 
 rule bcftools_filter:
@@ -243,4 +254,6 @@ rule bcftools_filter:
         filter=config["bcftools_filter"]["filter"],
         extra="",
     wrapper:
-        "0.75.0/bio/bcftools/filter"
+        "v1.23.4/bio/bcftools/filter"
+
+
