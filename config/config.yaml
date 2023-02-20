@@ -30,13 +30,13 @@ samtools_index:
   params: ''
 
 deepvariant:
-  model: 'wgs'
+  model: 'WGS'
   extra: ''
   params: ''
   threads: 8
 
 deepvariant_gvcf:
-  model: 'wgs'
+  model: 'WGS'
   extra: ''
   params: ''
   threads: 8
@@ -52,5 +52,16 @@ bcftools_index:
 bcftools_merge:
   params: '--force-samples'
 
-bcftools_filter:
-  filter: ''
+vcftools_filter:
+  filter: '--remove-indels --min-meanDP 10 --max-missing 1.0 --recode --recode-INFO-all'
+
+vcftools_relatedness2:
+  params: ''
+
+vcf_clone_detect:
+  threshold: 95.0
+  params: ''
+
+
+
+

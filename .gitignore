@@ -133,4 +133,6 @@ dmypy.json
 report.zip
 resources/
 results/
+.keras/
+.parallel/
 

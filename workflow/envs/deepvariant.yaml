@@ -1,8 +1,0 @@
-name: deepvariant
-channels:
-  - bioconda
-  - conda-forge
-  - anaconda
-dependencies:
-  - deepvariant ==1.4.0
-  - numpy ==1.16

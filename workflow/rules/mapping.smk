@@ -27,11 +27,12 @@ rule samtools_merge:
             unit=samples.loc[w.sample].unit,
         ),
     output:
-        "results/mapped/{sample}.bam",
+        bam="results/mapped/{sample}.bam",
+        idx="results/mapped/{sample}.bam.csi",
     log:
         "results/logs/samtools_merge/{sample}.log",
     params:
-        config["samtools_merge"]["params"] + " --write-index",  # optional additional parameters as string
+        extra=config["samtools_merge"]["params"],  # optional additional parameters, excluding --write-index which is implied by idx
     threads: config["samtools_merge"]["threads"]  # Samtools takes additional threads through its option -@
     wrapper:
         "v1.23.4/bio/samtools/merge"

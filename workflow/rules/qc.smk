@@ -17,7 +17,7 @@ rule fastqc:
 
 rule samtools_stats:
     input:
-        bam=rules.samtools_merge.output,
+        bam=rules.samtools_merge.output.bam,
     output:
         "results/qc/samtools_stats/{sample}.txt",
     params:

@@ -6,7 +6,7 @@ Based on https://github.com/nikostr/dna-seq-deepvariant-glnexus-variant-calling 
 mamba create -n snakemake snakemake mamba singularity
 conda activate snakemake
 
-snakemake --cores all --use-conda --use-singularity 
+snakemake --cores all --use-conda --use-singularity --keep-going 
 snakemake --report report.zip
 
 

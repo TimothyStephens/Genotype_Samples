@@ -12,6 +12,8 @@ rule all:
     input:
         "results/merged_calls/all.vcf.gz",
         "results/qc/multiqc.html",
+        "results/relatedness/all.vcf.relatedness2",
+        #"results/relatedness/all.vcf.allelic_similarity.csv",
 
 
 include: "rules/common.smk"
@@ -20,3 +22,4 @@ include: "rules/trimming.smk"
 include: "rules/mapping.smk"
 include: "rules/calling.smk"
 include: "rules/qc.smk"
+include: "rules/relatedness.smk"
