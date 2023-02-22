@@ -244,7 +244,7 @@ rule vcftools_filter:
         "results/logs/vcftools_filter.log",
     params:
         filter=config["vcftools_filter"]["filter"],
-        extra="",
+        extra="--recode --recode-INFO-all",
     conda:
         "../envs/vcftools.yaml"
     shell:

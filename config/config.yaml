@@ -53,7 +53,8 @@ bcftools_merge:
   params: '--force-samples'
 
 vcftools_filter:
-  filter: '--remove-indels --min-meanDP 10 --max-missing 1.0 --recode --recode-INFO-all'
+  filter: ''
+#  filter: '--remove-indels --min-meanDP 10 --max-missing 1.0'
 
 vcftools_relatedness2:
   params: ''
@@ -62,6 +63,31 @@ vcf_clone_detect:
   threshold: 95.0
   params: ''
 
+install_relatedness_programs:
+  params: ''
+  threads: 2
 
+angsd_for_NgsRelate:
+  params: ''
+  threads: 8
 
+NgsRelate:
+  params: ''
+  threads: 8
+
+angsd_for_PCAngsd:
+  params: ''
+  threads: 8
+
+PCAngsd_IndAlleleFreq:
+  params: ''
+  threads: 8
+
+PCAngsd_WithOutIndAlleleFreq:
+  params: ''
+  threads: 8
+
+PCAngsd_Admixture:
+  params: ''
+  threads: 8
 

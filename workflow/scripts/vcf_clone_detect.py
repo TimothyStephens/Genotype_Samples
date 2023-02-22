@@ -49,11 +49,11 @@ C_POP = 'pop'
 
 COMPARISONS_DTYPES = [(C_IND1, np.str_, IND_STR_LEN),
                       (C_IND2, np.str_, IND_STR_LEN),
-                      (C_IND1_SNPS, np.int),
-                      (C_IND2_SNPS, np.int),
-                      (C_BOTH_SNPS, np.int),
-                      (C_MATCH, np.float),
-                      (C_MATCH_PERC, np.float),
+                      (C_IND1_SNPS, int),
+                      (C_IND2_SNPS, int),
+                      (C_BOTH_SNPS, int),
+                      (C_MATCH, float),
+                      (C_MATCH_PERC, float),
                       (C_POP, np.str_, POP_STR_LEN)]
 
 OUTPUT_FILE_DELIM = ','
@@ -229,6 +229,8 @@ def output_ascii_hist(raw_values, bin_values):
     output_lines = []
     graph_multiplier = 1
     lower_bound_flag = False
+    lower_bound = 100 ##TGS
+    upper_bound = 100 ##TGS
     previous_value = breakpoint = display_lines = 0
     for index, value in enumerate(values):
         if value > 0:
