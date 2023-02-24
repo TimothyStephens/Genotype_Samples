@@ -1,0 +1,5 @@
+name: ngsRelate
+channels:
+  - bioconda
+dependencies:
+  - python ==3.11.0

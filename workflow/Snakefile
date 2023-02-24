@@ -12,18 +12,21 @@ rule all:
     input:
         "results/merged_calls/all.vcf.gz",
         "results/qc/multiqc.html",
-        "results/relatedness/all.vcf.relatedness2",
-        "results/relatedness/all.vcf.allelic_similarity.csv",
-        "results/relatedness/NgsRelate.results.tsv",
-        "results/relatedness/PCAngsd.IndAlleleFreq.cov",
-        "results/relatedness/PCAngsd.WithOutIndAlleleFreq.cov",
-        "results/relatedness/PCAngsd.Admixture.cov",
+        "results/final/vcftools_relatedness2.tsv",
+        "results/final/vcf_clone_detect.tsv",
+        "results/final/NgsRelate.tsv",
+        "results/final/PCAngsd.IndAlleleFreq.tsv",
+        "results/final/PCAngsd.WithOutIndAlleleFreq.tsv",
+        "results/final/PCAngsd.Admixture.tsv",
+        "results/final/nQuire.tsv",
 
 
 include: "rules/common.smk"
+include: "rules/install_programs.smk"
 include: "rules/ref.smk"
 include: "rules/trimming.smk"
 include: "rules/mapping.smk"
 include: "rules/calling.smk"
 include: "rules/qc.smk"
 include: "rules/relatedness.smk"
+include: "rules/ploidy.smk"

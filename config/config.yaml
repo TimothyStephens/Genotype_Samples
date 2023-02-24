@@ -63,10 +63,6 @@ vcf_clone_detect:
   threshold: 95.0
   params: ''
 
-install_relatedness_programs:
-  params: ''
-  threads: 2
-
 angsd_for_NgsRelate:
   params: ''
   threads: 8
@@ -89,5 +85,13 @@ PCAngsd_WithOutIndAlleleFreq:
 
 PCAngsd_Admixture:
   params: ''
+  threads: 8
+
+nQuire:
+  create_params: ''
+  denoise_params: ''
+  lrdmodel_params: ''
+  min_quality: 20
+  min_coverage: 20
   threads: 8
 

@@ -59,49 +59,6 @@ rule write_bam_list:
         '''
 
 
-rule install_relatedness_programs:
-    output:
-        ".snakemake/install_relatedness_programs.done"
-    log:
-        "results/logs/relatedness/install_relatedness_programs.log",
-    conda:
-        "../envs/relatedness.yaml"
-    threads: config["install_relatedness_programs"]["threads"]
-    shell:'''
-    (
-    pwd=$PWD
-    base=$(which python | sed -e 's@/bin/python@@')
-    echo "base dir = $base"
-    cd $base/lib
-    rm -fr htslib ngsRelate pcangsd
-    
-    echo "##"
-    echo "## Installing ngsRelate"
-    echo "##"
-    git clone --recursive https://github.com/SAMtools/htslib
-    cd htslib/
-    make -j {threads}
-    cd ../
-    git clone https://github.com/ANGSD/ngsRelate
-    cd ngsRelate
-    make -j {threads} HTSSRC=../htslib/
-    cp ngsRelate ../../bin/
-    cd ../
-    
-    echo "##"
-    echo "## Installing PCAngsd"
-    echo "##"
-    git clone https://github.com/Rosemeis/pcangsd.git
-    cd pcangsd
-    python setup.py build_ext --inplace
-    pip3 install -e .
-    
-    cd $pwd
-    touch {output}
-    ) 1>{log} 2>&1
-    '''
-
-
 rule angsd_for_NgsRelate:
     input:
         "results/relatedness/bam.filelist",
@@ -124,7 +81,7 @@ rule NgsRelate:
         mafs="results/relatedness/NgsRelate.angsd.mafs.gz",
         glf="results/relatedness/NgsRelate.angsd.glf.gz",
         labels="results/relatedness/bam.filelist.labels",
-        programs=".snakemake/install_relatedness_programs.done"
+        programs=rules.install_ngsRelate.output,
     output:
         "results/relatedness/NgsRelate.results.tsv",
     log:
@@ -133,7 +90,7 @@ rule NgsRelate:
         extra=config["NgsRelate"]["params"],
     threads: config["NgsRelate"]["threads"]
     conda:
-        "../envs/relatedness.yaml"
+        "../envs/ngsRelate.yaml"
     shell:
         "(zcat {input.mafs} | cut -f5 |sed 1d > {input.mafs}.freq; "
         "N=$(cat {input.labels} | wc -l); "
@@ -160,7 +117,7 @@ rule angsd_for_PCAngsd:
 rule PCAngsd_IndAlleleFreq:
     input:
         beagle="results/relatedness/PCAngsd.angsd.beagle.gz",
-        programs=".snakemake/install_relatedness_programs.done"
+        programs=rules.install_PCAngsd.output,
     output:
         "results/relatedness/PCAngsd.IndAlleleFreq.cov",
     log:
@@ -169,7 +126,7 @@ rule PCAngsd_IndAlleleFreq:
         extra=config["PCAngsd_IndAlleleFreq"]["params"],
     threads: config["PCAngsd_IndAlleleFreq"]["threads"]
     conda:
-        "../envs/relatedness.yaml"
+        "../envs/PCAngsd.yaml"
     shell:
         "(pcangsd --threads {threads} {params.extra} --beagle {input.beagle} --out results/relatedness/PCAngsd.IndAlleleFreq) 1>{log} 2>&1"
 
@@ -177,7 +134,7 @@ rule PCAngsd_IndAlleleFreq:
 rule PCAngsd_WithOutIndAlleleFreq:
     input:
         beagle="results/relatedness/PCAngsd.angsd.beagle.gz",
-        programs=".snakemake/install_relatedness_programs.done"
+        programs=rules.install_PCAngsd.output,
     output:
         "results/relatedness/PCAngsd.WithOutIndAlleleFreq.cov",
     log:
@@ -186,7 +143,7 @@ rule PCAngsd_WithOutIndAlleleFreq:
         extra=config["PCAngsd_WithOutIndAlleleFreq"]["params"],
     threads: config["PCAngsd_WithOutIndAlleleFreq"]["threads"]
     conda:
-        "../envs/relatedness.yaml"
+        "../envs/PCAngsd.yaml"
     shell:
         "(pcangsd --threads {threads} {params.extra} --beagle {input.beagle} --out results/relatedness/PCAngsd.WithOutIndAlleleFreq --iter 0) 1>{log} 2>&1"
 
@@ -194,17 +151,88 @@ rule PCAngsd_WithOutIndAlleleFreq:
 rule PCAngsd_Admixture:
     input:
         beagle="results/relatedness/PCAngsd.angsd.beagle.gz",
-        programs=".snakemake/install_relatedness_programs.done"
+        programs=rules.install_PCAngsd.output,
     output:
-        "results/relatedness/PCAngsd.Admixture.cov",
+        "results/relatedness/PCAngsd.Admixture.admix.Q",
     log:
         "results/logs/relatedness/PCAngsd.Admixture.log",
     params:
         extra=config["PCAngsd_Admixture"]["params"],
     threads: config["PCAngsd_Admixture"]["threads"]
     conda:
-        "../envs/relatedness.yaml"
+        "../envs/PCAngsd.yaml"
     shell:
-        "(pcangsd --threads {threads} {params.extra} --beagle {input.beagle} --out results/relatedness/PCAngsd.Admixture --admix --admix_alpha 50) 1>{log} 2>&1"
+        "(pcangsd --threads {threads} {params.extra} --beagle {input.beagle} --out results/relatedness/PCAngsd.Admixture --admix --admix_alpha 50; cp results/relatedness/PCAngsd.Admixture.admix.*.Q results/relatedness/PCAngsd.Admixture.admix.Q) 1>{log} 2>&1"
+
+
+rule format_PCAngsd_IndAlleleFreq_results:
+    input:
+        "results/relatedness/bam.filelist.labels",
+        "results/relatedness/PCAngsd.IndAlleleFreq.cov",
+    output:
+        "results/final/PCAngsd.IndAlleleFreq.tsv",
+    log:
+        "results/logs/relatedness/format_PCAngsd_IndAlleleFreq_results.log",
+    script:
+        "../scripts/format_PCAngsd_results.sh"
+
+
+rule format_PCAngsd_WithOutIndAlleleFreq_results:
+    input:
+        "results/relatedness/bam.filelist.labels",
+        "results/relatedness/PCAngsd.WithOutIndAlleleFreq.cov",
+    output:
+        "results/final/PCAngsd.WithOutIndAlleleFreq.tsv",
+    log:
+        "results/logs/relatedness/format_PCAngsd_WithOutIndAlleleFreq_results.log",
+    script:
+        "../scripts/format_PCAngsd_results.sh"
+
+
+rule format_PCAngsd_Admixture_results:
+    input:
+        "results/relatedness/bam.filelist.labels",
+        "results/relatedness/PCAngsd.Admixture.admix.Q",
+    output:
+        "results/final/PCAngsd.Admixture.tsv",
+    log:
+        "results/logs/relatedness/format_PCAngsd_Admixture_results.log",
+    script:
+        "../scripts/format_PCAngsd_Admixture_results.sh"
+
+
+rule format_vcftools_relatedness2_results:
+    input:
+        "results/relatedness/bam.filelist.labels",
+        "results/relatedness/all.vcf.relatedness2",
+    output:
+        "results/final/vcftools_relatedness2.tsv",
+    log:
+        "results/logs/relatedness/format_vcftools_relatedness2_results.log",
+    script:
+        "../scripts/format_vcftools_relatedness2_results.sh"
+
+
+rule format_vcf_clone_detect_results:
+    input:
+        "results/relatedness/bam.filelist.labels",
+        "results/relatedness/all.vcf.allelic_similarity.csv",
+    output:
+        "results/final/vcf_clone_detect.tsv",
+    log:
+        "results/logs/relatedness/format_vcf_clone_detect_results.log",
+    script:
+        "../scripts/format_vcf_clone_detect_results.sh"
+
+
+rule format_NgsRelate_results:
+    input:
+        "results/relatedness/NgsRelate.results.tsv",
+    output:
+        "results/final/NgsRelate.tsv",
+    log:
+        "results/logs/relatedness/format_NgsRelate_results.log",
+    script:
+        "../scripts/format_NgsRelate_results.sh"
 
 

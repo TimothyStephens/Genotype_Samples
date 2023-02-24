@@ -1,7 +1,6 @@
-name: relatedness
+name: PCAngsd
 channels:
   - bioconda
-  - conda-forge
 dependencies:
   - python >=3.6
   - numpy
