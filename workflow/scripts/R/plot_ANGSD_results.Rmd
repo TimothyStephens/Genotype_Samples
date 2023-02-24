@@ -1,0 +1,401 @@
+---
+title: "Plot `ANGSD` results for *P. acuta* RNA-seq samples"
+author: "Timothy Stephens"
+date: "20/09/2022"
+output: 
+  html_document:
+    keep_md: yes
+---
+
+
+
+## Setup
+
+Setup R env. Load packages and set default image export formats, size and resolution.
+
+```{r setup}
+knitr::opts_chunk$set(echo = TRUE,
+                      fig.height = 12, 
+                      fig.width = 12, 
+                      dev = c("png", "pdf"),
+                      dpi = 1000)
+library(readxl)
+library(dplyr)
+library(ggplot2)
+library(gplots)
+library(reshape2)
+library(RcppCNPy)
+library(tibble)
+library(ggdendro)
+library(cowplot)
+library(RColorBrewer)
+library(viridis)
+library(knitr)
+library(plotly)
+library(knitr)
+library(phylogram)
+options(scipen = 999) #Prevent scientific notation
+```
+
+
+
+
+
+# Load Metadata 
+
+Load file with annotation for each sample and order it using the order of the samples in the results files. 
+```{r load_metadata}
+samples.info <- read.table("../../samples_Pacuta.annotations.txt", header=T, comment.char='')
+rownames(samples.info) <- samples.info$sample
+
+samples.order <- read.table("bam.filelist.labels", header=F)
+samples.info <- samples.info[samples.order$V1,]
+samples.info
+```
+
+
+
+
+
+# Load similarity dendrogram
+
+Load similarity dendrogram from `vcf_clone_detect.py`. Have to recompute the clusters because a dendro written and read from file does not seem to be the same as one generated directly from hclust (heatmap.2 wont work with a dendro loaded from file, only a fresh one generated in this session).
+```{r load_simScore_dendrogram}
+pairwise_percent_shared <- read.table("../vcf_clone_detect/GVCFall.filtered.recode.vcf.gz.allelic_similarity.full.tsv", sep='\t', header=T)
+pairwise_percent_shared.matrix <- xtabs(match_perc ~ ind1 + ind2, data=pairwise_percent_shared)
+pairwise_percent_shared.matrix.dist   <- dist(pairwise_percent_shared.matrix, method="euclidean")
+pairwise_percent_shared.matrix.hclust <- hclust(pairwise_percent_shared.matrix.dist, method="complete")
+simScore.dendro <- as.dendrogram(pairwise_percent_shared.matrix.hclust)
+write.dendrogram(simScore.dendro, "cluster_dendrogram.tre", edges=TRUE)
+plot(pairwise_percent_shared.matrix.hclust)
+```
+
+
+
+
+
+# Plot Admixture based on two PC
+
+A function that wraps up all the functions required to parse and plot the input data.
+Will use the supplied hclust object to create dendrogram and order bars or will perform clustering itself.
+``` {r func_cluster_plot}
+cluster_plot <- function(data, samples, selected_columns, 
+                         plot.dendro=NULL, colors=NULL,
+                         dist.method="euclidean", hclust.method="complete",
+                         x.label.font.size=5, legend.size.scale=0.5,
+                         legend.title="Groups",
+                         rel_heights=c(0.3, 1.0, 0.3)) {
+  # Code modified from: https://stackoverflow.com/questions/44646488/stacked-bar-plot-with-hierarchical-clustering-dendrogram
+  
+  #########################
+  #### Cluster samples ####
+  #########################
+  if(is.null(plot.dendro)) {
+    d <- dist(as.matrix(data), method=dist.method)
+    hc <- hclust(d, method=hclust.method)
+    plot.dendro <- as.dendrogram(hc)
+  }
+  
+  ##############
+  #### Plot ####
+  ##############
+  # Convert dendrogram to segment data
+  dend_data <- dendro_data(plot.dendro, type="rectangle")
+  segment_data <- dend_data[["segments"]]
+  dend_labels <- gsub('\'', '', dend_data$labels$label)
+
+  # Sample positions df
+  sample_pos_table <- with(dend_data$labels, 
+                           data.frame(x_center = x, sample = as.character(label), width = 0.9))
+  # X-axis limits
+  axis_limits <- with(sample_pos_table, 
+                      c(min(x_center - 0.5 * width), max(x_center + 0.5 * width))) + 
+                      0.1 * c(-1, 1) # extra spacing: 0.1
+  
+  # Plot clustering dendrogram
+  p.dendr <- ggplot(segment_data) +
+    geom_segment(aes(x = x, y = y, xend = xend, yend = yend)) +
+    scale_y_continuous(expand = c(0, 0, 0, 0.1)) + 
+    scale_x_continuous(breaks = sample_pos_table$x_center, 
+                       labels = NULL, 
+                       limits = axis_limits, 
+                       expand = c(0, 0)) + 
+    labs(x = "", y = "Distance", colour = "", size = "") +
+    theme_bw() + 
+    theme(panel.grid.minor=element_blank(),
+          panel.grid.major=element_blank(),
+          plot.margin=unit(c(0,0,0,0), "mm"))
+  
+  # Plot bar chart
+  p.barplot <- data %>%
+    rownames_to_column() %>%
+    arrange(factor(rowname, levels = dend_labels), dend_labels) %>%
+    column_to_rownames("rowname") %>%
+    as.matrix() %>%
+    melt() %>%
+    rename(Sample=Var1, ITS2type=Var2, Abundance=value) %>%
+    # Plot bar chart
+    ggplot(aes(x=Sample, y=Abundance, fill=ITS2type)) +
+      geom_bar(position="stack", stat="identity") +
+      scale_y_continuous(expand = c(0, 0)) +
+      scale_fill_manual(values = colorRampPalette(brewer.pal(12,"Paired"))(12)) +
+      labs(x = "", y = "Frequency", fill=legend.title) +
+      theme_bw() +
+      theme(axis.text.x=element_blank(),
+            legend.key.height= unit(2*legend.size.scale, 'mm'),
+            legend.key.width= unit(2*legend.size.scale, 'mm'),
+            legend.title = element_text(size=4*legend.size.scale),
+            legend.text = element_text(size=4*legend.size.scale),
+            plot.margin=unit(c(0,0,0,0), "mm")) +
+      guides(fill=guide_legend(ncol=1))
+  
+  # Plot Meta Information about samples
+  if(is.null(colors)) {
+    colors <- rep(brewer.pal(brewer.pal.info["Set3", "maxcolors"], "Set3"), ceiling(nrow(samples)/12))
+  }
+  p.sampleInfo <- samples %>%
+    select(all_of(selected_columns)) %>%
+    rownames_to_column() %>% 
+    arrange(factor(rowname, levels = dend_labels), dend_labels) %>% 
+    column_to_rownames("rowname") %>% 
+    as.matrix() %>% 
+    melt() %>% 
+    rename(Sample=Var1, MetaInfo=Var2, Value=value) %>% 
+    mutate(Count = 1) %>% 
+    filter(MetaInfo!="PlugID") %>%
+    ggplot(aes(x=Sample, y=Count, fill=Value)) + 
+      geom_bar(position="stack", stat="identity") + 
+      scale_y_continuous(expand = c(0, 0)) + 
+      scale_fill_manual(values=colors) +
+      labs(x = "Samples", y = "Meta Information", fill="") +
+      theme_bw() +
+      theme(axis.text.x=element_text(angle = 90, vjust = 0.5, hjust=1, size=x.label.font.size),
+            axis.ticks.y=element_blank(),
+            axis.text.y=element_blank(),
+            legend.key.height= unit(2*legend.size.scale, 'mm'),
+            legend.key.width= unit(2*legend.size.scale, 'mm'),
+            legend.title = element_text(size=4*legend.size.scale),
+            legend.text = element_text(size=4*legend.size.scale),
+            plot.margin=unit(c(0,0,0,0), "mm")) +
+      guides(fill=guide_legend(ncol=1))
+  
+  # Combine plots and print to screen
+  comb <- plot_grid(p.dendr, p.barplot, p.sampleInfo, align = 'v', ncol = 1, axis = "lr", rel_heights = rel_heights)
+  print(comb)
+}
+```
+
+
+Load Admixture results into `R`.
+```{r load_Admixture_data}
+q  <- read.table("PCAngsd.angsd.beagle.gz.Admixture.admix.4.Q")
+rownames(q) <- samples.order$V1
+```
+
+
+
+Setup the color pallet that we want to use for the sample metadata.
+```{r color_pallet}
+t.reef <- samples.info %>% select(all_of(c("reef", "reef_color"))) %>% unique()
+colnames(t.reef) <- c("label", "color")
+t.ploidy<- samples.info %>% select(all_of(c("ploidy", "ploidy_color"))) %>% unique()
+colnames(t.ploidy) <- c("label", "color")
+t.group <- samples.info %>% select(all_of(c("group", "group_color"))) %>% unique()
+colnames(t.group) <- c("label", "color")
+t <- rbind(t.reef, t.ploidy, t.group)
+label.colors <- as.vector(t[,2])
+names(label.colors) <- as.vector(t[,1])
+label.colors
+```
+
+
+
+Plot Admixture results. Use the admixture matrix to generate the degdrogram and sample order.
+```{r plot_Admixture}
+cluster_plot(q, samples.info, c("reef", "ploidy", "group"), colors=label.colors, x.label.font.size=2)
+```
+
+
+
+Plot Admixture results using a supplied dendrogram object built from the pairwise similairty scores produced by `vcf_clone_detect.py`.
+```{r plot_Admixture_withPSSclust}
+cluster_plot(q, samples.info, c("reef", "ploidy", "group"), plot.dendro=simScore.dendro, colors=label.colors, x.label.font.size=2)
+```
+
+
+
+
+
+# Estimating Individual Allele Frequencies
+
+Load PCAngsd results with estimated individual allele frequencies.
+```{r load_PCAngsd_IndAllelFreq_data}
+C <- as.matrix(read.table("PCAngsd.angsd.beagle.gz.IndAlleleFreq.cov"))
+e <- eigen(C)
+pop <- samples.info
+```
+
+
+
+Plot PC1 and PC2 of PCAngsd results with estimated individual allele frequencies.
+```{r plot_PCAngsd_IndAllelFreq_PC1_PC2}
+A <- 1
+B <- 2
+
+plot(e$vectors[,c(A,B)], col=pop$group_color,  pch=19, xlab=paste("PC", A, sep=''), ylab=paste("PC", B, sep=''), main="Individual allele frequency - colored by Group")
+plot(e$vectors[,c(A,B)], col=pop$reef_color,   pch=19, xlab=paste("PC", A, sep=''), ylab=paste("PC", B, sep=''), main="Individual allele frequency - colored by Reef")
+plot(e$vectors[,c(A,B)], col=pop$ploidy_color, pch=19, xlab=paste("PC", A, sep=''), ylab=paste("PC", B, sep=''), main="Individual allele frequency - colored by Ploidy")
+```
+
+
+
+Plot PC1 and PC2 of PCAngsd results with estimated individual allele frequencies using the `plotly` package.
+```{r plotly_PCAngsd_IndAllelFreq_PC1_PC2}
+w<-800
+h<-800
+
+df <- as.data.frame(e$vectors)
+df <- cbind(df, samples.info)
+
+# Group
+p <- plot_ly(df, x=~V1, y=~V2, text=rownames(df), type = "scatter",
+             mode="markers", color=~group, colors=label.colors, marker=list(size=11),
+             width=w, height=h)
+p <- layout(p,title="Without individual allele frequency - colored by Group",
+            xaxis=list(title="PC1"),
+            yaxis=list(title="PC2"))
+p
+
+# Reef
+p <- plot_ly(df, x=~V1, y=~V2, text=rownames(df), type = "scatter",
+             mode="markers", color=~reef, colors=label.colors, marker=list(size=11),
+             width=w, height=h)
+p <- layout(p,title="Without individual allele frequency - colored by Reef",
+            xaxis=list(title="PC1"),
+            yaxis=list(title="PC2"))
+p
+
+# Ploidy
+p <- plot_ly(df, x=~V1, y=~V2, text=rownames(df), type = "scatter",
+             mode="markers", color=~ploidy, colors=label.colors, marker=list(size=11),
+             width=w, height=h)
+p <- layout(p,title="Without individual allele frequency - colored by Ploidy",
+            xaxis=list(title="PC1"),
+            yaxis=list(title="PC2"))
+p
+```
+
+
+
+Plot PC1 and PC3 of PCAngsd results with estimated individual allele frequencies.
+```{r plot_PCAngsd_IndAllelFreq_PC1_PC3}
+A <- 1
+B <- 3
+
+plot(e$vectors[,c(A,B)], col=pop$group_color,  pch=19, xlab=paste("PC", A, sep=''), ylab=paste("PC", B, sep=''), main="Individual allele frequency - colored by Group")
+plot(e$vectors[,c(A,B)], col=pop$reef_color,   pch=19, xlab=paste("PC", A, sep=''), ylab=paste("PC", B, sep=''), main="Individual allele frequency - colored by Reef")
+plot(e$vectors[,c(A,B)], col=pop$ploidy_color, pch=19, xlab=paste("PC", A, sep=''), ylab=paste("PC", B, sep=''), main="Individual allele frequency - colored by Ploidy")
+```
+
+
+
+Plot PC1 and PC4 of PCAngsd results with estimated individual allele frequencies.
+```{r plot_PCAngsd_IndAllelFreq_PC1_PC4}
+A <- 1
+B <- 4
+
+plot(e$vectors[,c(A,B)], col=pop$group_color,  pch=19, xlab=paste("PC", A, sep=''), ylab=paste("PC", B, sep=''), main="Individual allele frequency - colored by Group")
+plot(e$vectors[,c(A,B)], col=pop$reef_color,   pch=19, xlab=paste("PC", A, sep=''), ylab=paste("PC", B, sep=''), main="Individual allele frequency - colored by Reef")
+plot(e$vectors[,c(A,B)], col=pop$ploidy_color, pch=19, xlab=paste("PC", A, sep=''), ylab=paste("PC", B, sep=''), main="Individual allele frequency - colored by Ploidy")
+```
+
+
+
+Plot PC2 and PC3 of PCAngsd results with estimated individual allele frequencies.
+```{r plot_PCAngsd_IndAllelFreq_PC2_PC3}
+A <- 2
+B <- 3
+
+plot(e$vectors[,c(A,B)], col=pop$group_color,  pch=19, xlab=paste("PC", A, sep=''), ylab=paste("PC", B, sep=''), main="Individual allele frequency - colored by Group")
+plot(e$vectors[,c(A,B)], col=pop$reef_color,   pch=19, xlab=paste("PC", A, sep=''), ylab=paste("PC", B, sep=''), main="Individual allele frequency - colored by Reef")
+plot(e$vectors[,c(A,B)], col=pop$ploidy_color, pch=19, xlab=paste("PC", A, sep=''), ylab=paste("PC", B, sep=''), main="Individual allele frequency - colored by Ploidy")
+```
+
+
+
+Plot PC2 and PC4 of PCAngsd results with estimated individual allele frequencies.
+```{r plot_PCAngsd_IndAllelFreq_PC2_PC4}
+A <- 2
+B <- 4
+
+plot(e$vectors[,c(A,B)], col=pop$group_color,  pch=19, xlab=paste("PC", A, sep=''), ylab=paste("PC", B, sep=''), main="Individual allele frequency - colored by Group")
+plot(e$vectors[,c(A,B)], col=pop$reef_color,   pch=19, xlab=paste("PC", A, sep=''), ylab=paste("PC", B, sep=''), main="Individual allele frequency - colored by Reef")
+plot(e$vectors[,c(A,B)], col=pop$ploidy_color, pch=19, xlab=paste("PC", A, sep=''), ylab=paste("PC", B, sep=''), main="Individual allele frequency - colored by Ploidy")
+```
+
+
+
+
+
+# Without Estimating Individual Allele Frequencies
+
+Load PCAngsd results with WITHOUT estimated individual allele frequencies.
+```{r load_PCAngsd_withoutIndAllelFreq_data}
+C <- as.matrix(read.table("PCAngsd.angsd.beagle.gz.WithOutIndAlleleFreq.cov"))
+e <- eigen(C)
+pop <- samples.info
+```
+
+
+
+Plot PC1 and PC2 of PCAngsd results WITHOUT estimated individual allele frequencies.
+```{r plot_PCAngsd_withoutIndAllelFreq_PC1_PC2}
+A <- 1
+B <- 2
+
+plot(e$vectors[,c(A,B)], col=pop$group_color,  pch=19, xlab=paste("PC", A, sep=''), ylab=paste("PC", B, sep=''), main="Without individual allele frequency - colored by Group")
+plot(e$vectors[,c(A,B)], col=pop$reef_color,   pch=19, xlab=paste("PC", A, sep=''), ylab=paste("PC", B, sep=''), main="Without individual allele frequency - colored by Reef")
+plot(e$vectors[,c(A,B)], col=pop$ploidy_color, pch=19, xlab=paste("PC", A, sep=''), ylab=paste("PC", B, sep=''), main="Without individual allele frequency - colored by Ploidy")
+```
+
+
+
+Plot PC1 and PC2 of PCAngsd results WITHOUT estimated individual allele frequencies using the `plotly` package. 
+```{r plotly_PCAngsd_withoutIndAllelFreq_PC1_PC2}
+df <- as.data.frame(e$vectors)
+df <- cbind(df, samples.info)
+
+# Group
+p <- plot_ly(df, x=~V1, y=~V2, text=rownames(df), type = "scatter",
+             mode="markers", color=~group, colors=label.colors, marker=list(size=11))
+p <- layout(p,title="Without individual allele frequency - colored by Group",
+            xaxis=list(title="PC1"),
+            yaxis=list(title="PC2"))
+p
+
+# Reef
+p <- plot_ly(df, x=~V1, y=~V2, text=rownames(df), type = "scatter",
+             mode="markers", color=~reef, colors=label.colors, marker=list(size=11))
+p <- layout(p,title="Without individual allele frequency - colored by Reef",
+            xaxis=list(title="PC1"),
+            yaxis=list(title="PC2"))
+p
+
+# Ploidy
+p <- plot_ly(df, x=~V1, y=~V2, text=rownames(df), type = "scatter",
+             mode="markers", color=~ploidy, colors=label.colors, marker=list(size=11))
+p <- layout(p,title="Without individual allele frequency - colored by Ploidy",
+            xaxis=list(title="PC1"),
+            yaxis=list(title="PC2"))
+p
+```
+
+
+
+
+
+# Session Info
+
+```{r ressionInfo}
+sessionInfo()
+```

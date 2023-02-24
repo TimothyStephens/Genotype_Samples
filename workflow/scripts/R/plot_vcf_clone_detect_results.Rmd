@@ -1,0 +1,224 @@
+---
+title: "Plot `vcf_clone_detect.py` results for *P. acuta* RNA-seq samples"
+author: "Timothy Stephens"
+date: "28/09/2022"
+output: 
+  html_document:
+    keep_md: yes
+---
+
+
+
+# Setup
+
+Setup R env. Load packages and set default image export formats, size and resolution.
+```{r setup}
+knitr::opts_chunk$set(echo = TRUE,
+                      fig.height = 12, 
+                      fig.width = 12, 
+                      dev = c("png", "pdf"),
+                      dpi = 1000)
+library(readxl)
+library(dplyr)
+library(ggplot2)
+library(gplots)
+library(reshape2)
+library(RcppCNPy)
+library(tibble)
+library(ggdendro)
+library(cowplot)
+library(RColorBrewer)
+library(viridis)
+library(knitr)
+library(plotly)
+library(phylogram)
+options(scipen = 999) #Prevent scientific notation
+cexSize <- 0.3
+```
+
+
+
+
+
+# Metadata 
+
+Load file with annotation for each sample. 
+```{r load_metadata}
+samples.info <- read.table("../../samples_Pacuta.annotations.txt", header=T, comment.char='')
+rownames(samples.info) <- samples.info$sample
+samples.info
+```
+
+
+
+
+
+# Load pairwise similarity scores (simScore) and cluster samples
+
+Load pairwise percent shared SNP results and convert if from one line per pair format into a symetric matrix uisng the `xtabs` function.
+```{r load_pairwise_simScores}
+pairwise_percent_shared <- read.table("GVCFall.filtered.recode.vcf.gz.allelic_similarity.full.tsv", sep='\t', header=T)
+pairwise_percent_shared.matrix <- xtabs(match_perc ~ ind1 + ind2, data=pairwise_percent_shared)
+```
+
+
+
+Process the simScore data ready for plotting (i.e., cluster samples based on computed distance and construct a dendrogram of the relationship).
+```{r process_data_for_plotting}
+# Make a copy of input matrix
+tmp.mat <- pairwise_percent_shared.matrix
+
+# Generate clusters from the allelic similarity scores matrix
+tmp.mat.dist   <- dist(tmp.mat, method="euclidean")
+tmp.mat.hclust <- hclust(tmp.mat.dist, method="complete")
+
+# Get sample colors for sidebar in the same order as the matrix
+Rcols <- samples.info[rownames(tmp.mat),]$group_color
+Ccols <- samples.info[colnames(tmp.mat),]$group_color
+
+# Get min and max values of matrix
+tmp.mat.min <- min(tmp.mat); tmp.mat.min
+tmp.mat.max <- max(tmp.mat); tmp.mat.max
+```
+
+
+
+Plot clustering results and write dendrogram to file.
+```{r plot_clusters}
+simScore.dendro <- as.dendrogram(tmp.mat.hclust)
+write.dendrogram(simScore.dendro, "cluster_dendrogram.tre", edges=TRUE)
+plot(tmp.mat.hclust)
+```
+
+
+
+Write ordered matrix to file incase we want it later.
+```{r save_simScore_matrix_to_file}
+tmp.mat.order <- dendro_data(simScore.dendro, type="rectangle")[["labels"]][["label"]]
+tmp.mat.ordered <- tmp.mat[
+  order(match(rownames(tmp.mat), rev(tmp.mat.order))),
+  order(match(colnames(tmp.mat), tmp.mat.order))
+  ]
+write.table(as.matrix(tmp.mat.ordered), 
+            "GVCFall.filtered.recode.vcf.gz.allelic_similarity.full.matrix.tsv", 
+            sep='\t', quote=FALSE, 
+            row.names=TRUE, col.names=TRUE)
+```
+
+
+
+
+
+# Plot pairwise similarity scores
+
+Plot simScores heatmap.
+```{R plot_simScore_heatmap}
+par(cex.main=0.7, cex.lab=0.9, cex.axis=0.9) # Change the font size of the legend title, labels and axis
+heatmap.2(x=tmp.mat,
+          Rowv = simScore.dendro,
+          Colv = simScore.dendro,
+          col=cividis(length(seq(75, 100, 0.1))-1),
+          breaks=seq(75, 100, 0.1),
+          trace="none", # Dont draw "trace" line
+          key=TRUE, # Show color-key
+          margins=c(8,8), # Numeric vector of length 2 containing the margins for column and row names, respectively.
+          ColSideColors=Ccols,
+          RowSideColors=Rcols,
+          offsetRow=0,
+          offsetCol=0,
+          cexRow=cexSize, # Positive numbers, used as cex.axis in for the row or column axis labeling.
+          cexCol=cexSize,
+          cellnote=formatC(tmp.mat, big.mark=","),
+          notecex=0.1,
+          )
+```
+
+
+
+Plot simScores heatmap without cell notes/values.
+```{R plot_simScore_heatmap_noCellNotes}
+par(cex.main=0.7, cex.lab=0.9, cex.axis=0.9) # Change the font size of the legend title, labels and axis
+heatmap.2(x=tmp.mat,
+          Rowv = simScore.dendro,
+          Colv = simScore.dendro,
+          col=cividis(length(seq(75, 100, 0.1))-1),
+          breaks=seq(75, 100, 0.1),
+          trace="none", # Don't draw "trace" line
+          key=TRUE, # Show color-key
+          margins=c(8,8), # Numeric vector of length 2 containing the margins for column and row names, respectively.
+          ColSideColors=Ccols,
+          RowSideColors=Rcols,
+          offsetRow=0,
+          offsetCol=0,
+          cexRow=cexSize, # Positive numbers, used as cex.axis in for the row or column axis labeling.
+          cexCol=cexSize,
+          notecex=0.1,
+          )
+```
+
+
+
+Plot simScores heatmap with specific colors applied to selected ranges of values (i.e., value ranges picked from the histogram on the top left).
+```{R plot_simScore_heatmap_withCutoff}
+par(cex.main=0.7, cex.lab=0.9, cex.axis=0.9) # Change the font size of the legend title, labels and axis
+heatmap.2(x=tmp.mat,
+          Rowv = simScore.dendro,
+          Colv = simScore.dendro,
+          col=c(rep(cividis(5)[1], length(seq(75.1, 80.6,  0.1))),
+                rep(cividis(5)[2], length(seq(80.7, 84.3,  0.1))),
+                rep(cividis(5)[3], length(seq(84.4, 91.0,  0.1))),
+                rep(cividis(5)[4], length(seq(91.1, 94.0,  0.1))),
+                rep(cividis(5)[5], length(seq(94.1, 100.0, 0.1)))
+                ),
+          breaks=seq(75, 100, 0.1),
+          trace="none", # Don't draw "trace" line
+          key=TRUE, # Show color-key
+          margins=c(8,8), # Numeric vector of length 2 containing the margins for column and row names, respectively.
+          ColSideColors=Ccols,
+          RowSideColors=Rcols,
+          offsetRow=0,
+          offsetCol=0,
+          cexRow=cexSize, # Positive numbers, used as cex.axis in for the row or column axis labeling.
+          cexCol=cexSize,
+          cellnote=formatC(tmp.mat, big.mark=","),
+          notecex=0.1,
+          )
+```
+
+
+
+Plot simScores heatmap with specific colors applied to selected ranges of values (i.e., value ranges picked from the histogram on the top left) without cell notes/values.
+```{R plot_simScore_heatmap_withCutoff_noCellNotes}
+par(cex.main=0.7, cex.lab=0.9, cex.axis=0.9) # Change the font size of the legend title, labels and axis
+heatmap.2(x=tmp.mat,
+          Rowv = simScore.dendro,
+          Colv = simScore.dendro,
+          col=c(rep(cividis(5)[1], length(seq(75.1, 80.6,  0.1))),
+                rep(cividis(5)[2], length(seq(80.7, 84.3,  0.1))),
+                rep(cividis(5)[3], length(seq(84.4, 91.0,  0.1))),
+                rep(cividis(5)[4], length(seq(91.1, 94.0,  0.1))),
+                rep(cividis(5)[5], length(seq(94.1, 100.0, 0.1)))
+                ),
+          breaks=seq(75, 100, 0.1),
+          trace="none", # Don't draw "trace" line
+          key=TRUE, # Show color-key
+          margins=c(8,8), # Numeric vector of length 2 containing the margins for column and row names, respectively.
+          ColSideColors=Ccols,
+          RowSideColors=Rcols,
+          offsetRow=0,
+          offsetCol=0,
+          cexRow=cexSize, # Positive numbers, used as cex.axis in for the row or column axis labeling.
+          cexCol=cexSize,
+          notecex=0.1,
+          )
+```
+
+
+
+
+
+# Session Info
+
+```{r ressionInfo}
+sessionInfo()
+```

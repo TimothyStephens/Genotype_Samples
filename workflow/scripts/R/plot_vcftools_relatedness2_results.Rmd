@@ -1,0 +1,233 @@
+---
+title: "Plot `vcftools --relatedness2` results for *P. acuta* RNA-seq samples"
+author: "Timothy Stephens"
+date: "28/09/2022"
+output: 
+  html_document:
+    keep_md: yes
+---
+
+
+
+# Setup
+
+Setup R env. Load packages and set default image export formats, size and resolution.
+```{r setup}
+knitr::opts_chunk$set(echo = TRUE,
+                      fig.height = 12, 
+                      fig.width = 12, 
+                      dev = c("png", "pdf"),
+                      dpi = 1000)
+library(readxl)
+library(dplyr)
+library(ggplot2)
+library(gplots)
+library(reshape2)
+library(RcppCNPy)
+library(tibble)
+library(ggdendro)
+library(cowplot)
+library(RColorBrewer)
+library(viridis)
+library(knitr)
+library(plotly)
+library(phylogram)
+options(scipen = 999) #Prevent scientific notation
+cexSize <- 0.3
+```
+
+
+
+
+
+# Metadata 
+
+Load file with annotation for each sample. 
+```{r load_metadata}
+samples.info <- read.table("../../samples_Pacuta.annotations.txt", header=T, comment.char='')
+rownames(samples.info) <- samples.info$sample
+samples.info
+```
+
+
+
+
+
+# Load similarity dendrogram
+
+Load similarity dendrogram from `vcf_clone_detect.py`. Have to recompute the clusters because a dendro written and read from file does not seem to be the same as one generated directly from hclust (heatmap.2 wont work with a dendro loaded from file, only a fresh one generated in this session). 
+```{r load_simScore_dendrogram}
+pairwise_percent_shared <- read.table("../vcf_clone_detect/GVCFall.filtered.recode.vcf.gz.allelic_similarity.full.tsv", sep='\t', header=T)
+pairwise_percent_shared.matrix <- xtabs(match_perc ~ ind1 + ind2, data=pairwise_percent_shared)
+pairwise_percent_shared.matrix.dist   <- dist(pairwise_percent_shared.matrix, method="euclidean")
+pairwise_percent_shared.matrix.hclust <- hclust(pairwise_percent_shared.matrix.dist, method="complete")
+simScore.dendro <- as.dendrogram(pairwise_percent_shared.matrix.hclust)
+write.dendrogram(simScore.dendro, "cluster_dendrogram.tre", edges=TRUE)
+plot(pairwise_percent_shared.matrix.hclust)
+```
+
+
+
+
+
+# Load pairwise relatedness scores (relScore) and cluster samples
+
+Load pairwise relatedness scores and convert if from one line per pair format into a symetric matrix uisng the `xtabs` function.
+```{r load_pairwise_relScores}
+pairwise_relatedness <- read.table("GVCFall.filtered.recode.relatedness2", sep='\t', header=T)
+pairwise_relatedness.matrix <- xtabs(RELATEDNESS_PHI ~ INDV1 + INDV2, data=pairwise_relatedness)
+```
+
+
+
+Process the pairwise relatedness scores data to get it ready for plotting.
+```{r process_data_for_plotting}
+# Make a copy of input matrix
+tmp.mat <- pairwise_relatedness.matrix
+
+# Set negative relatedness values to 0
+tmp.mat[tmp.mat < 0] <- 0
+
+# Generate clusters from the relatedness scores matrix
+tmp.mat.dist   <- dist(tmp.mat, method="euclidean")
+tmp.mat.hclust <- hclust(tmp.mat.dist, method="complete")
+
+# Get sample colors for sidebar in the same order as the matrix
+Rcols <- samples.info[rownames(tmp.mat),]$group_color
+Ccols <- samples.info[colnames(tmp.mat),]$group_color
+
+# Get min and max values of matrix
+tmp.mat.min <- min(tmp.mat); tmp.mat.min
+tmp.mat.max <- max(tmp.mat); tmp.mat.max
+```
+
+
+
+Write ordered matrix to file incase we want it later.
+```{r save_relScore_matrix_to_file}
+tmp.mat.order <- dendro_data(simScore.dendro, type="rectangle")[["labels"]][["label"]]
+tmp.mat.ordered <- tmp.mat[
+  order(match(rownames(tmp.mat), rev(tmp.mat.order))),
+  order(match(colnames(tmp.mat), tmp.mat.order))
+  ]
+write.table(as.matrix(tmp.mat.ordered), 
+            "GVCFall.filtered.recode.relatedness2.matrix.tsv", 
+            sep='\t', quote=FALSE, 
+            row.names=TRUE, col.names=TRUE)
+```
+
+
+
+
+
+# Plot pairwise relatedness scores
+
+Plot relScores heatmap.
+```{R plot_relScore_heatmap}
+par(cex.main=0.7, cex.lab=0.9, cex.axis=0.9) # Change the font size of the legend title,labels and axis
+heatmap.2(x=tmp.mat,
+          Rowv = simScore.dendro,
+          Colv = simScore.dendro,
+          col=cividis(100),
+          trace="none", # Dont draw "trace" line
+          key=TRUE, # Show color-key
+          margins=c(8,8), # Numeric vector of length 2 containing the margins for column and row names, respectively.
+          ColSideColors=Ccols,
+          RowSideColors=Rcols,
+          offsetRow=0,
+          offsetCol=0,
+          cexRow=cexSize, # Positive numbers, used as cex.axis in for the row or column axis labeling.
+          cexCol=cexSize,
+          cellnote=formatC(round(tmp.mat, 3), big.mark=","),
+          notecex=0.1,
+          )
+```
+
+
+
+Plot relScores heatmap without cell notes/values.
+```{R plot_relScore_heatmap_noCellNotes}
+par(cex.main=0.7, cex.lab=0.9, cex.axis=0.9) # Change the font size of the legend title,labels and axis
+heatmap.2(x=tmp.mat,
+          Rowv = simScore.dendro,
+          Colv = simScore.dendro,
+          col=cividis(100),
+          trace="none", # Don't draw "trace" line
+          key=TRUE, # Show color-key
+          margins=c(8,8), # Numeric vector of length 2 containing the margins for column and row names, respectively.
+          ColSideColors=Ccols,
+          RowSideColors=Rcols,
+          offsetRow=0,
+          offsetCol=0,
+          cexRow=cexSize, # Positive numbers, used as cex.axis in for the row or column axis labeling.
+          cexCol=cexSize,
+          notecex=0.1,
+          )
+```
+
+
+
+Plot relScores heatmap with specific colors applied to selected ranges of values (i.e., value ranges picked from the histogram on the top left).
+```{R plot_relScore_heatmap_withCutoff}
+par(cex.main=0.7, cex.lab=0.9, cex.axis=0.9) # Change the font size of the legend title,labels and axis
+heatmap.2(x=tmp.mat,
+          Rowv = simScore.dendro,
+          Colv = simScore.dendro,
+          col=c(rep(cividis(5)[1], length(seq(0.01, 0.18, 0.01))),
+                rep(cividis(5)[2], length(seq(0.19, 0.26, 0.01))),
+                rep(cividis(5)[3], length(seq(0.27, 0.31, 0.01))),
+                rep(cividis(5)[4], length(seq(0.32, 0.42, 0.01))),
+                rep(cividis(5)[5], length(seq(0.43, 0.50, 0.01)))
+                ),
+          breaks=seq(0.00, 0.50, 0.01),
+          trace="none", # Dont draw "trace" line
+          key=TRUE, # Show color-key
+          margins=c(8,8), # Numeric vector of length 2 containing the margins for column and row names, respectively.
+          ColSideColors=Ccols,
+          RowSideColors=Rcols,
+          offsetRow=0,
+          offsetCol=0,
+          cexRow=cexSize, # Positive numbers, used as cex.axis in for the row or column axis labeling.
+          cexCol=cexSize,
+          cellnote=formatC(round(tmp.mat, 3), big.mark=","),
+          notecex=0.1,
+          )
+```
+
+
+
+Plot relScores heatmap with specific colors applied to selected ranges of values (i.e., value ranges picked from the histogram on the top left) without cell notes/values.
+```{R plot_relScore_heatmap_withCutoff_noCellNotes}
+par(cex.main=0.7, cex.lab=0.9, cex.axis=0.9) # Change the font size of the legend title,labels and axis
+heatmap.2(x=tmp.mat,
+          Rowv = simScore.dendro,
+          Colv = simScore.dendro,
+          col=c(rep(cividis(5)[1], length(seq(0.01, 0.18, 0.01))),
+                rep(cividis(5)[2], length(seq(0.19, 0.26, 0.01))),
+                rep(cividis(5)[3], length(seq(0.27, 0.31, 0.01))),
+                rep(cividis(5)[4], length(seq(0.32, 0.42, 0.01))),
+                rep(cividis(5)[5], length(seq(0.43, 0.50, 0.01)))
+                ),
+          breaks=seq(0.00, 0.50, 0.01),
+          trace="none", # Dont draw "trace" line
+          key=TRUE, # Show color-key
+          margins=c(8,8), # Numeric vector of length 2 containing the margins for column and row names, respectively.
+          ColSideColors=Ccols,
+          RowSideColors=Rcols,
+          offsetRow=0,
+          offsetCol=0,
+          cexRow=cexSize, # Positive numbers, used as cex.axis in for the row or column axis labeling.
+          cexCol=cexSize,
+          notecex=0.1,
+          )
+```
+
+
+
+
+
+# Session Info
+
+```{r ressionInfo}
+sessionInfo()
+```
