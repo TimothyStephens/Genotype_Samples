@@ -1,0 +1,180 @@
+samples: 'config/samples.tsv.example_small'
+
+ref:
+  name: 'tests'
+  file: '.tests/data/Saccharomyces_cerevisiae.R64-1-1.dna.toplevel.fa.gz'
+
+
+################################
+#### Download
+################################
+# fasterq-dump
+download_fastq:
+  params: ''
+  threads: 6
+
+
+################################
+#### Index reference genome
+################################
+# BWA-MEM2
+ref_DNA_mapping_index:
+  params: ''
+
+# STAR
+ref_RNA_mapping_index:
+  params: ''
+  threads: 1
+
+
+################################
+#### Trimming
+################################
+# fastp DNA paired-end
+trimming_DNA_pe:
+  params: ''
+  threads: 16
+
+# fastp DNA single-end
+trimming_DNA_se:
+  params: ''
+  threads: 16
+
+# fastp RNA paired-end
+trimming_RNA_pe:
+  params: ''
+  threads: 16
+
+# fastp RNA single-end
+trimming_RNA_se:
+  params: ''
+  threads: 16
+
+
+################################
+#### Mapping
+################################
+# BWA-MEM2
+mapping_DNA_pe:
+  mapping_params: ''
+  sort_params: ''
+  threads: 24
+
+mapping_DNA_se:
+  mapping_params: ''
+  sort_params: ''
+  threads: 24
+
+# STAR
+mapping_RNA_pe:
+  sjdbOverhang: 150
+  mapping_params: ''
+  threads: 24
+
+mapping_RNA_se:
+  sjdbOverhang: 150
+  mapping_params: ''
+  threads: 24
+
+# Samtools merge
+mapping_merge:
+  params: ''
+  threads: 8
+
+
+################################
+#### Variant calling
+################################
+# run_deepvariant
+calling_variants:
+  model: 'WGS'
+  params: ''
+  threads: 8
+
+# bcftools index of merged VCF
+calling_VCFs_index:
+  params: ''
+  threads: 8
+
+# bcftools merge final VCFs
+calling_merge_VCFs:
+  params: ''
+
+# Filter final merged file
+calling_filter_VCFs:
+  filter: '--remove-indels --min-meanDP 10 --max-missing 1.0'
+
+
+################################
+#### Relatedness
+################################
+# 
+relatedness_vcftools_relatedness2:
+  params: ''
+
+relatedness_vcf_clone_detect:
+  threshold: 95.0
+  params: ''
+
+relatedness_ANGSD_for_NgsRelate:
+  params: ''
+  threads: 8
+
+relatedness_NgsRelate:
+  params: ''
+  threads: 8
+
+relatedness_ANGSD_for_PCAngsd:
+  params: ''
+  threads: 8
+
+relatedness_PCAngsd_IndAlleleFreq:
+  params: ''
+  threads: 8
+
+relatedness_PCAngsd_WithOutIndAlleleFreq:
+  params: ''
+  threads: 8
+
+relatedness_PCAngsd_Admixture:
+  params: ''
+  threads: 8
+
+
+################################
+#### Ploidy
+################################
+# nQuire
+ploidy_nQuire:
+  create_params: ''
+  denoise_params: ''
+  lrdmodel_params: ''
+  min_quality: 20
+  min_coverage: 20
+  threads: 8
+
+
+################################
+#### QC
+################################
+# FastQC
+qc_FastQC:
+  params: ''
+  threads: 1
+
+# Samtools stats
+qc_samtools_stats:
+  params: ''
+
+# qualimap
+qc_qualimap:
+  params: ''
+
+# bcftools stats
+qc_bcftools_stats:
+  params: ''
+
+# MultiQC
+qc_multiqc:
+  params: ''
+

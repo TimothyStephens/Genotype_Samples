@@ -1,0 +1,6 @@
+name: bwa-mem2
+channels:
+  - bioconda
+dependencies:
+  - bwa-mem2 ==2.2.1
+  - samtools ==1.16.1

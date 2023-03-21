@@ -8,10 +8,7 @@ type: object
 properties:
   samples:
     type: string
-  joint_calling_groups:
-    type: string
 
 # entries that have to be in the config file for successful validation
 required:
   - samples
-  - joint_calling_groups

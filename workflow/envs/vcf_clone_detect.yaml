@@ -1,7 +1,6 @@
-name: vcftools
+name: vcf_clone_detect
 channels:
-  - bioconda
   - conda-forge
 dependencies:
-  - python ==3.8
-  - numpy
+  - python ==3.8.0
+  - numpy ==1.24.2

@@ -10,6 +10,10 @@ properties:
   unit:
     type: string
     description: unit name/identifier
+  lib_type:
+    type: string
+    allowed: ['rna', 'dna']
+    description: library type
   fq1:
     type: string
     description: fastq file location
@@ -21,4 +25,5 @@ properties:
 required:
   - sample_id
   - unit
+  - lib_type
   - fq1

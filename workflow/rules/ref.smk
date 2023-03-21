@@ -1,40 +1,76 @@
 
 
-rule get_genome:
-    output:
-        "resources/genome.fasta",
-    log:
-        "results/logs/get-genome.log",
-    params:
-        ref_file=config["ref"]["file"],
-    cache: True
-    shell:
-        "( if [[ {params.ref_file} == *.gz ]]; then zcat {params.ref_file} > {output}; else cat {params.ref_file} > {output}; fi ) 1>{log} 2>&1"
+rule ref_parse_genome:
+	output:
+		"resources/{ref_name}/genome.fasta",
+	log:
+		"results/logs/ref/{ref_name}/ref_parse_genome.log",
+	params:
+		ref_file=config["ref"]["file"],
+	shell:
+		"( if [[ {params.ref_file} == *.gz ]]; then zcat {params.ref_file} > {output}; else cat {params.ref_file} > {output}; fi ) 1>{log} 2>&1"
 
 
-rule genome_faidx:
-    input:
-        "resources/genome.fasta",
-    output:
-        "resources/genome.fasta.fai",
-    log:
-        "results/logs/genome-faidx.log",
-    cache: True
-    wrapper:
-        "v1.23.4/bio/samtools/faidx"
+rule ref_faidx:
+	input:
+		"resources/{ref_name}/genome.fasta",
+	output:
+		"resources/{ref_name}/genome.fasta.fai",
+	log:
+		"results/logs/ref/{ref_name}/ref_faidx.log",
+	conda:
+		"../envs/bwa-mem2.yaml"
+	shell:
+		"samtools faidx"
+		" {input}"
+		" 1>{log} 2>&1"
 
 
-rule bwa_mem2_index:
-    input:
-        "resources/genome.fasta",
-    output:
-        multiext(
-            "resources/genome.fasta", ".0123", ".amb", ".ann", ".bwt.2bit.64", ".pac"
-        ),
-    log:
-        "results/logs/bwa-mem2_index.log",
-    cache: True
-    wrapper:
-        "v1.23.4/bio/bwa-mem2/index"
+rule ref_DNA_mapping_index:
+	input:
+		"resources/{ref_name}/genome.fasta",
+	output:
+		multiext(
+			"resources/{ref_name}/genome.fasta", ".0123", ".amb", ".ann", ".bwt.2bit.64", ".pac"
+		),
+	log:
+		"results/logs/ref/{ref_name}/ref_DNA_mapping_index.log",
+	params:
+		extra=config["ref_DNA_mapping_index"]["params"],
+	conda:
+		"../envs/bwa-mem2.yaml"
+	shell:
+		"bwa-mem2 index"
+		" {input}"
+		" {params.extra}"
+		" 1>{log} 2>&1"
+
+
+rule ref_RNA_mapping_index:
+	input:
+		"resources/{ref_name}/genome.fasta",
+	output:
+		directory("resources/{ref_name}/genome.fasta.STAR"),
+	log:
+		"results/logs/ref/{ref_name}/ref_RNA_mapping_index.log",
+	params:
+		extra=config["ref_RNA_mapping_index"]["params"],
+		tmpdir=temp(directory("resources/{ref_name}/STARtmp")),
+	threads: config["ref_RNA_mapping_index"]["threads"]
+	conda:
+		"../envs/star.yaml"
+	shell:
+		"("
+		"rm -fr {params.tmpdir}; "
+		"STAR"
+		" --runThreadN {threads}"
+		" --runMode genomeGenerate"
+		" --genomeFastaFiles {input}"
+		" {params.extra}"
+		" --outTmpDir {params.tmpdir}"
+		" --genomeDir {output}"
+		" && rm -fr {params.tmpdir}"
+		")"
+		" 1>{log} 2>&1"
 
 

@@ -1,0 +1,9 @@
+sample_id	unit	lib_type	fq1	fq2
+A	1	rna	.tests/data/reads.1.fq.gz	.tests/data/reads.2.fq.gz
+A	2	rna	.tests/data/reads.1.fq.gz	.tests/data/reads.2.fq.gz
+B	1	rna	.tests/data/reads.1.fq.gz	.tests/data/reads.2.fq.gz
+B	2	rna	.tests/data/reads.1.fq.gz
+C	1	dna	.tests/data/reads.1.fq.gz	.tests/data/reads.2.fq.gz
+D	1	dna	.tests/data/reads.1.fq.gz	.tests/data/reads.2.fq.gz
+E	1	dna	.tests/data/reads.1.fq.gz	.tests/data/reads.2.fq.gz
+E	2	dna	.tests/data/reads.1.fq.gz

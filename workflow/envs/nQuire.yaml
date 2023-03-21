@@ -1,4 +1,4 @@
-name: ngsRelate
+name: nQuire
 channels:
   - bioconda
 dependencies:

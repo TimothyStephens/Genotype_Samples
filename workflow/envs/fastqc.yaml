@@ -1,5 +1,5 @@
-name: bcftools
+name: fastqc
 channels:
   - bioconda
 dependencies:
-  - bcftools ==1.16
+  - fastqc ==0.11.9

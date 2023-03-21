@@ -1,6 +1,5 @@
 name: angsd
 channels:
   - bioconda
-  - conda-forge
 dependencies:
   - angsd ==0.940

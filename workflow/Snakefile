@@ -9,16 +9,16 @@ report: "report/workflow.rst"
 
 
 rule all:
-    input:
-        "results/merged_calls/all.vcf.gz",
-        "results/qc/multiqc.html",
-        "results/final/vcftools_relatedness2.tsv",
-        "results/final/vcf_clone_detect.tsv",
-        "results/final/NgsRelate.tsv",
-        "results/final/PCAngsd.IndAlleleFreq.tsv",
-        "results/final/PCAngsd.WithOutIndAlleleFreq.tsv",
-        "results/final/PCAngsd.Admixture.tsv",
-        "results/final/nQuire.tsv",
+	input:
+		"results/merged_calls/all.vcf.gz",
+		"results/qc/multiqc.html",
+		"results/final/vcftools_relatedness2.tsv",
+		"results/final/vcf_clone_detect.tsv",
+		"results/final/NgsRelate.tsv",
+		"results/final/PCAngsd.IndAlleleFreq.tsv",
+		"results/final/PCAngsd.WithOutIndAlleleFreq.tsv",
+		"results/final/PCAngsd.Admixture.tsv",
+		"results/final/nQuire.tsv",
 
 
 include: "rules/common.smk"

@@ -88,3 +88,4 @@ Matrix of the relatedness values between each pairwise combination of samples, c
 
 `Rmarkdown` scripts for visualization of the `PCAngsd`, `vcftools_relatedness2`, and `vcf_clone_detect` results are in `workflow/scripts/R/`.
 
+

@@ -1,5 +1,5 @@
-name: bcftools
+name: qualimap
 channels:
   - bioconda
 dependencies:
-  - bcftools ==1.16
+  - qualimap ==2.2.2a

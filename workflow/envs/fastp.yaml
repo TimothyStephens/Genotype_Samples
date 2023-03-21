@@ -1,5 +1,5 @@
-name: bcftools
+name: fastp
 channels:
   - bioconda
 dependencies:
-  - bcftools ==1.16
+  - fastp ==0.23.2
