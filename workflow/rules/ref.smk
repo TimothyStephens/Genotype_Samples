@@ -4,9 +4,9 @@ rule ref_parse_genome:
 	output:
 		"resources/{ref_name}/genome.fasta",
 	log:
-		"results/logs/ref/{ref_name}/ref_parse_genome.log",
+		"results/logs/resources/{ref_name}/ref_parse_genome.log",
 	params:
-		ref_file=config["ref"]["file"],
+		ref_file=lambda w: config["ref_genomes"][w.ref_name],
 	shell:
 		"( if [[ {params.ref_file} == *.gz ]]; then zcat {params.ref_file} > {output}; else cat {params.ref_file} > {output}; fi ) 1>{log} 2>&1"
 
@@ -17,7 +17,7 @@ rule ref_faidx:
 	output:
 		"resources/{ref_name}/genome.fasta.fai",
 	log:
-		"results/logs/ref/{ref_name}/ref_faidx.log",
+		"results/logs/resources/{ref_name}/ref_faidx.log",
 	conda:
 		"../envs/bwa-mem2.yaml"
 	shell:
@@ -34,7 +34,7 @@ rule ref_DNA_mapping_index:
 			"resources/{ref_name}/genome.fasta", ".0123", ".amb", ".ann", ".bwt.2bit.64", ".pac"
 		),
 	log:
-		"results/logs/ref/{ref_name}/ref_DNA_mapping_index.log",
+		"results/logs/resources/{ref_name}/ref_DNA_mapping_index.log",
 	params:
 		extra=config["ref_DNA_mapping_index"]["params"],
 	conda:
@@ -52,7 +52,7 @@ rule ref_RNA_mapping_index:
 	output:
 		directory("resources/{ref_name}/genome.fasta.STAR"),
 	log:
-		"results/logs/ref/{ref_name}/ref_RNA_mapping_index.log",
+		"results/logs/resources/{ref_name}/ref_RNA_mapping_index.log",
 	params:
 		extra=config["ref_RNA_mapping_index"]["params"],
 		tmpdir=temp(directory("resources/{ref_name}/STARtmp")),

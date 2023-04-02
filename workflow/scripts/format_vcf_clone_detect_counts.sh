@@ -15,6 +15,7 @@ awk -F',' 'FNR==NR{
     } 
   } else { 
     M[$1][$2]=$7
+    M[$2][$1]=$7
   }
 } END {
   L="sample_id"; 
@@ -29,7 +30,7 @@ awk -F',' 'FNR==NR{
     }
     print L
   } 
-}' ${snakemake_input[0]} ${snakemake_input[1]} > ${snakemake_output[0]}
+}' "${snakemake_input[0]}" "${snakemake_input[1]}" > "${snakemake_output[0]}"
 ) 1> "${snakemake_log[0]}" 2>&1
 
 

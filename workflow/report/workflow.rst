@@ -1,1 +1,1 @@
-This workflow takes raw reads, and performs the steps necessary to call variants using DeepVariant and GLnexus. The latest version of this workflow can be found `here <https://github.com/nikostr/dna-seq-deepvariant-glnexus-variant-calling>`_.
+This workflow takes raw reads, and performs the steps necessary to call variants using DeepVariant, assess ploidy using nQuire, and calculate population genomics metrics using ANGSD, ngsRelate, and vcftools. The latest version of this workflow can be found `here <https://github.com/TimothyStephens/Genotype_Samples>`_.

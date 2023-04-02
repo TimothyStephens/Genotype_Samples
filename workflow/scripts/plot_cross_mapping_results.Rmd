@@ -1,0 +1,66 @@
+---
+title: "Plot cross mapping results"
+author: 
+  - "Your Name"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+  highlight: tango
+  number_sections: no
+  theme: default
+  toc: yes
+  toc_depth: 3
+  toc_float:
+    collapsed: no
+    smooth_scroll: yes
+---
+
+
+
+# Setup
+
+Setup R env. Load packages and set default image export formats, size and resolution.
+```{r setup}
+library(tibble)
+library(ggplot2)
+library(heatmaply)
+options(scipen = 999) #Prevent scientific notation
+```
+
+File names and important variables.
+```{r file_names}
+data.file <- "mapping_rates.tsv"
+```
+
+
+
+# Load data 
+
+*Data matrix*
+```{r load_pairwise_simScores}
+# Load data
+data <- read.table(data.file, header=T, sep='\t', comment.char='', check.names=FALSE) %>% 
+  column_to_rownames(var = "sample_id")
+```
+
+
+
+# Plot matrix heatmap
+
+```{r heatmap}
+heatmaply(
+  data,
+  #plot_method = "plotly",
+  column_text_angle=90,
+  cexRow=1,
+  cexCol=1,
+)
+```
+
+
+
+# Session Info
+
+```{r ressionInfo}
+sessionInfo()
+```

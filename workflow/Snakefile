@@ -4,29 +4,60 @@ from snakemake.utils import min_version
 
 min_version("6.5")
 
-
 report: "report/workflow.rst"
-
-
-rule all:
-	input:
-		"results/merged_calls/all.vcf.gz",
-		"results/qc/multiqc.html",
-		"results/final/vcftools_relatedness2.tsv",
-		"results/final/vcf_clone_detect.tsv",
-		"results/final/NgsRelate.tsv",
-		"results/final/PCAngsd.IndAlleleFreq.tsv",
-		"results/final/PCAngsd.WithOutIndAlleleFreq.tsv",
-		"results/final/PCAngsd.Admixture.tsv",
-		"results/final/nQuire.tsv",
-
 
 include: "rules/common.smk"
 include: "rules/install_programs.smk"
 include: "rules/ref.smk"
+include: "rules/download.smk"
 include: "rules/trimming.smk"
 include: "rules/mapping.smk"
 include: "rules/calling.smk"
 include: "rules/qc.smk"
+include: "rules/cross-mapping.smk"
 include: "rules/relatedness.smk"
 include: "rules/ploidy.smk"
+include: "rules/annotations.smk"
+include: "rules/plotting.smk"
+
+localrules:
+	all,
+	full_workflow, 
+	cross_mapping,
+
+
+rule all:
+	input:
+		"cross_mapping",
+		"full_workflow"
+
+
+rule cross_mapping:
+	input:
+		rules.qc_multiqc_crossMapping.output,
+		rules.plotting_cross_mapping_results.output,
+	output:
+		temp(touch("cross_mapping")),
+
+
+rule full_workflow:
+	input:
+		rules.format_filtered_VCF.output,
+		rules.qc_multiqc_reads.output,
+		rules.qc_multiqc_variant_calls.output,
+		rules.format_results_vcftools_relatedness2.output,
+		rules.format_results_vcf_clone_detect_counts.output,
+		rules.format_results_vcf_clone_detect_groups.output,
+		rules.format_results_NgsRelate.output,
+		rules.format_results_PCAngsd_IndAlleleFreq.output,
+		rules.format_results_PCAngsd_WithOutIndAlleleFreq.output,
+		rules.format_results_PCAngsd_Admixture.output,
+		rules.format_nQuire_results.output,
+		rules.format_annotations.output,
+		rules.plotting_ANGSD_results.output.html,
+		rules.plotting_vcf_clone_detect_results.output.html,
+		rules.plotting_vcftools_relatedness2_results.output.html,
+	output:
+		temp(touch("full_workflow")),
+
+

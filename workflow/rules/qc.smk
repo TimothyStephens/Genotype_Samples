@@ -4,11 +4,11 @@ rule qc_fastqc:
 	input:
 		"results/trimmed/{fq}.fastq.gz",
 	output:
-		html="results/qc/fastqc/{fq}_fastqc.html",
-		zip="results/qc/fastqc/{fq}_fastqc.zip",
-		tmpdir=temp(directory("results/qc/fastqc/{fq}.fastqc_tmpdir")),
+		html="results/qc/trimmed/{fq}_fastqc.html",
+		zip="results/qc/trimmed/{fq}_fastqc.zip",
+		tmpdir=temp(directory("results/qc/trimmed/{fq}.fastqc_tmpdir")),
 	log:
-		"results/logs/fastqc/{fq}.log",
+		"results/logs/qc/trimmed/{fq}.log",
 	params:
 		extra=config["qc_FastQC"]["params"],
 	threads: config["qc_FastQC"]["threads"]
@@ -41,11 +41,11 @@ rule qc_fastqc_rawReads:
 	input:
 		unpack(get_raw_fastq_paths),
 	output:
-		html="results/qc/fastqc_raw/{fq}_fastqc.html",
-		zip="results/qc/fastqc_raw/{fq}_fastqc.zip",
-		tmpdir=temp(directory("results/qc/fastqc_raw/{fq}.fastqc_tmpdir")),
+		html="results/qc/raw/{fq}_fastqc.html",
+		zip="results/qc/raw/{fq}_fastqc.zip",
+		tmpdir=temp(directory("results/qc/raw/{fq}.fastqc_tmpdir")),
 	log:
-		"results/logs/fastqc_raw/{fq}.log",
+		"results/logs/qc/raw/{fq}.log",
 	params:
 		extra=config["qc_FastQC"]["params"],
 	threads: config["qc_FastQC"]["threads"]
@@ -85,11 +85,11 @@ rule qc_fastqc_rawReads:
 
 rule qc_samtools_stats:
 	input:
-		bam="results/mapped/{sample}.bam",
+		bam="results/"+PROJECT+"/mapping_merged/{sample}.bam",
 	output:
-		"results/qc/samtools_stats/{sample}_bam_stats_merged.txt",
+		"results/"+PROJECT+"/qc/mapping_merged/{sample}_samtools_stats.txt",
 	log:
-		"results/logs/samtools_stats/{sample}.log",
+		"results/"+PROJECT+"/log/qc/mapping_merged/{sample}.log",
 	params:
 		extra=config["qc_samtools_stats"]["params"],
 	conda:
@@ -104,11 +104,11 @@ rule qc_samtools_stats:
 
 rule qc_qualimap:
 	input:
-		bam="results/mapped/{sample}.bam",
+		bam="results/"+PROJECT+"/mapping_merged/{sample}.bam",
 	output:
-		directory("results/qc/qualimap/{sample}"),
+		directory("results/"+PROJECT+"/qc/mapping_merged/{sample}_qualimap"),
 	log:
-		"results/logs/qualimap/{sample}.log",
+		"results/"+PROJECT+"/log/qc/mapping_merged/{sample}.qualimap.log",
 	params:
 		extra=config["qc_qualimap"]["params"],
 	conda:
@@ -118,16 +118,17 @@ rule qc_qualimap:
 		" {params.extra}"
 		" -bam {input.bam}"
 		" -outdir {output}"
+		" -outformat HTML"
 		" 1>{log} 2>&1"
 
 
 rule qc_samtools_stats_unmerged:
 	input:
-		bam="results/mapped/{fq}.sorted.bam",
+		bam="results/"+PROJECT+"/mapping/{fq}.sorted.bam",
 	output:
-		"results/qc/samtools_stats/{fq}_bam_stats_unmerged.txt",
+		"results/"+PROJECT+"/qc/mapping/{fq}_samtools_stats.txt",
 	log:
-		"results/logs/samtools_stats/{fq}.log",
+		"results/"+PROJECT+"/log/qc/mapping/{fq}.log",
 	params:
 		extra=config["qc_samtools_stats"]["params"],
 	conda:
@@ -142,11 +143,11 @@ rule qc_samtools_stats_unmerged:
 
 rule qc_bcftools_stats:
 	input:
-		"results/merged_calls/{name}.vcf.gz",
+		"results/"+PROJECT+"/merged_calls/{name}.vcf.gz",
 	output:
-		"results/qc/bcftools_stats/{name}_stats.txt",
+		"results/"+PROJECT+"/qc/merged_calls/{name}_bcftools_stats.txt",
 	log:
-		"results/logs/bcftools_stats/{name}.log",
+		"results/"+PROJECT+"/log/qc/merged_calls/{name}_bcftools_stats.log",
 	params:
 		extra=config["qc_bcftools_stats"]["params"],
 	conda:
@@ -162,30 +163,21 @@ rule qc_bcftools_stats:
 def expand_fastq_paths():
 	out = []
 	for i, row in samples.iterrows():
-		if row.lib_type == "dna" and pd.notnull(row.fq2):
-			out.append("dna/pe/{sample}-{unit}.1".format(sample=row.sample_id, unit=row.unit, lib_type=row.lib_type))
-			out.append("dna/pe/{sample}-{unit}.2".format(sample=row.sample_id, unit=row.unit, lib_type=row.lib_type))
-		if row.lib_type == "dna" and pd.isnull(row.fq2):
-			out.append("dna/se/{sample}-{unit}.1".format(sample=row.sample_id, unit=row.unit, lib_type=row.lib_type))
-		if row.lib_type == "rna" and pd.notnull(row.fq2):
-			out.append("rna/pe/{sample}-{unit}.1".format(sample=row.sample_id, unit=row.unit, lib_type=row.lib_type))
-			out.append("rna/pe/{sample}-{unit}.2".format(sample=row.sample_id, unit=row.unit, lib_type=row.lib_type))
-		if row.lib_type == "rna" and pd.isnull(row.fq2):
-			out.append("rna/se/{sample}-{unit}.1".format(sample=row.sample_id, unit=row.unit, lib_type=row.lib_type))
+		if pd.notnull(row.fq2):
+			out.append("{lib_type}/pe/{sample}-{unit}.1".format(sample=row.sample_id, unit=row.unit, lib_type=row.lib_type))
+			out.append("{lib_type}/pe/{sample}-{unit}.2".format(sample=row.sample_id, unit=row.unit, lib_type=row.lib_type))
+		else:
+			out.append("{lib_type}/se/{sample}-{unit}.1".format(sample=row.sample_id, unit=row.unit, lib_type=row.lib_type))
 	return out
 
 
 def expand_sample_paths():
 	out = []
 	for i, row in samples.iterrows():
-		if row.lib_type == "dna" and pd.notnull(row.fq2):
-			out.append("dna/pe/{sample}-{unit}".format(sample=row.sample_id, unit=row.unit, lib_type=row.lib_type))
-		if row.lib_type == "dna" and pd.isnull(row.fq2):
-			out.append("dna/se/{sample}-{unit}".format(sample=row.sample_id, unit=row.unit, lib_type=row.lib_type))
-		if row.lib_type == "rna" and pd.notnull(row.fq2):
-			out.append("rna/pe/{sample}-{unit}".format(sample=row.sample_id, unit=row.unit, lib_type=row.lib_type))
-		if row.lib_type == "rna" and pd.isnull(row.fq2):
-			out.append("rna/se/{sample}-{unit}".format(sample=row.sample_id, unit=row.unit, lib_type=row.lib_type))
+		if pd.notnull(row.fq2):
+			out.append("{lib_type}/pe/{sample}-{unit}".format(sample=row.sample_id, unit=row.unit, lib_type=row.lib_type))
+		else:
+			out.append("{lib_type}/se/{sample}-{unit}".format(sample=row.sample_id, unit=row.unit, lib_type=row.lib_type))
 	return out      
 
 
@@ -201,25 +193,26 @@ def expand_raw_fastqc_paths():
 
 
 
-rule qc_multiqc:
+rule qc_multiqc_reads:
 	input:
-		expand("results/qc/fastqc/{fq}_fastqc.zip", fq=expand_fastq_paths()),
-		expand("results/qc/fastqc_raw/{fq}_fastqc.zip", fq=expand_raw_fastqc_paths()),
+		expand("results/qc/raw/{fq}_fastqc.zip", fq=expand_raw_fastqc_paths()),
+		expand("results/qc/trimmed/{fq}_fastqc.zip", fq=expand_fastq_paths()),
 		expand("results/qc/trimmed/{fq}_fastp.json", fq=expand_sample_paths()),
-		expand("results/qc/samtools_stats/{sample}_bam_stats_merged.txt", sample=samples.sample_id.unique()),
-		expand("results/qc/samtools_stats/{fq}_bam_stats_unmerged.txt", fq=expand_sample_paths()),
-		expand("results/qc/qualimap/{sample}", sample=samples.sample_id.unique()),
-		expand("results/qc/bcftools_stats/{name}_stats.txt", name=["all.unfiltered", "all"]),
+		expand("results/"+PROJECT+"/qc/mapping/{fq}_samtools_stats.txt", fq=expand_sample_paths()),
+		#expand("results/"+PROJECT+"/qc/mapping_merged/{sample}_samtools_stats.txt", sample=samples.sample_id.unique()),
+		expand("results/"+PROJECT+"/qc/mapping_merged/{sample}_qualimap", sample=samples.sample_id.unique()),
 	output:
 		report(
-			"results/qc/multiqc.html",
-			caption="../report/multiqc.rst",
-			category="Quality control",
+			"results/"+PROJECT+"/qc/multiqc_reads.html",
+			caption="../report/multiqc_reads.rst",
+			category=PROJECT,
+			subcategory="MultiQC",
+			labels={"QC": "Reads"},
 		),
 	log:
-		"results/logs/multiqc.log",
+		"results/"+PROJECT+"/log/qc/multiqc_reads.log",
 	params:
-		extra=config["qc_multiqc"]["params"],
+		extra=config["qc_multiqc_reads"]["params"],
 	conda:
 		"../envs/multiqc.yaml"
 	shell:
@@ -227,7 +220,37 @@ rule qc_multiqc:
 		"output_name=$(basename {output}); "
 		"multiqc"
 		" {params.extra}"
-		" --config workflow/report/multiqc_config.yaml"
+		" --config workflow/report/multiqc_reads_config.yaml"
+		" --force"
+		" -o $output_dir"
+		" -n $output_name"
+		" {input}"
+		" 1>{log} 2>&1"
+
+
+rule qc_multiqc_variant_calls:
+	input:
+		expand("results/"+PROJECT+"/qc/merged_calls/{name}_bcftools_stats.txt", name=["calls.unfiltered", "calls.filtered"]),
+	output:
+		report(
+			"results/"+PROJECT+"/qc/multiqc_calls.html",
+			caption="../report/multiqc_calls.rst",
+			category=PROJECT,
+			subcategory="MultiQC",
+			labels={"QC": "Called variants"},
+		),
+	log:
+		"results/"+PROJECT+"/log/qc/multiqc_calls.log",
+	params:
+		extra=config["qc_multiqc_calls"]["params"],
+	conda:
+		"../envs/multiqc.yaml"
+	shell:
+		"output_dir=$(dirname {output}); "
+		"output_name=$(basename {output}); "
+		"multiqc"
+		" {params.extra}"
+		" --config workflow/report/multiqc_calls_config.yaml"
 		" --force"
 		" -o $output_dir"
 		" -n $output_name"

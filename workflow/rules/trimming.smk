@@ -2,19 +2,31 @@
 
 def get_fastq_DNA_pe(wildcards):
 	fastqs = samples.loc[(wildcards.sample, wildcards.unit, "dna"), ["fq1", "fq2"]]
-	return {"sample": [fastqs.fq1, fastqs.fq2]}
+	if fastqs.fq1.startswith("SRR"):
+		return {"sample": ["data/pe/"+fastqs.fq1+"_1.fastq.gz", "data/pe/"+fastqs.fq2+"_2.fastq.gz"]}
+	else:
+		return {"sample": [fastqs.fq1, fastqs.fq2]}
 
 def get_fastq_DNA_se(wildcards):
 	fastqs = samples.loc[(wildcards.sample, wildcards.unit, "dna"), ["fq1"]]
-	return {"sample": [fastqs.fq1]}
+	if fastqs.fq1.startswith("SRR"):
+		return {"sample": ["data/se/"+fastqs.fq1+".fastq.gz"]}
+	else:
+		return {"sample": [fastqs.fq1]}
 
 def get_fastq_RNA_pe(wildcards):
 	fastqs = samples.loc[(wildcards.sample, wildcards.unit, "rna"), ["fq1", "fq2"]]
-	return {"sample": [fastqs.fq1, fastqs.fq2]}
+	if fastqs.fq1.startswith("SRR"):
+		return {"sample": ["data/pe/"+fastqs.fq1+"_1.fastq.gz", "data/pe/"+fastqs.fq2+"_2.fastq.gz"]}
+	else:
+		return {"sample": [fastqs.fq1, fastqs.fq2]}
 
 def get_fastq_RNA_se(wildcards):
 	fastqs = samples.loc[(wildcards.sample, wildcards.unit, "rna"), ["fq1"]]
-	return {"sample": [fastqs.fq1]}
+	if fastqs.fq1.startswith("SRR"):
+		return {"sample": ["data/se/"+fastqs.fq1+".fastq.gz"]}
+	else:
+		return {"sample": [fastqs.fq1]}
 
 
 rule trimming_DNA_pe:
@@ -37,7 +49,7 @@ rule trimming_DNA_pe:
 	shell:
 		"fastp"
 		" --in1 {input[0]}"
-		" --in2 {input[0]}"
+		" --in2 {input[1]}"
 		" --out1 {output.trimmed[0]}"
 		" --out2 {output.trimmed[1]}"
 		" --json {output.json}"
@@ -93,7 +105,7 @@ rule trimming_RNA_pe:
 	shell:
 		"fastp"
 		" --in1 {input[0]}"
-		" --in2 {input[0]}"
+		" --in2 {input[1]}"
 		" --out1 {output.trimmed[0]}"
 		" --out2 {output.trimmed[1]}"
 		" --json {output.json}"

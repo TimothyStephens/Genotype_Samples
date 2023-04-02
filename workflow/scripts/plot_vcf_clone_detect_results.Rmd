@@ -1,0 +1,105 @@
+---
+title: "Plot `vcf_clone_detect.py` results"
+author: 
+  - "Your Name"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+  highlight: tango
+  number_sections: no
+  theme: default
+  toc: yes
+  toc_depth: 3
+  toc_float:
+    collapsed: no
+    smooth_scroll: yes
+---
+
+
+
+# Setup
+
+Setup R env. Load packages and set default image export formats, size and resolution.
+```{r setup}
+library(tibble)
+library(ggplot2)
+library(heatmaply)
+options(scipen = 999) #Prevent scientific notation
+```
+
+File names and important variables.
+```{r file_names}
+annot.file <- "Annotations.tsv"
+data.file <- "vcf_clone_detect.counts.tsv"
+```
+
+
+
+# Load data 
+
+*Annotations*
+```{r load_metadata}
+annot <- read.table(annot.file, header=T, sep='\t', comment.char='') %>% 
+  column_to_rownames(var = "sample_id")
+```
+
+*Color palette*
+```{r color_palette}
+annot.labels <- annot[c("group_id","best_ploidy_model")]
+annot.cols <- annot[c("group_id_color","best_ploidy_model_color")] %>% 
+  rename("group_id" = "group_id_color") %>% 
+  rename("best_ploidy_model" = "best_ploidy_model_color")
+
+# Get color combinations for plotting
+palette <- as.character(c(
+  annot.cols$group_id, 
+  annot.cols$best_ploidy_model
+))
+names(palette) <- as.character(c(
+  annot.labels$group_id, 
+  annot.labels$best_ploidy_model
+))
+palette <- palette[!duplicated(palette)]
+```
+
+*Data matrix*
+```{r load_pairwise_simScores}
+# Load data
+data <- read.table(data.file, header=T, sep='\t', comment.char='', check.names=FALSE) %>% 
+  column_to_rownames(var = "sample_id")
+```
+
+
+
+# Plot matrix heatmap
+
+```{r heatmap}
+heatmaply(
+  data,
+  #plot_method = "plotly",
+  col_side_colors=annot.labels,
+  row_side_colors=annot.labels,
+  row_side_palette=palette,
+  col_side_palette=palette,
+  column_text_angle=90,
+  cexRow=0.2,
+  cexCol=0.2,
+)
+```
+
+
+```{r similairty_density}
+x <- na.omit(as.vector(t(data)))
+fit <- density(x)
+plot_ly(x = x, type = "histogram", name = "Histogram") %>% 
+  add_trace(x = fit$x, y = fit$y, type = "scatter", mode = "lines", fill = "tozeroy", yaxis = "y2", name = "Density") %>% 
+  layout(yaxis2 = list(overlaying = "y", side = "right"))
+```
+
+
+
+# Session Info
+
+```{r ressionInfo}
+sessionInfo()
+```

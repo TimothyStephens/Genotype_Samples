@@ -1,0 +1,112 @@
+module_order:
+  - fastqc:
+      name: "R1 FastQC (raw reads)"
+      anchor: "R1_fastqc_raw"
+      info: "This section of the report shows FastQC results for R1 before adapter trimming."
+      path_filters:
+        - "*/raw/*.1_fastqc.zip"
+  - fastqc:
+      name: "R2 FastQC (raw reads)"
+      anchor: "R2_fastqc_raw"
+      info: "This section of the report shows FastQC results for R2 before adaptertrimming."
+      path_filters:
+        - "*/raw/*.2_fastqc.zip"
+  - fastqc:
+      name: "R1 FastQC (trimmed reads)"
+      anchor: "R1_fastqc_trimmed"
+      info: "This section of the report shows FastQC results for R1 after adapter trimming."
+      path_filters:
+        - "*/trimmed/*/*/*.1_fastqc.zip"
+  - fastqc:
+      name: "R2 FastQC (trimmed reads)"
+      anchor: "R2_fastqc_trimmed"
+      info: "This section of the report shows FastQC results for R2 after adapter trimming."
+      path_filters:
+        - "*/trimmed/*/*/*.2_fastqc.zip"
+  - fastp
+  - samtools:
+      name: "Aligned reads stats"
+      anchor: "samtools_stats"
+      path_filters:
+        - "*_samtools_stats.txt"
+  - qualimap
+
+extra_fn_clean_exts:
+  - ".1"
+  - ".2"
+  - "_fastp"
+  - "_samtools_stats.txt"
+  - "_qualimap"
+
+table_columns_visible:
+  R1_fastqc_raw:
+    percent_duplicates: True
+    percent_gc: True
+    avg_sequence_length: False
+    median_sequence_length: False
+    percent_fails: False
+    total_sequences: True
+  R2_fastqc_raw:
+    percent_duplicates: True
+    percent_gc: True
+    avg_sequence_length: False
+    median_sequence_length: False
+    percent_fails: False
+    total_sequences: True
+  R1_fastqc_trimmed:
+    percent_duplicates: True
+    percent_gc: True
+    avg_sequence_length: False
+    median_sequence_length: False
+    percent_fails: False
+    total_sequences: True
+  R2_fastqc_trimmed:
+    percent_duplicates: True
+    percent_gc: True
+    avg_sequence_length: False
+    median_sequence_length: False
+    percent_fails: False
+    total_sequences: True
+  fastp:
+    pct_duplication: True
+    after_filtering_q30_rate: False
+    after_filtering_q30_bases: False
+    filtering_result_passed_filter_reads: True
+    after_filtering_gc_content: True
+    pct_surviving: True
+    pct_adapter: True
+  samtools_stats:
+    error_rate: True
+    non-primary_alignments: True
+    reads_mapped: True
+    reads_mapped_percent: True
+    reads_properly_paired_percent: True
+    reads_MQ0_percent: False
+    raw_total_sequences: True
+  qualimap:
+    avg_gc: True
+    median_insert_size: True
+    1_x_pc: False
+    5_x_pc: False
+    10_x_pc: False
+    15_x_pc: False
+    20_x_pc: True
+    25_x_pc: False
+    30_x_pc: False
+    median_coverage: True
+    mean_coverage: True
+    percentage_aligned: True
+    mapped_reads: True
+    total_reads: False
+    general_error_rate: False
+
+qualimap_config:
+  general_stats_coverage:
+    - 1
+    - 5
+    - 10
+    - 15
+    - 20
+    - 25
+    - 30
+

@@ -3,12 +3,17 @@ import pandas as pd
 import numpy as np
 import os
 
-##### load config and sample sheets #####
 
-
-configfile: "config/config.yaml"
+#######################
+##### Load config #####
+#######################
 validate(config, schema="../schemas/config.schema.yaml")
+PROJECT=config['project_name']
 
+
+#############################
+##### Load sample sheet #####
+#############################
 samples = pd.read_table(config["samples"], dtype=str).set_index(
 	["sample_id", "unit", "lib_type"], drop=False
 )

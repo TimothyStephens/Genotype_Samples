@@ -1,0 +1,19 @@
+module_order:
+  - bcftools:
+      name: "VCF stats"
+      anchor: "bcftools_stats"
+      path_filters:
+        - "*_bcftools_stats.txt"
+
+extra_fn_clean_exts:
+  - "_bcftools_stats.txt"
+
+table_columns_visible:
+  bcftools_stats:
+    number_of_records: True
+    number_of_SNPs: True
+    number_of_indels: True
+    tstv: True
+    number_of_MNPs: False
+
+

@@ -2,53 +2,68 @@
 
 rule relatedness_vcftools_relatedness2:
 	input:
-		"results/merged_calls/all.vcf.gz",
+		rules.calling_filter_merged_VCF.output,
 	output:
-		"results/relatedness/all.vcf.relatedness2"
+		"results/"+PROJECT+"/relatedness/calls.filtered.vcf.relatedness2",
 	log:
-		"results/logs/relatedness/vcftools_relatedness2.log"
+		"results/"+PROJECT+"/log/relatedness/vcftools_relatedness2.log",
 	params:
+		out_prefix="results/"+PROJECT+"/relatedness/calls.filtered.vcf",
 		extra=config["relatedness_vcftools_relatedness2"]["params"],
 	conda:
 		"../envs/vcftools.yaml"
 	shell:
 		"vcftools "
 		"--gzvcf {input} "
-		"--out results/relatedness/all.vcf "
+		"--out {params.out_prefix} "
 		"{params.extra} "
 		"--relatedness2 "
 		"1>{log} 2>&1"
 
 
-rule relatedness_vcf_clone_detect:
+rule relatedness_vcf_clone_detect_count:
 	input:
-		"results/merged_calls/all.vcf.gz",
+		rules.calling_filter_merged_VCF.output,
 	output:
-		"results/relatedness/all.vcf.allelic_similarity.csv"
+		"results/"+PROJECT+"/relatedness/calls.filtered.vcf.allelic_similarity.csv"
 	log:
-		"results/logs/relatedness/vcftools_relatedness2.log"
-	params:
-		threshold=config["relatedness_vcf_clone_detect"]["threshold"],
-		extra=config["relatedness_vcf_clone_detect"]["params"],
+		"results/"+PROJECT+"/log/relatedness/vcf_clone_detect-count.log"
 	conda:
 		"../envs/vcf_clone_detect.yaml"
 	shell:
-		"python workflow/scripts/vcf_clone_detect.py "
-		"--vcf <(gunzip -c {input}) "
-		"--output {output} "
-		"--threshold {params.threshold} "
-		"{params.extra} "
-		"1>{log} 2>&1"
+		"python workflow/scripts/vcf_clone_detect-count.py"
+		" --vcf <(gunzip -c {input})"
+		" --output {output}"
+		" 1>{log} 2>&1"
+
+
+rule relatedness_vcf_clone_detect_group:
+	input:
+		rules.relatedness_vcf_clone_detect_count.output,
+	output:
+		"results/"+PROJECT+"/relatedness/calls.filtered.vcf.allelic_similarity.groups.csv"
+	log:
+		"results/"+PROJECT+"/log/relatedness/vcf_clone_detect-groups.log"
+	params:
+		threshold=config["relatedness_vcf_clone_detect"]["threshold"],
+	conda:
+		"../envs/vcf_clone_detect.yaml"
+	shell:
+		"python workflow/scripts/vcf_clone_detect-group.py"
+		" --input {input}"
+		" --output {output}"
+		" --threshold {params.threshold}"
+		" 1>{log} 2>&1"
 
 
 rule relatedness_write_bam_list:
 	input:
-		expand("results/mapped/{sample}.bam", sample=samples.sample_id.unique())
+		expand("results/"+PROJECT+"/mapping_merged/{sample}.bam", sample=samples.sample_id.unique())
 	output:
-		files="results/relatedness/bam.filelist",
-		labels="results/relatedness/bam.filelist.labels",
+		files="results/"+PROJECT+"/relatedness/bam.filelist",
+		labels="results/"+PROJECT+"/relatedness/bam.filelist.labels",
 	log:
-		"results/logs/relatedness/write_bam_list.log",
+		"results/"+PROJECT+"/log/relatedness/write_bam_list.log",
 	shell:'''
 		rm -fr {output.files} {output.labels}
 		for f in {input};
@@ -61,31 +76,32 @@ rule relatedness_write_bam_list:
 
 rule relatedness_ANGSD_for_NgsRelate:
 	input:
-		"results/relatedness/bam.filelist",
+		rules.relatedness_write_bam_list.output.files,
 	output:
-		mafs="results/relatedness/NgsRelate.angsd.mafs.gz",
-		glf="results/relatedness/NgsRelate.angsd.glf.gz",
+		mafs="results/"+PROJECT+"/relatedness/NgsRelate.angsd.mafs.gz",
+		glf="results/"+PROJECT+"/relatedness/NgsRelate.angsd.glf.gz",
 	log:
-		"results/logs/relatedness/NgsRelate.angsd.log",
+		"results/"+PROJECT+"/log/relatedness/NgsRelate.angsd.log",
 	params:
+		out_prefix="results/"+PROJECT+"/relatedness/NgsRelate.angsd",
 		extra=config["relatedness_ANGSD_for_NgsRelate"]["params"],
 	threads: config["relatedness_ANGSD_for_NgsRelate"]["threads"]
 	conda:
 		"../envs/angsd.yaml"
 	shell:
-		"(angsd -gl 2 -domajorminor 1 -snp_pval 1e-6 -domaf 1 -minmaf 0.05 -doGlf 3 -nThreads {threads} {params.extra} -bam {input} -out results/relatedness/NgsRelate.angsd) 1>{log} 2>&1"
+		"(angsd -gl 2 -domajorminor 1 -snp_pval 1e-6 -domaf 1 -minmaf 0.05 -doGlf 3 -nThreads {threads} {params.extra} -bam {input} -out {params.out_prefix}) 1>{log} 2>&1"
 
 
 rule relatedness_NgsRelate:
 	input:
-		mafs="results/relatedness/NgsRelate.angsd.mafs.gz",
-		glf="results/relatedness/NgsRelate.angsd.glf.gz",
-		labels="results/relatedness/bam.filelist.labels",
+		mafs=rules.relatedness_ANGSD_for_NgsRelate.output.mafs,
+		glf=rules.relatedness_ANGSD_for_NgsRelate.output.glf,
+		labels=rules.relatedness_write_bam_list.output.labels,
 		programs=rules.install_ngsRelate.output,
 	output:
-		"results/relatedness/NgsRelate.results.tsv",
+		"results/"+PROJECT+"/relatedness/NgsRelate.results.tsv",
 	log:
-		"results/logs/relatedness/NgsRelate.log",
+		"results/"+PROJECT+"/log/relatedness/NgsRelate.log",
 	params:
 		extra=config["relatedness_NgsRelate"]["params"],
 	threads: config["relatedness_NgsRelate"]["threads"]
@@ -99,139 +115,154 @@ rule relatedness_NgsRelate:
 
 rule relatedness_ANGSD_for_PCAngsd:
 	input:
-		"results/relatedness/bam.filelist",
+		rules.relatedness_write_bam_list.output.files,
 	output:
-		mafs="results/relatedness/PCAngsd.angsd.mafs.gz",
-		beagle="results/relatedness/PCAngsd.angsd.beagle.gz",
+		mafs="results/"+PROJECT+"/relatedness/PCAngsd.angsd.mafs.gz",
+		beagle="results/"+PROJECT+"/relatedness/PCAngsd.angsd.beagle.gz",
 	log:
-		"results/logs/relatedness/PCAngsd.angsd.log",
+		"results/"+PROJECT+"/log/relatedness/PCAngsd.angsd.log",
 	params:
+		out_prefix="results/"+PROJECT+"/relatedness/PCAngsd.angsd",
 		extra=config["relatedness_ANGSD_for_PCAngsd"]["params"],
 	threads: config["relatedness_ANGSD_for_PCAngsd"]["threads"]
 	conda:
 		"../envs/angsd.yaml"
 	shell:
-		"(angsd -GL 2 -doGlf 2 -doMajorMinor 1 -SNP_pval 1e-6 -doMaf 1 -nThreads {threads} {params.extra} -bam {input} -out results/relatedness/PCAngsd.angsd) 1>{log} 2>&1"
+		"(angsd -GL 2 -doGlf 2 -doMajorMinor 1 -SNP_pval 1e-6 -doMaf 1 -nThreads {threads} {params.extra} -bam {input} -out {params.out_prefix}) 1>{log} 2>&1"
 
 
 rule relatedness_PCAngsd_IndAlleleFreq:
 	input:
-		beagle="results/relatedness/PCAngsd.angsd.beagle.gz",
+		beagle=rules.relatedness_ANGSD_for_PCAngsd.output.beagle,
 		programs=rules.install_PCAngsd.output,
 	output:
-		"results/relatedness/PCAngsd.IndAlleleFreq.cov",
+		"results/"+PROJECT+"/relatedness/PCAngsd.IndAlleleFreq.cov",
 	log:
-		"results/logs/relatedness/PCAngsd.IndAlleleFreq.log",
+		"results/"+PROJECT+"/log/relatedness/PCAngsd.IndAlleleFreq.log",
 	params:
+		out_prefix="results/"+PROJECT+"/relatedness/PCAngsd.IndAlleleFreq",
 		extra=config["relatedness_PCAngsd_IndAlleleFreq"]["params"],
 	threads: config["relatedness_PCAngsd_IndAlleleFreq"]["threads"]
 	conda:
 		"../envs/PCAngsd.yaml"
 	shell:
-		"(pcangsd --threads {threads} {params.extra} --beagle {input.beagle} --out results/relatedness/PCAngsd.IndAlleleFreq) 1>{log} 2>&1"
+		"(pcangsd --threads {threads} {params.extra} --beagle {input.beagle} --out {params.out_prefix}) 1>{log} 2>&1"
 
 
 rule relatedness_PCAngsd_WithOutIndAlleleFreq:
 	input:
-		beagle="results/relatedness/PCAngsd.angsd.beagle.gz",
+		beagle=rules.relatedness_ANGSD_for_PCAngsd.output.beagle,
 		programs=rules.install_PCAngsd.output,
 	output:
-		"results/relatedness/PCAngsd.WithOutIndAlleleFreq.cov",
+		"results/"+PROJECT+"/relatedness/PCAngsd.WithOutIndAlleleFreq.cov",
 	log:
-		"results/logs/relatedness/PCAngsd.WithOutIndAlleleFreq.log",
+		"results/"+PROJECT+"/log/relatedness/PCAngsd.WithOutIndAlleleFreq.log",
 	params:
+		out_prefix="results/"+PROJECT+"/relatedness/PCAngsd.WithOutIndAlleleFreq",
 		extra=config["relatedness_PCAngsd_WithOutIndAlleleFreq"]["params"],
 	threads: config["relatedness_PCAngsd_WithOutIndAlleleFreq"]["threads"]
 	conda:
 		"../envs/PCAngsd.yaml"
 	shell:
-		"(pcangsd --threads {threads} {params.extra} --beagle {input.beagle} --out results/relatedness/PCAngsd.WithOutIndAlleleFreq --iter 0) 1>{log} 2>&1"
+		"(pcangsd --threads {threads} {params.extra} --beagle {input.beagle} --out {params.out_prefix} --iter 0) 1>{log} 2>&1"
 
 
 rule relatedness_PCAngsd_Admixture:
 	input:
-		beagle="results/relatedness/PCAngsd.angsd.beagle.gz",
+		beagle=rules.relatedness_ANGSD_for_PCAngsd.output.beagle,
 		programs=rules.install_PCAngsd.output,
 	output:
-		"results/relatedness/PCAngsd.Admixture.admix.Q",
+		"results/"+PROJECT+"/relatedness/PCAngsd.Admixture.admix.Q",
 	log:
-		"results/logs/relatedness/PCAngsd.Admixture.log",
+		"results/"+PROJECT+"/log/relatedness/PCAngsd.Admixture.log",
 	params:
+		out_prefix="results/"+PROJECT+"/relatedness/PCAngsd.Admixture",
 		extra=config["relatedness_PCAngsd_Admixture"]["params"],
 	threads: config["relatedness_PCAngsd_Admixture"]["threads"]
 	conda:
 		"../envs/PCAngsd.yaml"
 	shell:
-		"(pcangsd --threads {threads} {params.extra} --beagle {input.beagle} --out results/relatedness/PCAngsd.Admixture --admix --admix_alpha 50; cp results/relatedness/PCAngsd.Admixture.admix.*.Q results/relatedness/PCAngsd.Admixture.admix.Q) 1>{log} 2>&1"
+		"(pcangsd --threads {threads} {params.extra} --beagle {input.beagle} --out {params.out_prefix} --admix --admix_alpha 50; cp {params.out_prefix}.admix.*.Q {params.out_prefix}.admix.Q) 1>{log} 2>&1"
 
 
 rule format_results_PCAngsd_IndAlleleFreq:
 	input:
-		"results/relatedness/bam.filelist.labels",
-		"results/relatedness/PCAngsd.IndAlleleFreq.cov",
+		rules.relatedness_write_bam_list.output.labels,
+		rules.relatedness_PCAngsd_IndAlleleFreq.output,
 	output:
-		"results/final/PCAngsd.IndAlleleFreq.tsv",
+		"results/"+PROJECT+"/final/PCAngsd.IndAlleleFreq.tsv",
 	log:
-		"results/logs/relatedness/format_PCAngsd_IndAlleleFreq_results.log",
+		"results/"+PROJECT+"/log/relatedness/format_PCAngsd_IndAlleleFreq_results.log",
 	script:
 		"../scripts/format_PCAngsd_results.sh"
 
 
 rule format_results_PCAngsd_WithOutIndAlleleFreq:
 	input:
-		"results/relatedness/bam.filelist.labels",
-		"results/relatedness/PCAngsd.WithOutIndAlleleFreq.cov",
+		rules.relatedness_write_bam_list.output.labels,
+		rules.relatedness_PCAngsd_WithOutIndAlleleFreq.output,
 	output:
-		"results/final/PCAngsd.WithOutIndAlleleFreq.tsv",
+		"results/"+PROJECT+"/final/PCAngsd.WithOutIndAlleleFreq.tsv",
 	log:
-		"results/logs/relatedness/format_PCAngsd_WithOutIndAlleleFreq_results.log",
+		"results/"+PROJECT+"/log/relatedness/format_PCAngsd_WithOutIndAlleleFreq_results.log",
 	script:
 		"../scripts/format_PCAngsd_results.sh"
 
 
 rule format_results_PCAngsd_Admixture:
 	input:
-		"results/relatedness/bam.filelist.labels",
-		"results/relatedness/PCAngsd.Admixture.admix.Q",
+		rules.relatedness_write_bam_list.output.labels,
+		rules.relatedness_PCAngsd_Admixture.output,
 	output:
-		"results/final/PCAngsd.Admixture.tsv",
+		"results/"+PROJECT+"/final/PCAngsd.Admixture.tsv",
 	log:
-		"results/logs/relatedness/format_PCAngsd_Admixture_results.log",
+		"results/"+PROJECT+"/log/relatedness/format_PCAngsd_Admixture_results.log",
 	script:
 		"../scripts/format_PCAngsd_Admixture_results.sh"
 
 
 rule format_results_vcftools_relatedness2:
 	input:
-		"results/relatedness/bam.filelist.labels",
-		"results/relatedness/all.vcf.relatedness2",
+		rules.relatedness_write_bam_list.output.labels,
+		rules.relatedness_vcftools_relatedness2.output,
 	output:
-		"results/final/vcftools_relatedness2.tsv",
+		"results/"+PROJECT+"/final/vcftools_relatedness2.tsv",
 	log:
-		"results/logs/relatedness/format_vcftools_relatedness2_results.log",
+		"results/"+PROJECT+"/log/relatedness/format_vcftools_relatedness2_results.log",
 	script:
 		"../scripts/format_vcftools_relatedness2_results.sh"
 
 
-rule format_results_vcf_clone_detect:
+rule format_results_vcf_clone_detect_counts:
 	input:
-		"results/relatedness/bam.filelist.labels",
-		"results/relatedness/all.vcf.allelic_similarity.csv",
+		rules.relatedness_write_bam_list.output.labels,
+		rules.relatedness_vcf_clone_detect_count.output,
 	output:
-		"results/final/vcf_clone_detect.tsv",
+		"results/"+PROJECT+"/final/vcf_clone_detect.counts.tsv",
 	log:
-		"results/logs/relatedness/format_vcf_clone_detect_results.log",
+		"results/"+PROJECT+"/log/relatedness/format_vcf_clone_detect_counts.log",
 	script:
-		"../scripts/format_vcf_clone_detect_results.sh"
+		"../scripts/format_vcf_clone_detect_counts.sh"
+
+
+rule format_results_vcf_clone_detect_groups:
+	input:
+		rules.relatedness_vcf_clone_detect_group.output,
+	output:
+		"results/"+PROJECT+"/final/vcf_clone_detect.groups.tsv",
+	log:
+		"results/"+PROJECT+"/log/relatedness/format_vcf_clone_detect_groups.log",
+	script:
+		"../scripts/format_vcf_clone_detect_groups.sh"
 
 
 rule format_results_NgsRelate:
 	input:
-		"results/relatedness/NgsRelate.results.tsv",
+		rules.relatedness_NgsRelate.output,
 	output:
-		"results/final/NgsRelate.tsv",
+		"results/"+PROJECT+"/final/NgsRelate.tsv",
 	log:
-		"results/logs/relatedness/format_NgsRelate_results.log",
+		"results/"+PROJECT+"/log/relatedness/format_NgsRelate_results.log",
 	script:
 		"../scripts/format_NgsRelate_results.sh"
 

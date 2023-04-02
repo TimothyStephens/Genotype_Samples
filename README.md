@@ -30,9 +30,6 @@ File listing the samples to analyze.
 
 NOTE: the `unit` column allows samples split across multiple `fastq` files to be combined. 
 
-### `config/joint_calling_groups.tsv`
-
-File listing samples to jointly genotype. Leave blank (i.e., just column headers) to genotype individually. 
 
 
 
@@ -42,6 +39,7 @@ Use the following commands to run the workflow.
 
 ```bash
 snakemake --cores all --use-conda --use-singularity --keep-going 
+./Genotype_Samples.py full_workflow --configfile config/config.yaml '--cores all'
 ```
 
 Create run report.
@@ -50,6 +48,13 @@ Create run report.
 snakemake --report report.zip
 ```
 
+Run tests.
+```bash
+conda activate snakemake
+./Genotype_Samples.py full_workflow --configfile .tests/config/config.Genotyping_small.yaml '--cores all'
+./Genotype_Samples.py full_workflow --configfile .tests/config/config.Genotyping_big.yaml '--cores all'
+./Genotype_Samples.py report --configfile .tests/config/config.yaml.example_big 
+```
 
 
 ## Results

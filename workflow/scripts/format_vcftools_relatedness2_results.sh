@@ -29,7 +29,7 @@ awk -F'\t' 'FNR==NR{
     }
     print L
   } 
-}' ${snakemake_input[0]} ${snakemake_input[1]} > ${snakemake_output[0]}
+}' "${snakemake_input[0]}" "${snakemake_input[1]}" > "${snakemake_output[0]}"
 ) 1> "${snakemake_log[0]}" 2>&1
 
 
