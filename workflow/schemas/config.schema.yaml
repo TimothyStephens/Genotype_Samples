@@ -17,7 +17,7 @@ properties:
 
 
 # entries that have to be in the config file for successful validation
-required:
-  - samples
-  - ref_genomes
-  - project_name
+#required:
+#  - samples
+#  - ref_genomes
+#  - project_name

@@ -8,7 +8,6 @@ import os
 ##### Load config #####
 #######################
 validate(config, schema="../schemas/config.schema.yaml")
-PROJECT=config['project_name']
 
 
 #############################
@@ -21,5 +20,41 @@ samples.index = samples.index.set_levels(
 	[i.astype(str) for i in samples.index.levels]
 )  # enforce str in index
 validate(samples, schema="../schemas/samples.schema.yaml")
+
+
+############################
+##### Helper Functions #####
+############################
+
+def expand_raw_fastqc_paths():
+	out = []
+	for i, row in samples.iterrows():
+		if pd.notnull(row.fq2):
+			out.append("{sample}-{unit}.1".format(sample=row.sample_id, unit=row.unit, lib_type=row.lib_type))
+			out.append("{sample}-{unit}.2".format(sample=row.sample_id, unit=row.unit, lib_type=row.lib_type))
+		if pd.isnull(row.fq2):
+			out.append("{sample}-{unit}.1".format(sample=row.sample_id, unit=row.unit, lib_type=row.lib_type))
+	return out
+
+
+def expand_fastq_paths():
+	out = []
+	for i, row in samples.iterrows():
+		if pd.notnull(row.fq2):
+			out.append("{lib_type}/pe/{sample}-{unit}.1".format(sample=row.sample_id, unit=row.unit, lib_type=row.lib_type))
+			out.append("{lib_type}/pe/{sample}-{unit}.2".format(sample=row.sample_id, unit=row.unit, lib_type=row.lib_type))
+		else:
+			out.append("{lib_type}/se/{sample}-{unit}.1".format(sample=row.sample_id, unit=row.unit, lib_type=row.lib_type))
+	return out
+
+
+def expand_sample_paths():
+	out = []
+	for i, row in samples.iterrows():
+		if pd.notnull(row.fq2):
+			out.append("{lib_type}/pe/{sample}-{unit}".format(sample=row.sample_id, unit=row.unit, lib_type=row.lib_type))
+		else:
+			out.append("{lib_type}/se/{sample}-{unit}".format(sample=row.sample_id, unit=row.unit, lib_type=row.lib_type))
+	return out
 
 

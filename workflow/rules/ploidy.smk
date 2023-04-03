@@ -6,9 +6,9 @@ rule ploidy_nQuire_create:
 		idx=rules.mapping_merge.output.idx,
 		programs=rules.install_nQuire.output,
 	output:
-		"results/"+PROJECT+"/ploidy/{sample}.bin",
+		"results/{project}/ploidy/{sample}.bin",
 	log:
-		"results/"+PROJECT+"/log/ploidy/nQuire_create/{sample}.log",
+		"results/{project}/log/ploidy/nQuire_create/{sample}.log",
 	params:
 		extra=config["ploidy_nQuire"]["create_params"],
 		min_quality=config["ploidy_nQuire"]["min_quality"],
@@ -24,9 +24,9 @@ rule ploidy_nQuire_denoise:
 		nQbin=rules.ploidy_nQuire_create.output,
 		programs=rules.install_nQuire.output,
 	output:
-		"results/"+PROJECT+"/ploidy/{sample}.denoised.bin",
+		"results/{project}/ploidy/{sample}.denoised.bin",
 	log:
-		"results/"+PROJECT+"/log/ploidy/nQuire_denoise/{sample}.denoise.log",
+		"results/{project}/log/ploidy/nQuire_denoise/{sample}.denoise.log",
 	params:
 		extra=config["ploidy_nQuire"]["denoise_params"],
 	conda:
@@ -35,15 +35,32 @@ rule ploidy_nQuire_denoise:
 		"(nQuire denoise -o $(echo {output} | sed -e 's/.bin//') {params.extra} {input.nQbin}) 1>{log} 2>&1"
 
 
+rule ploidy_nQuire_coverage:
+	input:
+		bam=rules.mapping_merge.output.bam,
+		nQbin=rules.ploidy_nQuire_denoise.output,
+		programs=rules.install_nQuire.output,
+	output:
+		"results/{project}/ploidy/{sample}.denoised.bin.coverage.sitesProp.gz",
+	log:
+		"results/{project}/log/ploidy/nQuire_denoise/{sample}.nQuire_coverage.log",
+	params:
+		extra=config["ploidy_nQuire"]["coverage_params"],
+	conda:
+		"../envs/nQuire.yaml"
+	shell:
+		"(nQuire view {input.nQbin} -a {input.bam} {params.extra} | awk -F'\\t' '{{print $4/$3\"\\n\"$5/$3}}' | gzip -c > {output}) 1>{log} 2>&1"
+
+
 rule ploidy_nQuire_site_count:
 	input:
 		nQbin=rules.ploidy_nQuire_create.output,
 		nQbin_denoised=rules.ploidy_nQuire_denoise.output,
 		programs=rules.install_nQuire.output,
 	output:
-		"results/"+PROJECT+"/ploidy/{sample}.site_counts.tsv",
+		"results/{project}/ploidy/{sample}.site_counts.tsv",
 	log:
-		"results/"+PROJECT+"/log/ploidy/{sample}.count.log",
+		"results/{project}/log/ploidy/{sample}.count.log",
 	conda:
 		"../envs/nQuire.yaml"
 	shell:
@@ -58,11 +75,13 @@ rule ploidy_nQuire_site_count:
 
 rule ploidy_nQuire_merge_site_counts:
 	input:
-		expand("results/"+PROJECT+"/ploidy/{sample}.site_counts.tsv", sample=samples.sample_id.unique()),
+		lambda wildcards: expand("results/{project}/ploidy/{sample}.site_counts.tsv",
+			project=wildcards.project,
+			sample=samples.sample_id.unique()),
 	output:
-		"results/"+PROJECT+"/ploidy/nQuire_sites_count.txt",
+		"results/{project}/ploidy/nQuire_sites_count.txt",
 	log:
-		"results/"+PROJECT+"/log/ploidy/nQuire_lrdmodel.log",
+		"results/{project}/log/ploidy/nQuire_lrdmodel.log",
 	shell:
 		"("
 		" echo -e \"sample_id\\tnum_sites_normal\\tnum_sites_denoised\\tprop_denoised\" > {output};"
@@ -73,15 +92,19 @@ rule ploidy_nQuire_merge_site_counts:
 
 rule ploidy_nQuire_lrdmodel:
 	input:
-		nQbins=[
-			  *expand("results/"+PROJECT+"/ploidy/{sample}.bin", sample=samples.sample_id.unique()),
-			  *expand("results/"+PROJECT+"/ploidy/{sample}.denoised.bin", sample=samples.sample_id.unique()),
+		nQbins=lambda wildcards: [
+			  *expand("results/{project}/ploidy/{sample}.bin", 
+				project=wildcards.project,
+				sample=samples.sample_id.unique()),
+			  *expand("results/{project}/ploidy/{sample}.denoised.bin", 
+				project=wildcards.project, 
+				sample=samples.sample_id.unique()),
 		],
 		programs=rules.install_nQuire.output,
 	output:
-		"results/"+PROJECT+"/ploidy/nQuire_lrdmodel.txt",
+		"results/{project}/ploidy/nQuire_lrdmodel.txt",
 	log:
-		"results/"+PROJECT+"/log/ploidy/nQuire_lrdmodel.log",
+		"results/{project}/log/ploidy/nQuire_lrdmodel.log",
 	params:
 		extra=config["ploidy_nQuire"]["lrdmodel_params"],
 	threads: config["ploidy_nQuire"]["threads"]
@@ -96,9 +119,9 @@ rule format_nQuire_results:
 		rules.ploidy_nQuire_lrdmodel.output,
 		rules.ploidy_nQuire_merge_site_counts.output,
 	output:
-		"results/"+PROJECT+"/final/nQuire.tsv",
+		"results/{project}/final/nQuire.tsv",
 	log:
-		"results/"+PROJECT+"/log/ploidy/format_nQuire_results.log",
+		"results/{project}/log/ploidy/format_nQuire_results.log",
 	params:
 		add_values="workflow/scripts/add_value_to_table.py"
 	script:

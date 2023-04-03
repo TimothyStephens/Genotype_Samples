@@ -10,14 +10,14 @@ rule mapping_DNA_pe:
 			ref_name=list(config["ref_genomes"].keys())[0],
 		), ".0123", ".amb", ".ann", ".bwt.2bit.64", ".pac"),
 	output:
-		bam=temp("results/"+PROJECT+"/mapping/dna/pe/{sample}-{unit}.sorted.bam"),
-		idx=temp("results/"+PROJECT+"/mapping/dna/pe/{sample}-{unit}.sorted.bam.csi"),
+		bam=temp("results/{project}/mapping/dna/pe/{sample}-{unit}.sorted.bam"),
+		idx=temp("results/{project}/mapping/dna/pe/{sample}-{unit}.sorted.bam.csi"),
 	log:
-		"results/"+PROJECT+"/log/mapping/dna/pe/{sample}-{unit}.log",
+		"results/{project}/log/mapping/dna/pe/{sample}-{unit}.log",
 	params:
 		mapping_extra=config["mapping_DNA_pe"]["mapping_params"],
 		sort_extra=config["mapping_DNA_pe"]["sort_params"],
-		tmpdir=temp(directory("results/"+PROJECT+"/mapping/dna/pe/{sample}-{unit}.samtools_tmp")),
+		tmpdir=temp(directory("results/{project}/mapping/dna/pe/{sample}-{unit}.samtools_tmp")),
 	threads: config["mapping_DNA_pe"]["threads"]
 	conda:
 		"../envs/bwa-mem2.yaml"
@@ -49,14 +49,14 @@ rule mapping_DNA_se:
 			ref_name=list(config["ref_genomes"].keys())[0],
 		), ".0123", ".amb", ".ann", ".bwt.2bit.64", ".pac"),
 	output:
-		bam=temp("results/"+PROJECT+"/mapping/dna/se/{sample}-{unit}.sorted.bam"),
-		idx=temp("results/"+PROJECT+"/mapping/dna/se/{sample}-{unit}.sorted.bam.csi"),
+		bam=temp("results/{project}/mapping/dna/se/{sample}-{unit}.sorted.bam"),
+		idx=temp("results/{project}/mapping/dna/se/{sample}-{unit}.sorted.bam.csi"),
 	log:
-		"results/"+PROJECT+"/log/mapping/dna/se/{sample}-{unit}.log",
+		"results/{project}/log/mapping/dna/se/{sample}-{unit}.log",
 	params:
 		mapping_extra=config["mapping_DNA_se"]["mapping_params"],
 		sort_extra=config["mapping_DNA_se"]["sort_params"],
-		tmpdir=temp(directory("results/"+PROJECT+"/mapping/dna/pe/{sample}-{unit}.samtools_tmp")),
+		tmpdir=temp(directory("results/{project}/mapping/dna/pe/{sample}-{unit}.samtools_tmp")),
 	threads: config["mapping_DNA_se"]["threads"]
 	conda:
 		"../envs/bwa-mem2.yaml"
@@ -86,11 +86,11 @@ rule mapping_RNA_pe:
 			ref_name=list(config["ref_genomes"].keys())[0],
 		),
 	output:
-		bam=temp("results/"+PROJECT+"/mapping/rna/pe/{sample}-{unit}.sorted.bam"),
-		idx=temp("results/"+PROJECT+"/mapping/rna/pe/{sample}-{unit}.sorted.bam.csi"),
-		tmpdir=temp(directory("results/"+PROJECT+"/mapping/rna/pe/{sample}-{unit}.STAR")),
+		bam=temp("results/{project}/mapping/rna/pe/{sample}-{unit}.sorted.bam"),
+		idx=temp("results/{project}/mapping/rna/pe/{sample}-{unit}.sorted.bam.csi"),
+		tmpdir=temp(directory("results/{project}/mapping/rna/pe/{sample}-{unit}.STAR")),
 	log:
-		"results/"+PROJECT+"/log/mapping/rna/pe/{sample}-{unit}.log",
+		"results/{project}/log/mapping/rna/pe/{sample}-{unit}.log",
 	params:
 		sjdbOverhang=config["mapping_RNA_pe"]["sjdbOverhang"],
 		mapping_extra=config["mapping_RNA_pe"]["mapping_params"],
@@ -125,11 +125,11 @@ rule mapping_RNA_se:
 			ref_name=list(config["ref_genomes"].keys())[0],
 		),
 	output:
-		bam=temp("results/"+PROJECT+"/mapping/rna/se/{sample}-{unit}.sorted.bam"),
-		idx=temp("results/"+PROJECT+"/mapping/rna/se/{sample}-{unit}.sorted.bam.csi"),
-		tmpdir=temp(directory("results/"+PROJECT+"/mapping/rna/se/{sample}-{unit}.STAR")),
+		bam=temp("results/{project}/mapping/rna/se/{sample}-{unit}.sorted.bam"),
+		idx=temp("results/{project}/mapping/rna/se/{sample}-{unit}.sorted.bam.csi"),
+		tmpdir=temp(directory("results/{project}/mapping/rna/se/{sample}-{unit}.STAR")),
 	log:
-		"results/"+PROJECT+"/log/mapping/rna/se/{sample}-{unit}.log",
+		"results/{project}/log/mapping/rna/se/{sample}-{unit}.log",
 	params:
 		sjdbOverhang=config["mapping_RNA_se"]["sjdbOverhang"],
 		mapping_extra=config["mapping_RNA_se"]["mapping_params"],
@@ -162,9 +162,9 @@ def get_bams_to_merge(wildcards):
 	rows = samples.loc[(wildcards.sample), ["sample_id", "unit", "lib_type", "fq1", "fq2"]]
 	for i, row in rows.iterrows():
 		if pd.notnull(row.fq2):
-			bams.append("results/"+PROJECT+"/mapping/{lib_type}/pe/{sample}-{unit}.sorted.bam".format(sample=row.sample_id, unit=row.unit, lib_type=row.lib_type))
+			bams.append("results/{project}/mapping/{lib_type}/pe/{sample}-{unit}.sorted.bam".format(project=wildcards.project, sample=row.sample_id, unit=row.unit, lib_type=row.lib_type))
 		else:
-			bams.append("results/"+PROJECT+"/mapping/{lib_type}/se/{sample}-{unit}.sorted.bam".format(sample=row.sample_id, unit=row.unit, lib_type=row.lib_type))
+			bams.append("results/{project}/mapping/{lib_type}/se/{sample}-{unit}.sorted.bam".format(project=wildcards.project, sample=row.sample_id, unit=row.unit, lib_type=row.lib_type))
 	return bams
 
 
@@ -172,10 +172,10 @@ rule mapping_merge:
 	input:
 		unpack(get_bams_to_merge)
 	output:
-		bam="results/"+PROJECT+"/mapping_merged/{sample}.bam",
-		idx="results/"+PROJECT+"/mapping_merged/{sample}.bam.csi",
+		bam="results/{project}/mapping_merged/{sample}.bam",
+		idx="results/{project}/mapping_merged/{sample}.bam.csi",
 	log:
-		"results/"+PROJECT+"/log/mapping_merge/{sample}.log",
+		"results/{project}/log/mapping_merge/{sample}.log",
 	params:
 		extra=config["mapping_merge"]["params"],  # optional additional parameters, excluding --write-index which is implied by idx
 	threads: config["mapping_merge"]["threads"]  # Samtools takes additional threads through its option -@

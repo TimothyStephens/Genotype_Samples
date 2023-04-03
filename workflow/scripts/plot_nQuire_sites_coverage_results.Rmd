@@ -1,0 +1,59 @@
+---
+title: "Plot allele depths for each sample"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+  highlight: tango
+  number_sections: no
+  theme: default
+  toc: yes
+  toc_depth: 3
+  toc_float:
+    collapsed: no
+    smooth_scroll: yes
+---
+
+
+```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
+# Setup R env.
+library(tibble)
+library(ggplot2)
+library(plotly)
+options(scipen = 999) #Prevent scientific notation
+```
+
+
+```{r file_names, echo=FALSE, message=FALSE}
+# File names and important variables.
+cov.filelist <- "../ploidy/nQuire_overage_file_list.tsv"
+```
+
+
+```{r load_data, echo=FALSE, message=FALSE}
+# Load data
+files2plot <- read.table(cov.filelist, header = F, sep='\t')
+nsamples <- nrow(files2plot)
+```
+
+
+```{r plotting_xLim_0.1-0.9, echo=FALSE, message=FALSE}
+# Plotting AP 0.1-0.9
+x.lim.min <- 0.1
+x.lim.max <- 0.9
+
+pdf(paste("nQuire_sites_coverage_results_xLim_", x.lim.min, "-", x.lim.max, ".pdf", sep=''))
+par(mar=c(5, 3, 3, 2), cex=1.5, mfrow=c(4,2)) # number of plots per page
+for (i in 1:nsamples) {
+  AP <- read.table(paste("../ploidy/", files2plot[i,1], sep=''), header = F)
+  d <- density(AP[,1], from=x.lim.min, to=x.lim.max, bw=0.01, na.rm =T)
+  plot(d, xlim = c(x.lim.min,x.lim.max), main=as.character(files2plot[i,2]), col="blue", xlab = (dim(AP)[1])/2, lwd=2)
+}
+dev.off()
+```
+
+
+```{r ressionInfo, echo=FALSE, message=FALSE}
+# Session Info
+sessionInfo()
+```
+

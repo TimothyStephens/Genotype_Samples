@@ -1,15 +1,14 @@
-samples: 'config/samples.tsv.example_big'
-
-ref:
-  name: 'tests_big'
-  file: '.tests_big/data/ref.fa'
 
 
 ################################
 #### Download
 ################################
 # fasterq-dump
-download_fastq:
+download_fastq_pe:
+  params: ''
+  threads: 6
+
+download_fastq_se:
   params: ''
   threads: 6
 
@@ -52,6 +51,36 @@ trimming_RNA_se:
 
 
 ################################
+#### Cross Mapping
+################################
+# BWA-MEM2
+crossMapping_DNA_pe:
+  mapping_params: ''
+  sort_params: ''
+  stats_params: ''
+  threads: 24
+
+crossMapping_DNA_se:
+  mapping_params: ''
+  sort_params: ''
+  stats_params: ''
+  threads: 24
+
+# STAR
+crossMapping_RNA_pe:
+  sjdbOverhang: 150
+  mapping_params: ''
+  stats_params: ''
+  threads: 24
+
+crossMapping_RNA_se:
+  sjdbOverhang: 150
+  mapping_params: ''
+  stats_params: ''
+  threads: 24
+
+
+################################
 #### Mapping
 ################################
 # BWA-MEM2
@@ -68,12 +97,12 @@ mapping_DNA_se:
 # STAR
 mapping_RNA_pe:
   sjdbOverhang: 150
-  mapping_params: ''
+  mapping_params: '--twopassMode Basic'
   threads: 24
 
 mapping_RNA_se:
   sjdbOverhang: 150
-  mapping_params: ''
+  mapping_params: '--twopassMode Basic'
   threads: 24
 
 # Samtools merge
@@ -114,7 +143,6 @@ relatedness_vcftools_relatedness2:
 
 relatedness_vcf_clone_detect:
   threshold: 95.0
-  params: ''
 
 relatedness_ANGSD_for_NgsRelate:
   params: ''
@@ -149,6 +177,7 @@ ploidy_nQuire:
   create_params: ''
   denoise_params: ''
   lrdmodel_params: ''
+  coverage_params: ''
   min_quality: 20
   min_coverage: 20
   threads: 8
@@ -175,6 +204,10 @@ qc_bcftools_stats:
   params: ''
 
 # MultiQC
-qc_multiqc:
+qc_multiqc_reads:
+  params: ''
+qc_multiqc_calls:
+  params: ''
+qc_multiqc_crossMapping:
   params: ''
 

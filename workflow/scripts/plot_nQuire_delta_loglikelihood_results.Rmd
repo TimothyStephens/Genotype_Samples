@@ -1,0 +1,79 @@
+---
+title: "Plot `nQuire` results"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+  highlight: tango
+  number_sections: no
+  theme: default
+  toc: yes
+  toc_depth: 3
+  toc_float:
+    collapsed: no
+    smooth_scroll: yes
+---
+
+
+```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
+# Setup R env.
+library(tibble)
+library(dplyr)
+library(ggplot2)
+library(plotly)
+options(scipen = 999) #Prevent scientific notation
+```
+
+
+```{r file_names, echo=FALSE, message=FALSE}
+# File names and important variables.
+data.file <- "nQuire.tsv"
+```
+
+
+```{r load_data, echo=FALSE, message=FALSE}
+# Load data
+data <- read.table(data.file, header = T, sep = '\t') %>%
+  mutate_at(c('sample_id'), as.factor)
+```
+
+```{r plot_denoised, echo=FALSE, message=FALSE}
+fig <- plot_ly(data %>% filter(type == "denoised")) %>%
+  add_trace(x = ~sample_id, y = ~d_dip, name = "Diploid", type = 'scatter',
+            mode = "markers", marker = list(color = "#1b9e77")) %>% 
+  add_trace(x = ~sample_id, y = ~d_tri, name = "Triploid",type = 'scatter',
+            mode = "markers", marker = list(color = "#d95f02")) %>%
+  add_trace(x = ~sample_id, y = ~d_tet, name = "Tetraploid",type = 'scatter',
+            mode = "markers", marker = list(color = "#7570b3")) %>%
+  layout(
+    title = "nQuire denoised sites",
+    xaxis = list(title = "Sample ID", tickmode = "linear", tickfont = list(size=3)),
+    yaxis = list(title = "delta Log-Likelihood"),
+    margin = list(l = 100)
+  )
+fig
+```
+
+
+```{r plot_normal, echo=FALSE, message=FALSE}
+fig <- plot_ly(data %>% filter(type == "normal")) %>%
+  add_trace(x = ~sample_id, y = ~d_dip, name = "Diploid", type = 'scatter',
+            mode = "markers", marker = list(color = "#1b9e77")) %>% 
+  add_trace(x = ~sample_id, y = ~d_tri, name = "Triploid",type = 'scatter',
+            mode = "markers", marker = list(color = "#d95f02")) %>%
+  add_trace(x = ~sample_id, y = ~d_tet, name = "Tetraploid",type = 'scatter',
+            mode = "markers", marker = list(color = "#7570b3")) %>%
+  layout(
+    title = "nQuire normal sites",
+    xaxis = list(title = "Sample ID", tickmode = "linear", tickfont = list(size=3)),
+    yaxis = list(title = "delta Log-Likelihood"),
+    margin = list(l = 100)
+  )
+fig
+```
+
+
+```{r ressionInfo, echo=FALSE, message=FALSE}
+# Session Info
+#sessionInfo()
+```
+

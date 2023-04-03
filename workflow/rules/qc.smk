@@ -85,11 +85,11 @@ rule qc_fastqc_rawReads:
 
 rule qc_samtools_stats:
 	input:
-		bam="results/"+PROJECT+"/mapping_merged/{sample}.bam",
+		bam="results/{project}/mapping_merged/{sample}.bam",
 	output:
-		"results/"+PROJECT+"/qc/mapping_merged/{sample}_samtools_stats.txt",
+		"results/{project}/qc/mapping_merged/{sample}_samtools_stats.txt",
 	log:
-		"results/"+PROJECT+"/log/qc/mapping_merged/{sample}.log",
+		"results/{project}/log/qc/mapping_merged/{sample}.log",
 	params:
 		extra=config["qc_samtools_stats"]["params"],
 	conda:
@@ -104,11 +104,11 @@ rule qc_samtools_stats:
 
 rule qc_qualimap:
 	input:
-		bam="results/"+PROJECT+"/mapping_merged/{sample}.bam",
+		bam="results/{project}/mapping_merged/{sample}.bam",
 	output:
-		directory("results/"+PROJECT+"/qc/mapping_merged/{sample}_qualimap"),
+		directory("results/{project}/qc/mapping_merged/{sample}_qualimap"),
 	log:
-		"results/"+PROJECT+"/log/qc/mapping_merged/{sample}.qualimap.log",
+		"results/{project}/log/qc/mapping_merged/{sample}.qualimap.log",
 	params:
 		extra=config["qc_qualimap"]["params"],
 	conda:
@@ -124,11 +124,11 @@ rule qc_qualimap:
 
 rule qc_samtools_stats_unmerged:
 	input:
-		bam="results/"+PROJECT+"/mapping/{fq}.sorted.bam",
+		bam="results/{project}/mapping/{fq}.sorted.bam",
 	output:
-		"results/"+PROJECT+"/qc/mapping/{fq}_samtools_stats.txt",
+		"results/{project}/qc/mapping/{fq}_samtools_stats.txt",
 	log:
-		"results/"+PROJECT+"/log/qc/mapping/{fq}.log",
+		"results/{project}/log/qc/mapping/{fq}.log",
 	params:
 		extra=config["qc_samtools_stats"]["params"],
 	conda:
@@ -143,11 +143,11 @@ rule qc_samtools_stats_unmerged:
 
 rule qc_bcftools_stats:
 	input:
-		"results/"+PROJECT+"/merged_calls/{name}.vcf.gz",
+		"results/{project}/merged_calls/{name}.vcf.gz",
 	output:
-		"results/"+PROJECT+"/qc/merged_calls/{name}_bcftools_stats.txt",
+		"results/{project}/qc/merged_calls/{name}_bcftools_stats.txt",
 	log:
-		"results/"+PROJECT+"/log/qc/merged_calls/{name}_bcftools_stats.log",
+		"results/{project}/log/qc/merged_calls/{name}_bcftools_stats.log",
 	params:
 		extra=config["qc_bcftools_stats"]["params"],
 	conda:
@@ -160,57 +160,23 @@ rule qc_bcftools_stats:
 		" 2>{log}"
 
 
-def expand_fastq_paths():
-	out = []
-	for i, row in samples.iterrows():
-		if pd.notnull(row.fq2):
-			out.append("{lib_type}/pe/{sample}-{unit}.1".format(sample=row.sample_id, unit=row.unit, lib_type=row.lib_type))
-			out.append("{lib_type}/pe/{sample}-{unit}.2".format(sample=row.sample_id, unit=row.unit, lib_type=row.lib_type))
-		else:
-			out.append("{lib_type}/se/{sample}-{unit}.1".format(sample=row.sample_id, unit=row.unit, lib_type=row.lib_type))
-	return out
-
-
-def expand_sample_paths():
-	out = []
-	for i, row in samples.iterrows():
-		if pd.notnull(row.fq2):
-			out.append("{lib_type}/pe/{sample}-{unit}".format(sample=row.sample_id, unit=row.unit, lib_type=row.lib_type))
-		else:
-			out.append("{lib_type}/se/{sample}-{unit}".format(sample=row.sample_id, unit=row.unit, lib_type=row.lib_type))
-	return out      
-
-
-def expand_raw_fastqc_paths():
-	out = []
-	for i, row in samples.iterrows():
-		if pd.notnull(row.fq2):
-			out.append("{sample}-{unit}.1".format(sample=row.sample_id, unit=row.unit, lib_type=row.lib_type))
-			out.append("{sample}-{unit}.2".format(sample=row.sample_id, unit=row.unit, lib_type=row.lib_type))
-		if pd.isnull(row.fq2):
-			out.append("{sample}-{unit}.1".format(sample=row.sample_id, unit=row.unit, lib_type=row.lib_type))
-	return out
-
-
-
 rule qc_multiqc_reads:
 	input:
 		expand("results/qc/raw/{fq}_fastqc.zip", fq=expand_raw_fastqc_paths()),
 		expand("results/qc/trimmed/{fq}_fastqc.zip", fq=expand_fastq_paths()),
 		expand("results/qc/trimmed/{fq}_fastp.json", fq=expand_sample_paths()),
-		expand("results/"+PROJECT+"/qc/mapping/{fq}_samtools_stats.txt", fq=expand_sample_paths()),
-		#expand("results/"+PROJECT+"/qc/mapping_merged/{sample}_samtools_stats.txt", sample=samples.sample_id.unique()),
-		expand("results/"+PROJECT+"/qc/mapping_merged/{sample}_qualimap", sample=samples.sample_id.unique()),
+		lambda wildcards: expand("results/{project}/qc/mapping/{fq}_samtools_stats.txt", project=wildcards.project, fq=expand_sample_paths()),
+		#lambda wildcards: expand("results/{project}/qc/mapping_merged/{sample}_samtools_stats.txt", project=wildcards.project, sample=samples.sample_id.unique()),
+		lambda wildcards: expand("results/{project}/qc/mapping_merged/{sample}_qualimap", project=wildcards.project, sample=samples.sample_id.unique()),
 	output:
 		report(
-			"results/"+PROJECT+"/qc/multiqc_reads.html",
+			"results/{project}/qc/multiqc_reads.html",
 			caption="../report/multiqc_reads.rst",
-			category=PROJECT,
 			subcategory="MultiQC",
 			labels={"QC": "Reads"},
 		),
 	log:
-		"results/"+PROJECT+"/log/qc/multiqc_reads.log",
+		"results/{project}/log/qc/multiqc_reads.log",
 	params:
 		extra=config["qc_multiqc_reads"]["params"],
 	conda:
@@ -230,17 +196,18 @@ rule qc_multiqc_reads:
 
 rule qc_multiqc_variant_calls:
 	input:
-		expand("results/"+PROJECT+"/qc/merged_calls/{name}_bcftools_stats.txt", name=["calls.unfiltered", "calls.filtered"]),
+		lambda wildcards: expand("results/{project}/qc/merged_calls/{name}_bcftools_stats.txt", 
+			project=wildcards.project, 
+			name=["calls.unfiltered", "calls.filtered"]),
 	output:
 		report(
-			"results/"+PROJECT+"/qc/multiqc_calls.html",
+			"results/{project}/qc/multiqc_calls.html",
 			caption="../report/multiqc_calls.rst",
-			category=PROJECT,
 			subcategory="MultiQC",
 			labels={"QC": "Called variants"},
 		),
 	log:
-		"results/"+PROJECT+"/log/qc/multiqc_calls.log",
+		"results/{project}/log/qc/multiqc_calls.log",
 	params:
 		extra=config["qc_multiqc_calls"]["params"],
 	conda:

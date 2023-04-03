@@ -1,0 +1,13 @@
+################################
+#### Config for cross mapping
+################################
+
+project_name: 'crossMapping'
+
+samples: 'config/samples.tsv'
+
+ref_genomes:
+  'genome1': 'path/to/genome1.fa'
+  'genome2': 'path/to/genome2.fa.gz'
+
+

@@ -1,96 +1,117 @@
 # Genotype Samples
 Snakemake workflow to genotype any type of NGS samples.
 
-Based on https://github.com/nikostr/dna-seq-deepvariant-glnexus-variant-calling with significant modifications.
 
-
-
-## Setup environment
-
-Setup conda environment which we will use to run the snakemake workflow.
-
+## Setup and installation
+To install the workflow simply pull it from githib.
 ```bash
-mamba create -n snakemake snakemake=7.22.0 singularity=3.8.6 mamba
-conda activate snakemake
+git clone https://github.com/TimothyStephens/Genotype_Samples.git
 ```
 
+Then setup the conda environment which we will use to run the snakemake workflow.
+```bash
+conda env create -f environment.yaml
+conda activate snakemake
+```
 
 
 ## Workflow config
+To run the workflow you will need to have two config/metadata files prepared.
 
-Setup config files.
+The first config/metadata file is the `config/config.*.yaml` file.
+ - The `config/config.Genotyping.yaml` file is a template for the genotyping workflow
+ - The `config/config.crossMapping.yaml` file is a template for the cross_mapping workflow
+When you want to run one of thse workflows make a copy of the relevant config file and fill it out.
+The main params that need to be changed are:
+ - `project_name`  The name of this project. A directory with the same name will be created in `results/` and is where the final analysis will be stored.
+ - `samples`:      The path to the `samples.tsv` file to use for analysis.
+ - `ref_genomes`:  The name and location of the reference genome to use for analysis. 
 
-### `config/config.yaml`
+The second config/metadata file is the `config/samples.tsv` file.
+This file lists the names and locations of all samples that will be considered by the workflow. 
+ - `sample_id`  The ID of the sample
+ - `unit`       A number used to differentiate samples with multiple input read sets. If you only have one set of reads per sample then keep this number as `1`. If you have multiple seqs of reads per sample then give each set a different number. Reads from the same sample_id but different "units" will be QC'ed, trimmed, and aligned separatly, but combine after that for final variant calling, genotyping, and ploidy analysis. 
+ - `lib_type`   Lets you specify if the reads are from "dna" or "rna" sequencing. 
+ - `fq1`        Location (absolute path) of the 1st read file OR the SRA ID of the sample which you wish the workflow to download and process for you.
+ - `fq2`        Location (absolute path) of the 2nd read file (if present) OR the SRA ID of the sample which you wish the workflow to download and process for you. If you have samples that are single end, omit this column for those samples.
 
-Workflow config file. The only parameter which needs to be changed is the reference genome that is being used.
-
-### `config/samples.tsv`
-
-File listing the samples to analyze. 
-
-NOTE: the `unit` column allows samples split across multiple `fastq` files to be combined. 
-
+NOTE:
+ - For SRA ID samples. You need to tell the workflow to expect the downloaded files to be single or paired-end. To specify paired-end you simply need to list the SRA ID in the `fq1` and `fq2` columns, to specify single-end specify the SRA ID in just the `fq1` column and omit the `fq2` column.
+ - You can run each workflow multiple times with different subsets of samples. Just change the `project_name` in the config file and snakemake will do the rest. 
+ - If you wish to add more samples to an existing project, simply add them to the config file and let snakemake do the rest.
+ - Default config values are stored in `workflow/config.default.yaml`. If you want to modify them globally then do so in the `config.default.yaml` file, if you want to do it for a single project, simply add them to your project config file. The project config file provided by the user will overwrite any params in the global default file, so it is OK for a param to be set in both.
+ - In the `samples.tsv` file, the `unit` column allows samples split across multiple `fastq` files to be combined.
 
 
+## Running the workflow
+This workflow is broken down into two parts that can be run separatly but using the same underlying datasets.
+The `Genotype_Samples.py` script handels the high level running and organization of the workflow.
 
-## Run workflow
-
-Use the following commands to run the workflow. 
-
-```bash
-snakemake --cores all --use-conda --use-singularity --keep-going 
-./Genotype_Samples.py full_workflow --configfile config/config.yaml '--cores all'
-```
-
-Create run report.
-
-```bash
-snakemake --report report.zip
-```
-
-Run tests.
+### cross_mapping
+Compare samples against multiple genomes and report mapping stats (% mapped reads) as a way of checking/determining the "species" that a sample is from/has highest similarity to.
 ```bash
 conda activate snakemake
-./Genotype_Samples.py full_workflow --configfile .tests/config/config.Genotyping_small.yaml '--cores all'
-./Genotype_Samples.py full_workflow --configfile .tests/config/config.Genotyping_big.yaml '--cores all'
-./Genotype_Samples.py report --configfile .tests/config/config.yaml.example_big 
+./Genotype_Samples.py cross_mapping --configfile config/config.crossMapping.yaml
+```
+Once the workflow has finished you can run the same command with the `--report report.zip` flag to produce a nice HTML report.
+```bash
+./Genotype_Samples.py cross_mapping --configfile config/config.crossMapping.yaml --report report.zip
+```
+The HTML report will be contained within the `report.zip` file (which file can be named whatever you want in the above command so you dont overwrite reports from other projects).
+
+
+### genotyping
+Full genotyping workflow. Call variants, calculate relatedness stats, estimate ploidy, and generate QC and results plots.
+```bash
+conda activate snakemake
+./Genotype_Samples.py full_workflow --configfile config/config.Genotyping.yaml
+```
+To generate the HTML report run:
+```bash
+./Genotype_Samples.py full_workflow --configfile config/config.Genotyping.yaml --report report.zip
+```
+
+
+
+## Run tests
+Run test analyses using the following commands.
+```bash
+conda activate snakemake
+./Genotype_Samples.py full_workflow --configfile .tests/config/config.Genotyping_big.yaml
+./Genotype_Samples.py full_workflow --configfile .tests/config/config.Genotyping_small.yaml
+./Genotype_Samples.py cross_mapping --configfile .tests/config/config.crossMapping_small.yaml
 ```
 
 
 ## Results
+Results files produced by this workflow will be in `results/project_name/final/`, where `project_name` is whatever you specified in the config file.
 
-Results files produced by this workflow.
+### `Annotations.tsv`
+The ploidy and "group" (determined by vcf_clone_detect.py using the user specified threshold) of the input samples.
 
-### `results/final/NgsRelate.tsv`
-
+### `NgsRelate.tsv`
 Relatedness results from the `NgsRelate` program. 
 
-### `results/final/nQuire.tsv`
-
+### `nQuire.tsv`
 Ploidy estimated by `nQuire`. Estimates are for both raw (normal) and denoised biallelic sites.
 
-### `results/final/PCAngsd.Admixture.tsv`
-
+### `PCAngsd.Admixture.tsv`
 Admixture results produced by `PCAngsd` - number of ancestral populations chosen by `PCAngsd`.
 
-### `results/final/PCAngsd.IndAlleleFreq.tsv`
-
+### `PCAngsd.IndAlleleFreq.tsv`
 PCA results produced by  `PCAngsd` with individual allele frequencies estimated.
 
-### `results/final/PCAngsd.WithOutIndAlleleFreq.tsv`
-
+### `PCAngsd.WithOutIndAlleleFreq.tsv`
 PCA results produced by  `PCAngsd` without individual allele frequencies estimated.
 
-### `results/final/vcf_clone_detect.tsv`
-
+### `vcf_clone_detect.tsv`
 Matrix of the percent shared variants between each pairwise combination of samples, calculated by `vcf_clone_detect.py`.
 
-### `results/final/vcftools_relatedness2.tsv`
-
+### `vcftools_relatedness2.tsv`
 Matrix of the relatedness values between each pairwise combination of samples, calculated by `vcftools`.
 
 
-
-`Rmarkdown` scripts for visualization of the `PCAngsd`, `vcftools_relatedness2`, and `vcf_clone_detect` results are in `workflow/scripts/R/`.
-
+# Credits
+This workflow is based on the [deepvariant workflow](https://github.com/nikostr/dna-seq-deepvariant-glnexus-variant-calling).
+It also takes inspiration from the design of [Metagenome-Atlas](https://github.com/metagenome-atlas/atlas).
 

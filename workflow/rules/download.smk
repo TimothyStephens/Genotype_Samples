@@ -11,6 +11,8 @@ rule download_fastq_pe:
 		extra=config["download_fastq_pe"]["params"],
 		tempdir="{params.out_prefix}/{wildcards.accession}.fasterq",
 	threads: config["download_fastq_pe"]["threads"]
+	resources:
+		max_downloads=1
 	conda:
 		"../envs/sra-tools.yaml"
 	shell:
@@ -38,6 +40,8 @@ rule download_fastq_se:
 		extra=config["download_fastq_se"]["params"],
 		tempdir="{params.out_prefix}/{wildcards.accession}.fasterq",
 	threads: config["download_fastq_se"]["threads"]
+	resources:
+		max_downloads=1
 	conda:
 		"../envs/sra-tools.yaml"
 	shell:

@@ -1,7 +1,5 @@
 ---
 title: "Plot cross mapping results"
-author: 
-  - "Your Name"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
   html_document:
@@ -16,38 +14,30 @@ output:
 ---
 
 
-
-# Setup
-
-Setup R env. Load packages and set default image export formats, size and resolution.
-```{r setup}
+```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
+# Setup R env. Load packages and set default image export formats, size and resolution.
 library(tibble)
 library(ggplot2)
 library(heatmaply)
 options(scipen = 999) #Prevent scientific notation
 ```
 
-File names and important variables.
-```{r file_names}
+
+```{r file_names, echo=FALSE, message=FALSE}
+# File names and important variables.
 data.file <- "mapping_rates.tsv"
 ```
 
 
-
-# Load data 
-
-*Data matrix*
-```{r load_pairwise_simScores}
-# Load data
+```{r load_pairwise_simScores, echo=FALSE, message=FALSE}
+#*Data matrix*
 data <- read.table(data.file, header=T, sep='\t', comment.char='', check.names=FALSE) %>% 
   column_to_rownames(var = "sample_id")
 ```
 
 
-
+```{r heatmap, echo=FALSE, message=FALSE}
 # Plot matrix heatmap
-
-```{r heatmap}
 heatmaply(
   data,
   #plot_method = "plotly",
@@ -58,9 +48,6 @@ heatmaply(
 ```
 
 
-
-# Session Info
-
-```{r ressionInfo}
-sessionInfo()
+```{r ressionInfo, echo=FALSE, message=FALSE}
+#sessionInfo()
 ```

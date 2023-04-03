@@ -43,18 +43,17 @@ rule calling_variants:
 		),
 		rnaseq_model=rules.calling_download_RNAseq_model.output,
 	output:
-		vcf="results/"+PROJECT+"/calling/{sample}.vcf.gz",
-		gvcf="results/"+PROJECT+"/calling/{sample}.g.vcf.gz",
+		vcf="results/{project}/calling/{sample}.vcf.gz",
+		gvcf="results/{project}/calling/{sample}.g.vcf.gz",
 		report=report(
-			"results/"+PROJECT+"/calling/{sample}.visual_report.html",
+			"results/{project}/calling/{sample}.visual_report.html",
 			caption="../report/vcf.rst",
-			category=PROJECT,
 			subcategory="Deepvariant Reports",
 			labels={"Sample ID": "{sample}"},
 		),
-		tmp_dir=temp(directory("results/"+PROJECT+"/calling/{sample}.tmp")),
+		tmp_dir=temp(directory("results/{project}/calling/{sample}.tmp")),
 	log:
-		 "results/"+PROJECT+"/log/calling/{sample}/stdout.log",
+		 "results/{project}/log/calling/{sample}/stdout.log",
 	params:
 		model_params=lambda wildcards: get_model_params(wildcards),
 		extra=config["calling_variants"]["params"],
@@ -67,7 +66,7 @@ rule calling_variants:
 		" --ref {input.ref}"
 		" --reads {input.bam}"
 		" --sample_name {wildcards.sample}"
-		" --logging_dir results/"+PROJECT+"/log/calling/{wildcards.sample}.deepvariant"
+		" --logging_dir results/{wildcards.project}/log/calling/{wildcards.sample}.deepvariant"
 		" --output_vcf {output.vcf}"
 		" --output_gvcf {output.gvcf}"
 		" --intermediate_results_dir {output.tmp_dir}"
@@ -77,18 +76,20 @@ rule calling_variants:
 
 rule calling_merge_VCFs:
 	input:
-		calls=expand(
-			"results/"+PROJECT+"/calling/{sample}.vcf.gz",
+		calls=lambda wildcards:	expand(
+			"results/{project}/calling/{sample}.vcf.gz",
+			project=wildcards.project,
 			sample=samples.sample_id.unique()
 		),
-		idxs=expand(
-			"results/"+PROJECT+"/calling/{sample}.vcf.gz.csi",
+		idxs=lambda wildcards: expand(
+			"results/{project}/calling/{sample}.vcf.gz.csi",
+			project=wildcards.project,
 			sample=samples.sample_id.unique()
 		),
 	output:
-		"results/"+PROJECT+"/merged_calls/calls.unfiltered.vcf.gz",
+		"results/{project}/merged_calls/calls.unfiltered.vcf.gz",
 	log:
-		"results/"+PROJECT+"/log/merged_calls/VCFs_merge.log",
+		"results/{project}/log/merged_calls/VCFs_merge.log",
 	params:
 		extra=config["calling_merge_VCFs"]["params"],
 	conda:
@@ -105,13 +106,13 @@ rule calling_merge_VCFs:
 
 rule calling_VCF_index:
 	input:
-		"{vcffile}.vcf.gz",
+		"results/{project}/{vcffile}.vcf.gz",
 	output:
-		"{vcffile}.vcf.gz.csi",
+		"results/{project}/{vcffile}.vcf.gz.csi",
 	params:
 		extra=config["calling_VCFs_index"]["params"],
 	log:
-		"results/"+PROJECT+"/log/VCF_index/{vcffile}.log",
+		"results/{project}/log/VCF_index/{vcffile}.log",
 	threads: config["calling_VCFs_index"]["threads"]
 	conda:
 		"../envs/bcftools.yaml"
@@ -128,9 +129,9 @@ rule calling_filter_merged_VCF:
 	input:
 		rules.calling_merge_VCFs.output,
 	output:
-		"results/"+PROJECT+"/merged_calls/calls.filtered.vcf.gz",
+		"results/{project}/merged_calls/calls.filtered.vcf.gz",
 	log:
-		"results/"+PROJECT+"/log/merged_calls/VCF_filter.log",
+		"results/{project}/log/merged_calls/VCF_filter.log",
 	params:
 		filter=config["calling_filter_VCFs"]["filter"],
 		extra="--recode --recode-INFO-all",
@@ -151,9 +152,9 @@ rule format_filtered_VCF:
 	input:
 		rules.calling_filter_merged_VCF.output,
 	output:
-		"results/"+PROJECT+"/final/calls.filtered.vcf.gz"
+		"results/{project}/final/calls.filtered.vcf.gz"
 	log:
-		"results/"+PROJECT+"/log/merged_calls/format_filtered_VCF.log",
+		"results/{project}/log/merged_calls/format_filtered_VCF.log",
 	shell:
 		"(cp {input} {output}) 1>{log} 2>&1"
 
