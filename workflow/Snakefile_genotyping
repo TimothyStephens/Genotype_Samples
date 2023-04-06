@@ -4,9 +4,12 @@ from snakemake.utils import min_version
 
 min_version("6.5")
 
+
 configfile: "workflow/config.default.yaml"
 
+
 report: "report/workflow.rst"
+
 
 include: "rules/common.smk"
 include: "rules/install_programs.smk"
@@ -16,35 +19,30 @@ include: "rules/trimming.smk"
 include: "rules/mapping.smk"
 include: "rules/calling.smk"
 include: "rules/qc.smk"
+include: "rules/multiqc.smk"
 include: "rules/relatedness.smk"
 include: "rules/ploidy.smk"
 include: "rules/annotations.smk"
 include: "rules/plotting.smk"
 
+
 localrules:
 	all,
-	full_workflow, 
+	full_workflow,
 
 
 rule all:
 	input:
-		"results/{project}/project.done".format(project=config['project_name']),
+		"results/{project}/project.done".format(project=config["project_name"]),
 
 
 rule full_workflow:
 	input:
 		rules.format_filtered_VCF.output,
-		rules.qc_multiqc_reads.output,
-		rules.qc_multiqc_variant_calls.output,
-		rules.format_results_vcftools_relatedness2.output,
-		rules.format_results_vcf_clone_detect_counts.output,
-		rules.format_results_vcf_clone_detect_groups.output,
 		rules.format_results_NgsRelate.output,
-		rules.format_results_PCAngsd_IndAlleleFreq.output,
 		rules.format_results_PCAngsd_WithOutIndAlleleFreq.output,
-		rules.format_results_PCAngsd_Admixture.output,
-		rules.format_nQuire_results.output,
-		rules.format_annotations.output,
+		rules.multiqc_reads.output,
+		rules.multiqc_variant_calls.output,
 		rules.plotting_ANGSD_results.output.html,
 		rules.plotting_vcf_clone_detect_results.output.html,
 		rules.plotting_vcftools_relatedness2_results.output.html,

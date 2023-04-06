@@ -10,11 +10,19 @@ awk -F'\t' 'FNR==NR{
   if(FNR==1){
     for(i=1; i<=length(names); i++){
       for(j=1; j<=length(names); j++){
-        M[names[i]][names[j]]="NA"
+        if(names[i] == names[j]){
+          M[names[i]][names[j]]="0.5"
+        } else {
+          M[names[i]][names[j]]="NA"
+        }
       }
     } 
   } else { 
-    M[$1][$2]=$7
+    if ($7 == "-nan"){
+      M[$1][$2]="0.0"
+    } else {
+      M[$1][$2]=$7
+    }
   }
 } END {
   L="sample_id"; 

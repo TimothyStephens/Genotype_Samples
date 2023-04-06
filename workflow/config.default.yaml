@@ -7,10 +7,12 @@
 download_fastq_pe:
   params: ''
   threads: 6
+  retries: 5
 
 download_fastq_se:
   params: ''
   threads: 6
+  retries: 5
 
 
 ################################
@@ -116,7 +118,6 @@ mapping_merge:
 ################################
 # run_deepvariant
 calling_variants:
-  model: 'WGS'
   params: ''
   threads: 8
 

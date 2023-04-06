@@ -9,10 +9,11 @@ rule download_fastq_pe:
 	params:
 		out_prefix="data/pe",
 		extra=config["download_fastq_pe"]["params"],
-		tempdir="{params.out_prefix}/{wildcards.accession}.fasterq",
+		tempdir="data/pe/{wildcards.accession}.fasterq",
 	threads: config["download_fastq_pe"]["threads"]
 	resources:
 		max_downloads=1
+	retries: config["download_fastq_pe"]["retries"]
 	conda:
 		"../envs/sra-tools.yaml"
 	shell:
@@ -38,10 +39,11 @@ rule download_fastq_se:
 	params:
 		out_prefix="data/se",
 		extra=config["download_fastq_se"]["params"],
-		tempdir="{params.out_prefix}/{wildcards.accession}.fasterq",
+		tempdir="data/se/{wildcards.accession}.fasterq",
 	threads: config["download_fastq_se"]["threads"]
 	resources:
 		max_downloads=1
+	retries: config["download_fastq_se"]["retries"]
 	conda:
 		"../envs/sra-tools.yaml"
 	shell:

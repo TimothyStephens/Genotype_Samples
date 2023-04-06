@@ -7,6 +7,8 @@ rule ref_parse_genome:
 		"results/logs/resources/{ref_name}/ref_parse_genome.log",
 	params:
 		ref_file=lambda w: config["ref_genomes"][w.ref_name],
+	conda:
+		"../envs/bash.yaml"
 	shell:
 		"( if [[ {params.ref_file} == *.gz ]]; then zcat {params.ref_file} > {output}; else cat {params.ref_file} > {output}; fi ) 1>{log} 2>&1"
 

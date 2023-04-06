@@ -5,6 +5,8 @@ rule calling_download_RNAseq_model:
 		"resources/deepvariant_RNAseq_model/model.ckpt"
 	log:
 		"results/logs/resources/download_RNAseq_model.log"
+	conda:
+		"../envs/bash.yaml"
 	shell:
 		"("
 		"curl https://storage.googleapis.com/deepvariant/models/DeepVariant/1.4.0/DeepVariant-inception_v3-1.4.0+data-rnaseq_standard/model.ckpt.data-00000-of-00001 > {output}.data-00000-of-00001;"
@@ -35,25 +37,21 @@ rule calling_variants:
 	input:
 		bam=rules.mapping_merge.output.bam,
 		idx=rules.mapping_merge.output.idx,
-		ref="resources/{ref_name}/genome.fasta".format(
-			ref_name=list(config["ref_genomes"].keys())[0],
-		),
-		ref_idx="resources/{ref_name}/genome.fasta.fai".format(
-			ref_name=list(config["ref_genomes"].keys())[0],
-		),
+		ref=rules.ref_parse_genome.output,
+		ref_idx=rules.ref_faidx.output,
 		rnaseq_model=rules.calling_download_RNAseq_model.output,
 	output:
-		vcf="results/{project}/calling/{sample}.vcf.gz",
-		gvcf="results/{project}/calling/{sample}.g.vcf.gz",
+		vcf="results/calling/{ref_name}/{sample}.vcf.gz",
+		gvcf="results/calling/{ref_name}/{sample}.g.vcf.gz",
 		report=report(
-			"results/{project}/calling/{sample}.visual_report.html",
+			"results/calling/{ref_name}/{sample}.visual_report.html",
 			caption="../report/vcf.rst",
 			subcategory="Deepvariant Reports",
 			labels={"Sample ID": "{sample}"},
 		),
-		tmp_dir=temp(directory("results/{project}/calling/{sample}.tmp")),
+		tmp_dir=temp(directory("results/calling/{ref_name}/{sample}.tmp")),
 	log:
-		 "results/{project}/log/calling/{sample}/stdout.log",
+		 "results/logs/calling/{ref_name}/{sample}/stdout.log",
 	params:
 		model_params=lambda wildcards: get_model_params(wildcards),
 		extra=config["calling_variants"]["params"],
@@ -66,7 +64,7 @@ rule calling_variants:
 		" --ref {input.ref}"
 		" --reads {input.bam}"
 		" --sample_name {wildcards.sample}"
-		" --logging_dir results/{wildcards.project}/log/calling/{wildcards.sample}.deepvariant"
+		" --logging_dir results/logs/calling/{wildcards.ref_name}/{wildcards.sample}.deepvariant"
 		" --output_vcf {output.vcf}"
 		" --output_gvcf {output.gvcf}"
 		" --intermediate_results_dir {output.tmp_dir}"
@@ -77,19 +75,19 @@ rule calling_variants:
 rule calling_merge_VCFs:
 	input:
 		calls=lambda wildcards:	expand(
-			"results/{project}/calling/{sample}.vcf.gz",
-			project=wildcards.project,
+			"results/calling/{ref_name}/{sample}.vcf.gz",
+			ref_name=list(config["ref_genomes"].keys())[0],
 			sample=samples.sample_id.unique()
 		),
 		idxs=lambda wildcards: expand(
-			"results/{project}/calling/{sample}.vcf.gz.csi",
-			project=wildcards.project,
+			"results/calling/{ref_name}/{sample}.vcf.gz.csi",
+			ref_name=list(config["ref_genomes"].keys())[0],
 			sample=samples.sample_id.unique()
 		),
 	output:
-		"results/{project}/merged_calls/calls.unfiltered.vcf.gz",
+		"results/{project}/calling_merged/calls.unfiltered.vcf.gz",
 	log:
-		"results/{project}/log/merged_calls/VCFs_merge.log",
+		"results/logs/{project}/calling_merged/VCFs_merge.log",
 	params:
 		extra=config["calling_merge_VCFs"]["params"],
 	conda:
@@ -112,7 +110,7 @@ rule calling_VCF_index:
 	params:
 		extra=config["calling_VCFs_index"]["params"],
 	log:
-		"results/{project}/log/VCF_index/{vcffile}.log",
+		"results/logs/{project}/VCF_index/{vcffile}.log",
 	threads: config["calling_VCFs_index"]["threads"]
 	conda:
 		"../envs/bcftools.yaml"
@@ -129,9 +127,9 @@ rule calling_filter_merged_VCF:
 	input:
 		rules.calling_merge_VCFs.output,
 	output:
-		"results/{project}/merged_calls/calls.filtered.vcf.gz",
+		"results/{project}/calling_merged/calls.filtered.vcf.gz",
 	log:
-		"results/{project}/log/merged_calls/VCF_filter.log",
+		"results/logs/{project}/calling_merged/VCF_filter.log",
 	params:
 		filter=config["calling_filter_VCFs"]["filter"],
 		extra="--recode --recode-INFO-all",
@@ -154,7 +152,9 @@ rule format_filtered_VCF:
 	output:
 		"results/{project}/final/calls.filtered.vcf.gz"
 	log:
-		"results/{project}/log/merged_calls/format_filtered_VCF.log",
+		"results/logs/{project}/calling_merged/format_filtered_VCF.log",
+	conda:
+		"../envs/bash.yaml"
 	shell:
 		"(cp {input} {output}) 1>{log} 2>&1"
 

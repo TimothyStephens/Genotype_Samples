@@ -1,0 +1,28 @@
+################################
+#### Config for big dataset
+################################
+
+project_name: 'test_big'
+
+samples: '.tests/config/samples.example_big.tsv'
+
+ref_genomes:
+  'test_big': '.tests/data/ref.fa'
+
+
+# Filter final merged file
+calling_filter_VCFs:
+  filter: '--remove-indels --min-meanDP 10 --max-missing 0.5'
+
+
+# Percent similarity cutoff to use for vcf_clone_detect.py
+relatedness_vcf_clone_detect:
+  threshold: 94.0
+
+
+# nQuire
+ploidy_nQuire:
+  min_quality: 20
+  min_coverage: 20
+
+

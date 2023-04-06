@@ -11,7 +11,7 @@ git clone https://github.com/TimothyStephens/Genotype_Samples.git
 Then setup the conda environment which we will use to run the snakemake workflow.
 ```bash
 conda env create -f environment.yaml
-conda activate snakemake
+conda activate Genotype_Samples
 ```
 
 
@@ -50,7 +50,7 @@ The `Genotype_Samples.py` script handels the high level running and organization
 ### cross_mapping
 Compare samples against multiple genomes and report mapping stats (% mapped reads) as a way of checking/determining the "species" that a sample is from/has highest similarity to.
 ```bash
-conda activate snakemake
+conda activate Genotype_Samples
 ./Genotype_Samples.py cross_mapping --configfile config/config.crossMapping.yaml
 ```
 Once the workflow has finished you can run the same command with the `--report report.zip` flag to produce a nice HTML report.
@@ -63,8 +63,8 @@ The HTML report will be contained within the `report.zip` file (which file can b
 ### genotyping
 Full genotyping workflow. Call variants, calculate relatedness stats, estimate ploidy, and generate QC and results plots.
 ```bash
-conda activate snakemake
-./Genotype_Samples.py full_workflow --configfile config/config.Genotyping.yaml
+conda activate Genotype_Samples
+./Genotype_Samples.py genotyping --configfile config/config.Genotyping.yaml
 ```
 To generate the HTML report run:
 ```bash
@@ -76,11 +76,17 @@ To generate the HTML report run:
 ## Run tests
 Run test analyses using the following commands.
 ```bash
-conda activate snakemake
-./Genotype_Samples.py full_workflow --configfile .tests/config/config.Genotyping_big.yaml
-./Genotype_Samples.py full_workflow --configfile .tests/config/config.Genotyping_small.yaml
+conda activate Genotype_Samples
+
+# Cross-mapping
 ./Genotype_Samples.py cross_mapping --configfile .tests/config/config.crossMapping_small.yaml
+./Genotype_Samples.py cross_mapping --configfile .tests/config/config.crossMapping_big.yaml
+
+# Genotyping
+./Genotype_Samples.py genotyping --configfile .tests/config/config.Genotyping_small.yaml
+./Genotype_Samples.py genotyping --configfile .tests/config/config.Genotyping_big.yaml
 ```
+To generate HTML reports for each of the above commands, add `--report report.zip` to the end of each command.
 
 
 ## Results

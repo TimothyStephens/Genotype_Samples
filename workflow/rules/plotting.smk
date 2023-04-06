@@ -14,7 +14,7 @@ rule plotting_ANGSD_results:
 		),
 		rmd="results/{project}/final/ANGSD_results.Rmd",
 	log:
-		"results/{project}/log/relatedness/plot_ANGSD_results.log",
+		"results/logs/{project}/plotting/plot_ANGSD_results.log",
 	conda:
 		"../envs/R.yaml"
 	shell:
@@ -40,14 +40,16 @@ rule plotting_vcf_clone_detect_results:
 		),
 		rmd="results/{project}/final/vcf_clone_detect_results.Rmd",
 	log:
-		"results/{project}/log/relatedness/plot_vcf_clone_detect_results.log",
+		"results/logs/{project}/plotting/plot_vcf_clone_detect_results.log",
+	params:
+		threshold=config["relatedness_vcf_clone_detect"]["threshold"],
 	conda:
 		"../envs/R.yaml"
 	shell:
 		"("
 		"  export PATH=\"$CONDA_PREFIX/bin:$PATH\""
 		"; export R_LIB=\"$CONDA_PREFIX/lib/R/library\""
-		"; cp workflow/scripts/plot_vcf_clone_detect_results.Rmd {output.rmd}"
+		"; sed -e 's/<<<similarity.threshold>>>/{params.threshold}/' workflow/scripts/plot_vcf_clone_detect_results.Rmd > {output.rmd}"
 		"; Rscript -e \"rmarkdown::render('{output.rmd}')\""
 		")"
 		" 1>{log} 2>&1"
@@ -57,7 +59,7 @@ rule plotting_vcf_clone_detect_results:
 rule plotting_vcftools_relatedness2_results:
 	input:
 		annot=rules.format_annotations.output,
-		matrix=rules.relatedness_vcftools_relatedness2.output,
+		matrix=rules.format_results_vcftools_relatedness2.output,
 	output:
 		html=report(
 			"results/{project}/final/vcftools_relatedness2_results.html",
@@ -67,7 +69,7 @@ rule plotting_vcftools_relatedness2_results:
 		),
 		rmd="results/{project}/final/vcftools_relatedness2_results.Rmd",
 	log:
-		"results/{project}/log/relatedness/plot_vcftools_relatedness2_results.log",
+		"results/logs/{project}/plotting/plot_vcftools_relatedness2_results.log",
 	conda:
 		"../envs/R.yaml"
 	shell:
@@ -92,7 +94,7 @@ rule plotting_nQuire_delta_loglikelihood_results:
 		),
 		rmd="results/{project}/final/nQuire_delta_loglikelihood_results.Rmd",
 	log:
-		"results/{project}/log/relatedness/plot_nQuire_delta_loglikelihood_results.log",
+		"results/logs/{project}/plotting/plot_nQuire_delta_loglikelihood_results.log",
 	conda:
 		"../envs/R.yaml"
 	shell:
@@ -117,7 +119,7 @@ rule plotting_nQuire_coverage_results:
 		),
 		rmd="results/{project}/final/nQuire_sites_coverage_results.Rmd",
 	log:
-		"results/{project}/log/relatedness/plot_nQuire_sites_coverage_results.log",
+		"results/logs/{project}/plotting/plot_nQuire_sites_coverage_results.log",
 	conda:
 		"../envs/R.yaml"
 	shell:

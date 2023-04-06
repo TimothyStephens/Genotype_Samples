@@ -6,7 +6,7 @@ rule relatedness_vcftools_relatedness2:
 	output:
 		"results/{project}/relatedness/calls.filtered.vcf.relatedness2",
 	log:
-		"results/{project}/log/relatedness/vcftools_relatedness2.log",
+		"results/logs/{project}/relatedness/vcftools_relatedness2.log",
 	params:
 		out_prefix="results/{project}/relatedness/calls.filtered.vcf",
 		extra=config["relatedness_vcftools_relatedness2"]["params"],
@@ -27,7 +27,7 @@ rule relatedness_vcf_clone_detect_count:
 	output:
 		"results/{project}/relatedness/calls.filtered.vcf.allelic_similarity.csv"
 	log:
-		"results/{project}/log/relatedness/vcf_clone_detect-count.log"
+		"results/logs/{project}/relatedness/vcf_clone_detect-count.log"
 	conda:
 		"../envs/vcf_clone_detect.yaml"
 	shell:
@@ -43,7 +43,7 @@ rule relatedness_vcf_clone_detect_group:
 	output:
 		"results/{project}/relatedness/calls.filtered.vcf.allelic_similarity.groups.csv"
 	log:
-		"results/{project}/log/relatedness/vcf_clone_detect-groups.log"
+		"results/logs/{project}/relatedness/vcf_clone_detect-groups.log"
 	params:
 		threshold=config["relatedness_vcf_clone_detect"]["threshold"],
 	conda:
@@ -58,14 +58,16 @@ rule relatedness_vcf_clone_detect_group:
 
 rule relatedness_write_bam_list:
 	input:
-		lambda wildcards: expand("results/{project}/mapping_merged/{sample}.bam", 
-			project=wildcards.project, 
+		lambda wildcards: expand("results/mapping_merged/{ref_name}/{sample}.bam", 
+			ref_name=list(config["ref_genomes"].keys())[0],
 			sample=samples.sample_id.unique())
 	output:
 		files="results/{project}/relatedness/bam.filelist",
 		labels="results/{project}/relatedness/bam.filelist.labels",
 	log:
-		"results/{project}/log/relatedness/write_bam_list.log",
+		"results/logs/{project}/relatedness/write_bam_list.log",
+	conda:
+		"../envs/bash.yaml"
 	shell:'''
 		rm -fr {output.files} {output.labels}
 		for f in {input};
@@ -83,7 +85,7 @@ rule relatedness_ANGSD_for_NgsRelate:
 		mafs="results/{project}/relatedness/NgsRelate.angsd.mafs.gz",
 		glf="results/{project}/relatedness/NgsRelate.angsd.glf.gz",
 	log:
-		"results/{project}/log/relatedness/NgsRelate.angsd.log",
+		"results/logs/{project}/relatedness/NgsRelate.angsd.log",
 	params:
 		out_prefix="results/{project}/relatedness/NgsRelate.angsd",
 		extra=config["relatedness_ANGSD_for_NgsRelate"]["params"],
@@ -103,7 +105,7 @@ rule relatedness_NgsRelate:
 	output:
 		"results/{project}/relatedness/NgsRelate.results.tsv",
 	log:
-		"results/{project}/log/relatedness/NgsRelate.log",
+		"results/logs/{project}/relatedness/NgsRelate.log",
 	params:
 		extra=config["relatedness_NgsRelate"]["params"],
 	threads: config["relatedness_NgsRelate"]["threads"]
@@ -122,7 +124,7 @@ rule relatedness_ANGSD_for_PCAngsd:
 		mafs="results/{project}/relatedness/PCAngsd.angsd.mafs.gz",
 		beagle="results/{project}/relatedness/PCAngsd.angsd.beagle.gz",
 	log:
-		"results/{project}/log/relatedness/PCAngsd.angsd.log",
+		"results/logs/{project}/relatedness/PCAngsd.angsd.log",
 	params:
 		out_prefix="results/{project}/relatedness/PCAngsd.angsd",
 		extra=config["relatedness_ANGSD_for_PCAngsd"]["params"],
@@ -140,7 +142,7 @@ rule relatedness_PCAngsd_IndAlleleFreq:
 	output:
 		"results/{project}/relatedness/PCAngsd.IndAlleleFreq.cov",
 	log:
-		"results/{project}/log/relatedness/PCAngsd.IndAlleleFreq.log",
+		"results/logs/{project}/relatedness/PCAngsd.IndAlleleFreq.log",
 	params:
 		out_prefix="results/{project}/relatedness/PCAngsd.IndAlleleFreq",
 		extra=config["relatedness_PCAngsd_IndAlleleFreq"]["params"],
@@ -158,7 +160,7 @@ rule relatedness_PCAngsd_WithOutIndAlleleFreq:
 	output:
 		"results/{project}/relatedness/PCAngsd.WithOutIndAlleleFreq.cov",
 	log:
-		"results/{project}/log/relatedness/PCAngsd.WithOutIndAlleleFreq.log",
+		"results/logs/{project}/relatedness/PCAngsd.WithOutIndAlleleFreq.log",
 	params:
 		out_prefix="results/{project}/relatedness/PCAngsd.WithOutIndAlleleFreq",
 		extra=config["relatedness_PCAngsd_WithOutIndAlleleFreq"]["params"],
@@ -176,7 +178,7 @@ rule relatedness_PCAngsd_Admixture:
 	output:
 		"results/{project}/relatedness/PCAngsd.Admixture.admix.Q",
 	log:
-		"results/{project}/log/relatedness/PCAngsd.Admixture.log",
+		"results/logs/{project}/relatedness/PCAngsd.Admixture.log",
 	params:
 		out_prefix="results/{project}/relatedness/PCAngsd.Admixture",
 		extra=config["relatedness_PCAngsd_Admixture"]["params"],
@@ -194,7 +196,9 @@ rule format_results_PCAngsd_IndAlleleFreq:
 	output:
 		"results/{project}/final/PCAngsd.IndAlleleFreq.tsv",
 	log:
-		"results/{project}/log/relatedness/format_PCAngsd_IndAlleleFreq_results.log",
+		"results/logs/{project}/relatedness/format_PCAngsd_IndAlleleFreq_results.log",
+	conda:
+		"../envs/bash.yaml"
 	script:
 		"../scripts/format_PCAngsd_results.sh"
 
@@ -206,7 +210,9 @@ rule format_results_PCAngsd_WithOutIndAlleleFreq:
 	output:
 		"results/{project}/final/PCAngsd.WithOutIndAlleleFreq.tsv",
 	log:
-		"results/{project}/log/relatedness/format_PCAngsd_WithOutIndAlleleFreq_results.log",
+		"results/logs/{project}/relatedness/format_PCAngsd_WithOutIndAlleleFreq_results.log",
+	conda:
+		"../envs/bash.yaml"
 	script:
 		"../scripts/format_PCAngsd_results.sh"
 
@@ -218,7 +224,9 @@ rule format_results_PCAngsd_Admixture:
 	output:
 		"results/{project}/final/PCAngsd.Admixture.tsv",
 	log:
-		"results/{project}/log/relatedness/format_PCAngsd_Admixture_results.log",
+		"results/logs/{project}/relatedness/format_PCAngsd_Admixture_results.log",
+	conda:
+		"../envs/bash.yaml"
 	script:
 		"../scripts/format_PCAngsd_Admixture_results.sh"
 
@@ -230,7 +238,9 @@ rule format_results_vcftools_relatedness2:
 	output:
 		"results/{project}/final/vcftools_relatedness2.tsv",
 	log:
-		"results/{project}/log/relatedness/format_vcftools_relatedness2_results.log",
+		"results/logs/{project}/relatedness/format_vcftools_relatedness2_results.log",
+	conda:
+		"../envs/bash.yaml"
 	script:
 		"../scripts/format_vcftools_relatedness2_results.sh"
 
@@ -242,7 +252,9 @@ rule format_results_vcf_clone_detect_counts:
 	output:
 		"results/{project}/final/vcf_clone_detect.counts.tsv",
 	log:
-		"results/{project}/log/relatedness/format_vcf_clone_detect_counts.log",
+		"results/logs/{project}/relatedness/format_vcf_clone_detect_counts.log",
+	conda:
+		"../envs/bash.yaml"
 	script:
 		"../scripts/format_vcf_clone_detect_counts.sh"
 
@@ -253,7 +265,9 @@ rule format_results_vcf_clone_detect_groups:
 	output:
 		"results/{project}/final/vcf_clone_detect.groups.tsv",
 	log:
-		"results/{project}/log/relatedness/format_vcf_clone_detect_groups.log",
+		"results/logs/{project}/relatedness/format_vcf_clone_detect_groups.log",
+	conda:
+		"../envs/bash.yaml"
 	script:
 		"../scripts/format_vcf_clone_detect_groups.sh"
 
@@ -264,7 +278,9 @@ rule format_results_NgsRelate:
 	output:
 		"results/{project}/final/NgsRelate.tsv",
 	log:
-		"results/{project}/log/relatedness/format_NgsRelate_results.log",
+		"results/logs/{project}/relatedness/format_NgsRelate_results.log",
+	conda:
+		"../envs/bash.yaml"
 	script:
 		"../scripts/format_NgsRelate_results.sh"
 

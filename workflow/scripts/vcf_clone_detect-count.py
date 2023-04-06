@@ -37,10 +37,6 @@ HEADER_CHAR = "#"
 HEADER_INDIVIDUALS = "#CHROM"
 FIRST_GENOTYPE_COLUMN = 9
 IND_STR_LEN = 50
-POP_STR_LEN = 50
-MATCHES_ADDITIONAL_ROWS = 5
-HIST_RANGE = range(1, 101)
-DEF_THRESHOLD = 85.0
 
 C_IND1 = 'ind1'
 C_IND2 = 'ind2'
@@ -49,7 +45,6 @@ C_IND2_SNPS = 'ind2_snps'
 C_BOTH_SNPS = 'both_snps'
 C_MATCH = 'match'
 C_MATCH_PERC = 'match_perc'
-C_POP = 'pop'
 
 COMPARISONS_DTYPES = [(C_IND1, np.str_, IND_STR_LEN),
 	(C_IND2, np.str_, IND_STR_LEN),
@@ -57,14 +52,13 @@ COMPARISONS_DTYPES = [(C_IND1, np.str_, IND_STR_LEN),
 	(C_IND2_SNPS, int),
 	(C_BOTH_SNPS, int),
 	(C_MATCH, float),
-	(C_MATCH_PERC, float),
-	(C_POP, np.str_, POP_STR_LEN)]
+	(C_MATCH_PERC, float)]
 
 OUTPUT_FILE_DELIM = ','
 OUTPUT_FILE_HEADER = OUTPUT_FILE_DELIM.join([C_IND1, C_IND2, C_IND1_SNPS,
 	C_IND2_SNPS, C_BOTH_SNPS,
-	C_MATCH, C_MATCH_PERC, C_POP])
-OUTPUT_FILE_FORMAT = OUTPUT_FILE_DELIM.join(['%s', '%s', '%i', '%i', '%i', '%f', '%f', '%s'])
+	C_MATCH, C_MATCH_PERC])
+OUTPUT_FILE_FORMAT = OUTPUT_FILE_DELIM.join(['%s', '%s', '%i', '%i', '%i', '%f', '%f'])
 
 
 def get_snp_match(genotype1, genotype2):
@@ -93,16 +87,19 @@ def get_genotypes_from_vcf(vcf_filename):
 		if line[:len(HEADER_INDIVIDUALS)] == HEADER_INDIVIDUALS:
 			for x in range(FIRST_GENOTYPE_COLUMN, len(cols)):
 				individuals[x] = cols[x]
+			# Create empty entires in "genotypes" incase we have an empty vcf file.
+			for x in individuals:
+				genotypes.setdefault(individuals[x], [])
 		# Store genotype for each individual in dictionary
 		elif line[0] != HEADER_CHAR:
 			for x in range(FIRST_GENOTYPE_COLUMN, len(cols)):
 				genotypes.setdefault(individuals[x], []).append(cols[x])
 	vcf_file.close()
-	return genotypes
+	return genotypes, list(individuals.values())
 
 
 def get_match_info_as_row(individual1, genotypes1,
-						  individual2, genotypes2, indivs_pops):
+						  individual2, genotypes2):
 	""" Get match value for two genotypes (one SNP) """
 	ind1_snps = ind2_snps = both_snps = match = total_snps = 0
 	for x in range(0, len(genotypes1)):
@@ -117,38 +114,29 @@ def get_match_info_as_row(individual1, genotypes1,
 			ind1_snps += 1
 		elif genotype1[0] == '.':  # genotype of ind1 missing
 			ind2_snps += 1
-
-	match_perc = round((match / both_snps) * 100, 2)
-
-	if individual1 in indivs_pops and individual2 in indivs_pops:
-		# Define whether comparison is within or between pops
-		if indivs_pops[individual1] == indivs_pops[individual2]:
-			pop_group = indivs_pops[individual1]
-		else:
-			pops = sorted([indivs_pops[individual1],
-						   indivs_pops[individual2]])
-			pop_group = '-'.join(pops)
-	else:
-		# Not applicable as indiv(s) not in popfile or popfile not provided
-		pop_group = 'NA'
-
+	
+	try:
+		match_perc = round((match / both_snps) * 100, 2)
+	except ZeroDivisionError:
+		match_perc = 0.0
+	
 	return (str(individual1), str(individual2), int(ind1_snps),
 			int(ind2_snps), int(both_snps), float(match),
-			float(match_perc), str(pop_group))
+			float(match_perc))
 
 
-def get_all_pairwise_comparisons(genotypes, indivs_pops):
+def get_all_pairwise_comparisons(genotypes, individuals):
 	""" Conduct pairwise comparisons between all individuals """
 	unique_pairs = int((math.pow(len(genotypes), 2) - len(genotypes)) / 2)
 	comparisons = np.zeros(unique_pairs, dtype=COMPARISONS_DTYPES)
 	
 	index = 0
-	for individual1, individual2 in itertools.combinations(genotypes, 2):
-		comparisons[index] = get_match_info_as_row(individual1,
+	for individual1, individual2 in itertools.combinations(individuals, 2):
+		comparisons[index] = get_match_info_as_row(
+			individual1,
 			genotypes[individual1],
 			individual2,
-			genotypes[individual2],
-			indivs_pops)
+			genotypes[individual2])
 		index += 1
 	comparisons[::-1].sort(order=C_MATCH_PERC)
 	print('{0} comparisons completed'.format(comparisons.size))
@@ -167,13 +155,11 @@ def save_pairwise_comparisons_to_input_file(output_filename, comparisons):
 
 def main(vcf_filename, output_filename):
 	print('### 1 - Pairwise comparisons of all individuals')
-	indivs_pops = []
-	
 	# Genotypes
-	genotypes = get_genotypes_from_vcf(vcf_filename)
+	genotypes, individuals = get_genotypes_from_vcf(vcf_filename)
 	
 	# Comparisons
-	comparisons = get_all_pairwise_comparisons(genotypes, indivs_pops)
+	comparisons = get_all_pairwise_comparisons(genotypes, individuals)
 	
 	# Save matrix data
 	save_pairwise_comparisons_to_input_file(output_filename, comparisons)

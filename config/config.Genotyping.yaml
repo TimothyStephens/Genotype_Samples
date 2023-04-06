@@ -2,23 +2,23 @@
 #### Config for genotyping
 ################################
 
+# Name of project
 project_name: 'species1_genotyping'
 
+# Path to sample manifest
 samples: 'config/samples.tsv'
 
+# Reference genome name : absolute path (can be gzipped)
 ref_genomes:
   'genome2': 'path/to/genome2.fa.gz'
-
 
 # Filter final merged file
 calling_filter_VCFs:
   filter: '--remove-indels --min-meanDP 10 --max-missing 1.0'
 
-
 # Percent similarity cutoff to use for vcf_clone_detect.py
 relatedness_vcf_clone_detect:
   threshold: 95.0
-
 
 # nQuire
 ploidy_nQuire:

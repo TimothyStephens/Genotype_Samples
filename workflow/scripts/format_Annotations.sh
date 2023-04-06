@@ -13,7 +13,7 @@ IFS=$'\n\t'
   -a <(\
     "${snakemake_params['add_values']}" \
         -c 2 \
-        -i <(awk -F'\t' 'NR==1 || $2=="denoised"{print $1"\t"$13}' "${snakemake_input['nQuire']}") \
+        -i <(awk -F'\t' 'NR==1 || $2=="denoised"{print $1"\t"$13"\t"$14}' "${snakemake_input['nQuire']}") \
         -a <(echo -e "best_ploidy_model\tbest_ploidy_model_color\nDiploid\t#1b9e77\nTriploid\t#d95f02\nTetraploid\t#7570b3")
         -d "#E5E4E2" \
   ) \

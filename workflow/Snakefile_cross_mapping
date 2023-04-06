@@ -14,6 +14,7 @@ include: "rules/ref.smk"
 include: "rules/download.smk"
 include: "rules/trimming.smk"
 include: "rules/mapping.smk"
+include: "rules/qc.smk"
 include: "rules/cross-mapping.smk"
 
 localrules:
@@ -28,7 +29,7 @@ rule all:
 
 rule cross_mapping:
 	input:
-		rules.qc_multiqc_crossMapping.output,
+		rules.multiqc_crossMapping.output,
 		rules.plotting_cross_mapping_results.output.html,
 	output:
 		touch("results/{project}/project.done"),

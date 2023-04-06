@@ -2,13 +2,19 @@
 
 rule ploidy_nQuire_create:
 	input:
-		bam=rules.mapping_merge.output.bam,
-		idx=rules.mapping_merge.output.idx,
+		bam="results/mapping_merged/{ref_name}/{sample}.bam".format(
+			ref_name=list(config["ref_genomes"].keys())[0],
+			sample="{sample}",
+		),
+		idx="results/mapping_merged/{ref_name}/{sample}.bam.csi".format(
+			ref_name=list(config["ref_genomes"].keys())[0],
+			sample="{sample}",
+		),
 		programs=rules.install_nQuire.output,
 	output:
 		"results/{project}/ploidy/{sample}.bin",
 	log:
-		"results/{project}/log/ploidy/nQuire_create/{sample}.log",
+		"results/logs/{project}/ploidy/nQuire_create/{sample}.log",
 	params:
 		extra=config["ploidy_nQuire"]["create_params"],
 		min_quality=config["ploidy_nQuire"]["min_quality"],
@@ -26,7 +32,7 @@ rule ploidy_nQuire_denoise:
 	output:
 		"results/{project}/ploidy/{sample}.denoised.bin",
 	log:
-		"results/{project}/log/ploidy/nQuire_denoise/{sample}.denoise.log",
+		"results/logs/{project}/ploidy/nQuire_denoise/{sample}.denoise.log",
 	params:
 		extra=config["ploidy_nQuire"]["denoise_params"],
 	conda:
@@ -37,13 +43,16 @@ rule ploidy_nQuire_denoise:
 
 rule ploidy_nQuire_coverage:
 	input:
-		bam=rules.mapping_merge.output.bam,
+		bam="results/mapping_merged/{ref_name}/{sample}.bam".format(
+			ref_name=list(config["ref_genomes"].keys())[0],
+			sample="{sample}",
+		),
 		nQbin=rules.ploidy_nQuire_denoise.output,
 		programs=rules.install_nQuire.output,
 	output:
 		"results/{project}/ploidy/{sample}.denoised.bin.coverage.sitesProp.gz",
 	log:
-		"results/{project}/log/ploidy/nQuire_denoise/{sample}.nQuire_coverage.log",
+		"results/logs/{project}/ploidy/nQuire_denoise/{sample}.nQuire_coverage.log",
 	params:
 		extra=config["ploidy_nQuire"]["coverage_params"],
 	conda:
@@ -60,7 +69,7 @@ rule ploidy_nQuire_site_count:
 	output:
 		"results/{project}/ploidy/{sample}.site_counts.tsv",
 	log:
-		"results/{project}/log/ploidy/{sample}.count.log",
+		"results/logs/{project}/ploidy/{sample}.count.log",
 	conda:
 		"../envs/nQuire.yaml"
 	shell:
@@ -81,7 +90,9 @@ rule ploidy_nQuire_merge_site_counts:
 	output:
 		"results/{project}/ploidy/nQuire_sites_count.txt",
 	log:
-		"results/{project}/log/ploidy/nQuire_lrdmodel.log",
+		"results/logs/{project}/ploidy/nQuire_lrdmodel.log",
+	conda:
+		"../envs/bash.yaml"
 	shell:
 		"("
 		" echo -e \"sample_id\\tnum_sites_normal\\tnum_sites_denoised\\tprop_denoised\" > {output};"
@@ -104,7 +115,7 @@ rule ploidy_nQuire_lrdmodel:
 	output:
 		"results/{project}/ploidy/nQuire_lrdmodel.txt",
 	log:
-		"results/{project}/log/ploidy/nQuire_lrdmodel.log",
+		"results/logs/{project}/ploidy/nQuire_lrdmodel.log",
 	params:
 		extra=config["ploidy_nQuire"]["lrdmodel_params"],
 	threads: config["ploidy_nQuire"]["threads"]
@@ -121,9 +132,11 @@ rule format_nQuire_results:
 	output:
 		"results/{project}/final/nQuire.tsv",
 	log:
-		"results/{project}/log/ploidy/format_nQuire_results.log",
+		"results/logs/{project}/ploidy/format_nQuire_results.log",
 	params:
 		add_values="workflow/scripts/add_value_to_table.py"
+	conda:
+		"../envs/bash.yaml"
 	script:
 		"../scripts/format_nQuire_results.sh"
 

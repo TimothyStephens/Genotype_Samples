@@ -6,14 +6,14 @@ rule crossMapping_DNA_pe:
 		idx="resources/{ref_name}/genome.fasta",
 		idx_build=multiext("resources/{ref_name}/genome.fasta", ".0123", ".amb", ".ann", ".bwt.2bit.64", ".pac"),
 	output:
-		"results/{project}/cross-mapping/{ref_name}/dna/pe/{sample}-{unit}.samtools_stats.txt"
+		"results/cross-mapping/{ref_name}/dna/pe/{sample}-{unit}.samtools_stats.txt"
 	log:
-		"results/{project}/log/cross-mapping/{ref_name}/dna/pe/{sample}-{unit}.log",
+		"results/logs/cross-mapping/{ref_name}/dna/pe/{sample}-{unit}.log",
 	params:
 		mapping_extra=config["crossMapping_DNA_pe"]["mapping_params"],
 		sort_extra=config["crossMapping_DNA_pe"]["sort_params"],
 		stats_extra=config["crossMapping_DNA_pe"]["stats_params"],
-		tmpdir=temp(directory("results/{project}/cross-mapping/{ref_name}/dna/pe/{sample}-{unit}.samtools_tmp")),
+		tmpdir=temp(directory("results/cross-mapping/{ref_name}/dna/pe/{sample}-{unit}.samtools_tmp")),
 	threads: config["crossMapping_DNA_pe"]["threads"]
 	conda:
 		"../envs/bwa-mem2.yaml"
@@ -42,14 +42,14 @@ rule crossMapping_DNA_se:
 		idx="resources/{ref_name}/genome.fasta",
 		idx_build=multiext("resources/{ref_name}/genome.fasta", ".0123", ".amb", ".ann", ".bwt.2bit.64", ".pac"),
 	output:
-		"results/{project}/cross-mapping/{ref_name}/dna/se/{sample}-{unit}.samtools_stats.txt"
+		"results/cross-mapping/{ref_name}/dna/se/{sample}-{unit}.samtools_stats.txt"
 	log:
-		"results/{project}/log/cross-mapping/{ref_name}/dna/se/{sample}-{unit}.log",
+		"results/logs/cross-mapping/{ref_name}/dna/se/{sample}-{unit}.log",
 	params:
 		mapping_extra=config["crossMapping_DNA_se"]["mapping_params"],
 		sort_extra=config["crossMapping_DNA_se"]["sort_params"],
 		stats_extra=config["crossMapping_DNA_se"]["stats_params"],
-		tmpdir=temp(directory("results/{project}/cross-mapping/{ref_name}/dna/se/{sample}-{unit}.samtools_tmp")),
+		tmpdir=temp(directory("results/cross-mapping/{ref_name}/dna/se/{sample}-{unit}.samtools_tmp")),
 	threads: config["crossMapping_DNA_se"]["threads"]
 	conda:
 		"../envs/bwa-mem2.yaml"
@@ -77,10 +77,10 @@ rule crossMapping_RNA_pe:
 		reads=rules.trimming_RNA_pe.output.trimmed,
 		idx="resources/{ref_name}/genome.fasta.STAR",
 	output:
-		stats="results/{project}/cross-mapping/{ref_name}/rna/pe/{sample}-{unit}.samtools_stats.txt",
-		tmpdir=temp(directory("results/{project}/cross-mapping/{ref_name}/rna/pe/{sample}-{unit}.STAR")),
+		stats="results/cross-mapping/{ref_name}/rna/pe/{sample}-{unit}.samtools_stats.txt",
+		tmpdir=temp(directory("results/cross-mapping/{ref_name}/rna/pe/{sample}-{unit}.STAR")),
 	log:
-		"results/{project}/log/cross-mapping/{ref_name}/rna/pe/{sample}-{unit}.log",
+		"results/logs/cross-mapping/{ref_name}/rna/pe/{sample}-{unit}.log",
 	params:
 		sjdbOverhang=config["crossMapping_RNA_pe"]["sjdbOverhang"],
 		mapping_extra=config["crossMapping_RNA_pe"]["mapping_params"],
@@ -117,10 +117,10 @@ rule crossMapping_RNA_se:
 		reads=rules.trimming_RNA_se.output.trimmed,
 		idx="resources/{ref_name}/genome.fasta.STAR",
 	output:
-		stats="results/{project}/cross-mapping/{ref_name}/rna/se/{sample}-{unit}.samtools_stats.txt",
-		tmpdir=temp(directory("results/{project}/cross-mapping/{ref_name}/rna/se/{sample}-{unit}.STAR")),
+		stats="results/cross-mapping/{ref_name}/rna/se/{sample}-{unit}.samtools_stats.txt",
+		tmpdir=temp(directory("results/cross-mapping/{ref_name}/rna/se/{sample}-{unit}.STAR")),
 	log:
-		"results/{project}/log/cross-mapping/{ref_name}/rna/se/{sample}-{unit}.log",
+		"results/logs/cross-mapping/{ref_name}/rna/se/{sample}-{unit}.log",
 	params:
 		sjdbOverhang=config["crossMapping_RNA_se"]["sjdbOverhang"],
 		mapping_extra=config["crossMapping_RNA_se"]["mapping_params"],
@@ -175,24 +175,22 @@ def expand_crossMapping_results_paths():
 
 rule format_crossMapping_results:
 	input:
-		lambda wildcards: expand("results/{project}/cross-mapping/{s}.samtools_stats.txt", 
-			project=wildcards.project,
+		lambda wildcards: expand("results/cross-mapping/{s}.samtools_stats.txt", 
 			s=expand_crossMapping_results_paths()),
 	output:
 		"results/{project}/final/mapping_rates.tsv"
 	log:
-		"results/{project}/log/combine_mapping_results.log",
+		"results/logs/{project}/combine_mapping_results.log",
 	script:
 		"../scripts/format_crossMapping_results.sh"
 
 
-rule qc_multiqc_crossMapping:
+rule multiqc_crossMapping:
 	input:
 		expand("results/qc/raw/{fq}_fastqc.zip", fq=expand_raw_fastqc_paths()),
 		expand("results/qc/trimmed/{fq}_fastqc.zip", fq=expand_fastq_paths()),
 		expand("results/qc/trimmed/{fq}_fastp.json", fq=expand_sample_paths()),
-		lambda wildcards: expand("results/{project}/cross-mapping/{s}.samtools_stats.txt", 
-			project=wildcards.project, 
+		lambda wildcards: expand("results/cross-mapping/{s}.samtools_stats.txt", 
 			s=expand_crossMapping_results_paths()),
 	output:
 		report(
@@ -202,7 +200,7 @@ rule qc_multiqc_crossMapping:
 			labels={"QC": "Reads"},
 		),
 	log:
-		"results/{project}/log/qc/multiqc_crossMapping.log",
+		"results/logs/{project}/qc/multiqc_crossMapping.log",
 	params:
 		extra=config["qc_multiqc_crossMapping"]["params"],
 	conda:
@@ -232,7 +230,7 @@ rule plotting_cross_mapping_results:
 		),
 		rmd="results/{project}/final/cross_mapping_results.Rmd",
 	log:
-		"results/{project}/log/relatedness/plot_cross_mapping_results.log",
+		"results/logs/{project}/plotting/plot_cross_mapping_results.log",
 	conda:
 		"../envs/R.yaml"
 	shell:

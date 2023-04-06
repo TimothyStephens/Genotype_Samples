@@ -17,8 +17,8 @@ output:
 # Setup R env. Load packages and set default image export formats, size and resolution.
 library(tibble)
 library(ggplot2)
-library(heatmaply)
 library(ggdendro)
+library(heatmaply)
 library(reshape2)
 library(RColorBrewer)
 library(cowplot)

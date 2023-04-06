@@ -13,6 +13,10 @@ Modified to:
    cutoff as part of the snakemake worklfow. This functionality is already
    part of the script but having this as two separate scripts works better
    with the logic of snakemake.
+ - Changed the "group" identification step to now use a network connected 
+   component identification algorithm. Is more robust when we have two sets
+   of weakly related samples that have similarity above the threshold but the 
+   previous algorithm would split into two groups.
 
 Attempts to identify groups of clones in a dataset. The script
 (1) LOAD pairwise comparisons (allelic similarity) produced by `vcf_clone_detect-count.py` 
@@ -20,11 +24,12 @@ Attempts to identify groups of clones in a dataset. The script
 (2) produces a histogram of genetic similarities,
 (3) lists the highest matches to assess for a potential clonal threshold,
 (4) clusters the groups of clones based on a particular threshold (supplied or
-	roughly inferred), and
+	roughly inferred; group is defined as any sample with similairty to another
+        sample in the group > user threshold), and
 (5) lists the clonal individuals that can be removed from the dataset
 	(so that one individual with the least amount of missing data remains).
 
-e.g. `python3 vcf_clone_detect.py.py --input compare_file.csv --output sample_groups.tsv --threshold 95`
+e.g. `python3 vcf_clone_detect-group.py --input compare_file.csv --output sample_groups.tsv --threshold 95`
 
 """
 import sys
@@ -33,20 +38,19 @@ import operator
 import itertools
 import math
 import numpy as np
+from scipy import sparse
+from sknetwork.data import from_edge_list
+from sknetwork.topology import get_connected_components
 
 __author__ = 'Pim Bongaerts'
 __copyright__ = 'Copyright (C) 2016 Pim Bongaerts'
 __license__ = 'GPL'
 
 
-HEADER_CHAR = "#"
-HEADER_INDIVIDUALS = "#CHROM"
-FIRST_GENOTYPE_COLUMN = 9
 IND_STR_LEN = 50
-POP_STR_LEN = 50
 MATCHES_ADDITIONAL_ROWS = 5
 HIST_RANGE = range(1, 101)
-DEF_THRESHOLD = 85.0
+DEF_THRESHOLD = 95.0
 
 C_IND1 = 'ind1'
 C_IND2 = 'ind2'
@@ -55,7 +59,6 @@ C_IND2_SNPS = 'ind2_snps'
 C_BOTH_SNPS = 'both_snps'
 C_MATCH = 'match'
 C_MATCH_PERC = 'match_perc'
-C_POP = 'pop'
 
 COMPARISONS_DTYPES = [(C_IND1, np.str_, IND_STR_LEN),
 	(C_IND2, np.str_, IND_STR_LEN),
@@ -63,21 +66,13 @@ COMPARISONS_DTYPES = [(C_IND1, np.str_, IND_STR_LEN),
 	(C_IND2_SNPS, int),
 	(C_BOTH_SNPS, int),
 	(C_MATCH, float),
-	(C_MATCH_PERC, float),
-	(C_POP, np.str_, POP_STR_LEN)]
-
-OUTPUT_FILE_DELIM = ','
-OUTPUT_FILE_HEADER = OUTPUT_FILE_DELIM.join([C_IND1, C_IND2, C_IND1_SNPS,
-	C_IND2_SNPS, C_BOTH_SNPS,
-	C_MATCH, C_MATCH_PERC, C_POP])
-OUTPUT_FILE_FORMAT = OUTPUT_FILE_DELIM.join(['%s', '%s', '%i', '%i', '%i', '%f', '%f', '%s'])
+	(C_MATCH_PERC, float)]
 
 
 class CloneGroup(object):
 
 	def __init__(self, row):
 		self.indivs = set([str(row[C_IND1]), str(row[C_IND2])])
-		self.pops = set(str(row[C_POP]).split('-'))
 		self.min_sim_score = self.max_sim_score = float(row[C_MATCH_PERC])
 		if int(row[C_IND1_SNPS]) >= int(row[C_IND2_SNPS]):
 			self.best_indiv = str(row[C_IND1])
@@ -88,7 +83,6 @@ class CloneGroup(object):
 
 	def add_clone_from_row(self, row):
 		self.indivs.update([str(row[C_IND1]), str(row[C_IND2])])
-		self.pops.update(str(row[C_POP]).split('-'))
 		if float(row[C_MATCH_PERC]) < self.min_sim_score:
 			self.min_sim_score = float(row[C_MATCH_PERC])
 		if row[C_MATCH_PERC] > self.max_sim_score:
@@ -105,7 +99,7 @@ class CloneGroup(object):
 			score_range = '{0}%'.format(self.min_sim_score)
 		else:
 			score_range = '{0}-{1}%'.format(self.min_sim_score, self.max_sim_score)
-		info = '{0}\t{1}\t({2})'.format('-'.join(self.pops), score_range, ', '.join(self.indivs))
+		info = '{0}\t({1})'.format(score_range, ', '.join(self.indivs))
 		return info
 
 	def get_samples_to_remove(self):
@@ -171,10 +165,9 @@ def output_highest_matches(comparisons, threshold):
 					highest_diff_max_perc = last_value
 			
 			output_lines.append((
-				'{0}\t{1}\t[{2}]\t{3} vs {4}\t{5}/{6}\t{7}\t{8}').format(
+				'{0}\t{1}\t{2} vs {3}\t{4}/{5}\t{6}\t{7}').format(
 					row[C_MATCH_PERC],
 					diff,
-					row[C_POP],
 					row[C_IND1], 
 					row[C_IND2],
 					row[C_MATCH],
@@ -196,7 +189,6 @@ def output_highest_matches(comparisons, threshold):
 			threshold = (highest_diff_max_perc - highest_diff_min_perc) / 2
 
 	# Output list of matches with a break at the threshold
-
 	for line in output_lines:
 		if float(line.split()[0]) < threshold and threshold_msg:
 			print('{0}\t{1} {2} {1}'.format(round(threshold, 2), '-' * 20, threshold_msg))
@@ -209,31 +201,40 @@ def cluster_clones(comparisons, threshold):
 	""" Cluster groups of clones together """
 	clone_groups = []        # list of CloneGroup instances
 	clone_indexes = {}       # clone_indexes[indiv] = (index for clone_groups)
-	clone_index_count = -1   # to keep track of index for clone_groups
-	if len(comparisons) > 0: ## TGS - Only run if not empty (prevents numpy error when iter empty arrays)
-		for row in np.nditer(comparisons):
-			# Stop iterating when reaching simularity threshold
-			if row[C_MATCH_PERC] < threshold:
-				break
-			# Determine clone-index if one of indivs is already in list
-			ind1 = str(row[C_IND1])
-			ind2 = str(row[C_IND2])
-			if ind1 in clone_indexes.keys() and ind2 in clone_indexes.keys():
-				if clone_indexes[ind1] != clone_indexes[ind2]:
-					pass
-					#sys.exit('Error: clone matrix not properly sorted')
-			elif ind1 in clone_indexes.keys():
-				clone_indexes[ind2] = clone_indexes[ind1]
-				clone_groups[clone_indexes[ind1]].add_clone_from_row(row)
-			elif ind2 in clone_indexes.keys():
-				clone_indexes[ind1] = clone_indexes[ind2]
-				clone_groups[clone_indexes[ind2]].add_clone_from_row(row)
-			else:
-				clone_index_count += 1
-				clone_indexes[ind1] = clone_index_count
-				clone_indexes[ind2] = clone_index_count
-				clone_groups.append(CloneGroup(row))
+	edge_list = []
 	
+	# End early if empty (prevents numpy error when iter empty arrays)
+	if len(comparisons) == 0:
+		return clone_groups
+	
+	for row in np.nditer(comparisons):
+		# Only take pairs (edges) if they are above our chosen threshold.
+		if row[C_MATCH_PERC] >= threshold:
+			edge_list.append(row)
+	
+	# Edges to graph object
+	graph = from_edge_list([ (str(row[C_IND1]), str(row[C_IND2])) for row in edge_list ])
+	# Get connected components
+	labels = get_connected_components(graph.adjacency)
+	
+	# Annotate each label with its component index
+	for i, name in enumerate(graph.names):
+		clone_indexes[name] = labels[i]
+	
+	# Setup empty list
+	for i in range(max(labels)+1):
+		clone_groups.append(None)
+	
+	# Add info for each group into CloneGroup instances
+	for row in edge_list:
+		ind1 = str(row[C_IND1])
+		ind2 = str(row[C_IND2])
+		ind1_idx = clone_indexes[ind1]
+		ind2_idx = clone_indexes[ind2]
+		if clone_groups[ind1_idx] is not None:
+			clone_groups[ind1_idx].add_clone_from_row(row)
+		else:
+			clone_groups[ind1_idx] = CloneGroup(row)
 	return clone_groups
 
 
@@ -251,6 +252,7 @@ def write_sample_groups(clone_groups, comparisons, output_filename):
 	with open(output_filename, 'w') as fh:
 		fh.write('sample_id\tgroup_id\n')
 		for group in sample_groups:
+			print(group)
 			for sample in group:
 				fh.write('{}\tGroup{}\n'.format(sample, clone_group))
 				sample_ids.remove(sample)

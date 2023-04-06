@@ -69,8 +69,8 @@ data <- read.table(data.file, header=T, sep='\t', comment.char='', check.names=F
 heatmaply(
   data,
   #plot_method = "plotly",
-  col_side_colors=annot.labels,
-  row_side_colors=annot.labels,
+  col_side_colors=annot.labels[colnames(data),],
+  row_side_colors=annot.labels[colnames(data),],
   row_side_palette=palette,
   col_side_palette=palette,
   column_text_angle=90,
@@ -81,11 +81,31 @@ heatmaply(
 
 
 ```{r similairty_density, echo=FALSE, message=FALSE}
+vline <- function(x, text) {
+  list(
+    type = "line",
+    y0 = 0,
+    y1 = 1,
+    yref = "paper",
+    x0 = x,
+    x1 = x,
+    line = list(color = "red")
+  )
+}
+
 x <- na.omit(as.vector(t(data)))
 fit <- density(x)
 plot_ly(x = x, type = "histogram", name = "Histogram") %>% 
   add_trace(x = fit$x, y = fit$y, type = "scatter", mode = "lines", fill = "tozeroy", yaxis = "y2", name = "Density") %>% 
-  layout(yaxis2 = list(overlaying = "y", side = "right"))
+  layout(yaxis2 = list(overlaying = "y", side = "right"),
+         shapes = list(
+                       vline(1/2),
+                       vline(1/4),
+                       vline(1/8),
+                       vline(1/16),
+                       vline(0)
+                      )
+         )
 ```
 
 

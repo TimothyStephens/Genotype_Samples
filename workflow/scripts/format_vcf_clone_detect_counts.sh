@@ -10,9 +10,13 @@ awk -F',' 'FNR==NR{
   if(FNR==1){
     for(i=1; i<=length(names); i++){
       for(j=1; j<=length(names); j++){
-        M[names[i]][names[j]]="NA"
+        if(names[i] == names[j]){
+          M[names[i]][names[j]]="100"
+        } else {
+          M[names[i]][names[j]]="NA"
+        }
       }
-    } 
+    }
   } else { 
     M[$1][$2]=$7
     M[$2][$1]=$7

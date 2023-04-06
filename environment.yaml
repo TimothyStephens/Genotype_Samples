@@ -1,4 +1,4 @@
-name: snakemake
+name: Genotype_Samples
 channels:
   - conda-forge
   - bioconda

@@ -33,8 +33,10 @@ data.file <- "nQuire.tsv"
 ```{r load_data, echo=FALSE, message=FALSE}
 # Load data
 data <- read.table(data.file, header = T, sep = '\t') %>%
-  mutate_at(c('sample_id'), as.factor)
+  mutate_at(c('sample_id'), as.factor) %>%
+  arrange(best_ploidy_model_num, sample_id)
 ```
+
 
 ```{r plot_denoised, echo=FALSE, message=FALSE}
 fig <- plot_ly(data %>% filter(type == "denoised")) %>%
@@ -46,7 +48,7 @@ fig <- plot_ly(data %>% filter(type == "denoised")) %>%
             mode = "markers", marker = list(color = "#7570b3")) %>%
   layout(
     title = "nQuire denoised sites",
-    xaxis = list(title = "Sample ID", tickmode = "linear", tickfont = list(size=3)),
+    xaxis = list(title = "Sample ID", tickmode = "linear", tickfont = list(size=3), tickangle = 90),
     yaxis = list(title = "delta Log-Likelihood"),
     margin = list(l = 100)
   )
@@ -64,7 +66,7 @@ fig <- plot_ly(data %>% filter(type == "normal")) %>%
             mode = "markers", marker = list(color = "#7570b3")) %>%
   layout(
     title = "nQuire normal sites",
-    xaxis = list(title = "Sample ID", tickmode = "linear", tickfont = list(size=3)),
+    xaxis = list(title = "Sample ID", tickmode = "linear", tickfont = list(size=3), tickangle = 90),
     yaxis = list(title = "delta Log-Likelihood"),
     margin = list(l = 100)
   )

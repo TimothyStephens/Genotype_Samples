@@ -1,15 +1,19 @@
 #!/usr/bin/env python
 import sys
 import os
-from argparse import RawTextHelpFormatter
 import subprocess
 import click
+
 
 __version__ = "0.0.1"
 
 
+## Params to be used by all snakemake commands.
+SNAKEMAKE_PARAMS = ["--use-conda", "--use-singularity", "--keep-going", "--printshellcmds"]
+
+## Helper script to run snakemake commands.
 def run_cmd(cmd):
-	print(cmd)
+	print("Running snakemake command:\n", cmd)
 	try:
 		subprocess.check_call(cmd, shell=True)
 	except subprocess.CalledProcessError as e:
@@ -17,6 +21,7 @@ def run_cmd(cmd):
 		print("ERROR encountered while running snakemake:")
 		print(e)
 		exit(1)
+
 
 ##
 ## Pass command line arguments.
@@ -57,7 +62,7 @@ def cli(obj):
 @click.argument("snakemake_args", nargs=-1, type=click.UNPROCESSED)
 def run_genotyping(configfile, cores, max_downloads, snakemake_args):
 	run_cmd((
-		"snakemake --use-conda --use-singularity --keep-going"
+		"snakemake"
 		" --snakefile '{snakefile}'"
 		" --configfile '{configfile}'"
 		" --cores {cores}"
@@ -68,7 +73,7 @@ def run_genotyping(configfile, cores, max_downloads, snakemake_args):
 		configfile=configfile,
 		cores=cores,
 		max_downloads=max_downloads,
-		snakemake_args=" ".join(snakemake_args),
+		snakemake_args=" ".join(SNAKEMAKE_PARAMS + list(snakemake_args)),
 	))
 
 
@@ -99,7 +104,7 @@ def run_genotyping(configfile, cores, max_downloads, snakemake_args):
 @click.argument("snakemake_args", nargs=-1, type=click.UNPROCESSED)
 def run_cross_mapping(configfile, cores, max_downloads, snakemake_args):
 	run_cmd((
-		"snakemake --use-conda --use-singularity --keep-going"
+		"snakemake"
 		" --snakefile '{snakefile}'"
 		" --configfile '{configfile}'"
 		" --cores {cores}"
@@ -110,7 +115,7 @@ def run_cross_mapping(configfile, cores, max_downloads, snakemake_args):
 		configfile=configfile,
 		cores=cores,
 		max_downloads=max_downloads,
-		snakemake_args=" ".join(snakemake_args),
+		snakemake_args=" ".join(SNAKEMAKE_PARAMS + list(snakemake_args)),
 	))
 
 

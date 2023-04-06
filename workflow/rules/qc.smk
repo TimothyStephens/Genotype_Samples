@@ -85,11 +85,11 @@ rule qc_fastqc_rawReads:
 
 rule qc_samtools_stats:
 	input:
-		bam="results/{project}/mapping_merged/{sample}.bam",
+		bam="results/mapping_merged/{ref_name}/{sample}.bam",
 	output:
-		"results/{project}/qc/mapping_merged/{sample}_samtools_stats.txt",
+		"results/qc/mapping_merged/{ref_name}/{sample}_samtools_stats.txt",
 	log:
-		"results/{project}/log/qc/mapping_merged/{sample}.log",
+		"results/logs/qc/mapping_merged/{ref_name}/{sample}.log",
 	params:
 		extra=config["qc_samtools_stats"]["params"],
 	conda:
@@ -104,11 +104,11 @@ rule qc_samtools_stats:
 
 rule qc_qualimap:
 	input:
-		bam="results/{project}/mapping_merged/{sample}.bam",
+		bam="results/mapping_merged/{ref_name}/{sample}.bam",
 	output:
-		directory("results/{project}/qc/mapping_merged/{sample}_qualimap"),
+		directory("results/qc/mapping_merged/{ref_name}/{sample}_qualimap"),
 	log:
-		"results/{project}/log/qc/mapping_merged/{sample}.qualimap.log",
+		"results/logs/qc/mapping_merged/{ref_name}/{sample}.qualimap.log",
 	params:
 		extra=config["qc_qualimap"]["params"],
 	conda:
@@ -124,11 +124,11 @@ rule qc_qualimap:
 
 rule qc_samtools_stats_unmerged:
 	input:
-		bam="results/{project}/mapping/{fq}.sorted.bam",
+		bam="results/mapping/{ref_name}/{fq}.sorted.bam",
 	output:
-		"results/{project}/qc/mapping/{fq}_samtools_stats.txt",
+		"results/qc/mapping/{ref_name}/{fq}_samtools_stats.txt",
 	log:
-		"results/{project}/log/qc/mapping/{fq}.log",
+		"results/logs/qc/mapping/{ref_name}/{fq}.log",
 	params:
 		extra=config["qc_samtools_stats"]["params"],
 	conda:
@@ -143,11 +143,11 @@ rule qc_samtools_stats_unmerged:
 
 rule qc_bcftools_stats:
 	input:
-		"results/{project}/merged_calls/{name}.vcf.gz",
+		"results/{project}/calling_merged/{name}.vcf.gz",
 	output:
-		"results/{project}/qc/merged_calls/{name}_bcftools_stats.txt",
+		"results/{project}/qc/calling_merged/{name}_bcftools_stats.txt",
 	log:
-		"results/{project}/log/qc/merged_calls/{name}_bcftools_stats.log",
+		"results/logs/{project}/qc/calling_merged/{name}_bcftools_stats.log",
 	params:
 		extra=config["qc_bcftools_stats"]["params"],
 	conda:
@@ -158,70 +158,5 @@ rule qc_bcftools_stats:
 		" {input}"
 		" > {output}"
 		" 2>{log}"
-
-
-rule qc_multiqc_reads:
-	input:
-		expand("results/qc/raw/{fq}_fastqc.zip", fq=expand_raw_fastqc_paths()),
-		expand("results/qc/trimmed/{fq}_fastqc.zip", fq=expand_fastq_paths()),
-		expand("results/qc/trimmed/{fq}_fastp.json", fq=expand_sample_paths()),
-		lambda wildcards: expand("results/{project}/qc/mapping/{fq}_samtools_stats.txt", project=wildcards.project, fq=expand_sample_paths()),
-		#lambda wildcards: expand("results/{project}/qc/mapping_merged/{sample}_samtools_stats.txt", project=wildcards.project, sample=samples.sample_id.unique()),
-		lambda wildcards: expand("results/{project}/qc/mapping_merged/{sample}_qualimap", project=wildcards.project, sample=samples.sample_id.unique()),
-	output:
-		report(
-			"results/{project}/qc/multiqc_reads.html",
-			caption="../report/multiqc_reads.rst",
-			subcategory="MultiQC",
-			labels={"QC": "Reads"},
-		),
-	log:
-		"results/{project}/log/qc/multiqc_reads.log",
-	params:
-		extra=config["qc_multiqc_reads"]["params"],
-	conda:
-		"../envs/multiqc.yaml"
-	shell:
-		"output_dir=$(dirname {output}); "
-		"output_name=$(basename {output}); "
-		"multiqc"
-		" {params.extra}"
-		" --config workflow/report/multiqc_reads_config.yaml"
-		" --force"
-		" -o $output_dir"
-		" -n $output_name"
-		" {input}"
-		" 1>{log} 2>&1"
-
-
-rule qc_multiqc_variant_calls:
-	input:
-		lambda wildcards: expand("results/{project}/qc/merged_calls/{name}_bcftools_stats.txt", 
-			project=wildcards.project, 
-			name=["calls.unfiltered", "calls.filtered"]),
-	output:
-		report(
-			"results/{project}/qc/multiqc_calls.html",
-			caption="../report/multiqc_calls.rst",
-			subcategory="MultiQC",
-			labels={"QC": "Called variants"},
-		),
-	log:
-		"results/{project}/log/qc/multiqc_calls.log",
-	params:
-		extra=config["qc_multiqc_calls"]["params"],
-	conda:
-		"../envs/multiqc.yaml"
-	shell:
-		"output_dir=$(dirname {output}); "
-		"output_name=$(basename {output}); "
-		"multiqc"
-		" {params.extra}"
-		" --config workflow/report/multiqc_calls_config.yaml"
-		" --force"
-		" -o $output_dir"
-		" -n $output_name"
-		" {input}"
-		" 1>{log} 2>&1"
 
 
