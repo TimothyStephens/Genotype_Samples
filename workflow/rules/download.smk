@@ -9,7 +9,7 @@ rule download_fastq_pe:
 	params:
 		out_prefix="data/pe",
 		extra=config["download_fastq_pe"]["params"],
-		tempdir="data/pe/{wildcards.accession}.fasterq",
+		tempdir=lambda wildcards: "data/pe/{}.fasterq".format(wildcards.accession),
 	threads: config["download_fastq_pe"]["threads"]
 	resources:
 		max_downloads=1
@@ -39,7 +39,7 @@ rule download_fastq_se:
 	params:
 		out_prefix="data/se",
 		extra=config["download_fastq_se"]["params"],
-		tempdir="data/se/{wildcards.accession}.fasterq",
+		tempdir=lambda wildcards: "data/se/{}.fasterq".format(wildcards.accession),
 	threads: config["download_fastq_se"]["threads"]
 	resources:
 		max_downloads=1
