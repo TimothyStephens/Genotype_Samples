@@ -12,9 +12,9 @@ rule ploidy_nQuire_create:
 		),
 		programs=rules.install_nQuire.output,
 	output:
-		"results/{project}/ploidy/{sample}.bin",
+		"results/ploidy/{sample}.bin",
 	log:
-		"results/logs/{project}/ploidy/nQuire_create/{sample}.log",
+		"results/logs/ploidy/nQuire_create/{sample}.log",
 	params:
 		extra=config["ploidy_nQuire"]["create_params"],
 		min_quality=config["ploidy_nQuire"]["min_quality"],
@@ -30,9 +30,9 @@ rule ploidy_nQuire_denoise:
 		nQbin=rules.ploidy_nQuire_create.output,
 		programs=rules.install_nQuire.output,
 	output:
-		"results/{project}/ploidy/{sample}.denoised.bin",
+		"results/ploidy/{sample}.denoised.bin",
 	log:
-		"results/logs/{project}/ploidy/nQuire_denoise/{sample}.denoise.log",
+		"results/logs/ploidy/nQuire_denoise/{sample}.denoise.log",
 	params:
 		extra=config["ploidy_nQuire"]["denoise_params"],
 	conda:
@@ -50,9 +50,9 @@ rule ploidy_nQuire_coverage:
 		nQbin=rules.ploidy_nQuire_denoise.output,
 		programs=rules.install_nQuire.output,
 	output:
-		"results/{project}/ploidy/{sample}.denoised.bin.coverage.sitesProp.gz",
+		"results/ploidy/{sample}.denoised.bin.coverage.sitesProp.gz",
 	log:
-		"results/logs/{project}/ploidy/nQuire_denoise/{sample}.nQuire_coverage.log",
+		"results/logs/ploidy/nQuire_denoise/{sample}.nQuire_coverage.log",
 	params:
 		extra=config["ploidy_nQuire"]["coverage_params"],
 	conda:
@@ -67,9 +67,9 @@ rule ploidy_nQuire_site_count:
 		nQbin_denoised=rules.ploidy_nQuire_denoise.output,
 		programs=rules.install_nQuire.output,
 	output:
-		"results/{project}/ploidy/{sample}.site_counts.tsv",
+		"results/ploidy/{sample}.site_counts.tsv",
 	log:
-		"results/logs/{project}/ploidy/{sample}.count.log",
+		"results/logs/ploidy/{sample}.count.log",
 	conda:
 		"../envs/nQuire.yaml"
 	shell:
@@ -84,8 +84,7 @@ rule ploidy_nQuire_site_count:
 
 rule ploidy_nQuire_merge_site_counts:
 	input:
-		lambda wildcards: expand("results/{project}/ploidy/{sample}.site_counts.tsv",
-			project=wildcards.project,
+		lambda wildcards: expand("results/ploidy/{sample}.site_counts.tsv",
 			sample=samples.sample_id.unique()),
 	output:
 		"results/{project}/ploidy/nQuire_sites_count.txt",
@@ -104,11 +103,9 @@ rule ploidy_nQuire_merge_site_counts:
 rule ploidy_nQuire_lrdmodel:
 	input:
 		nQbins=lambda wildcards: [
-			  *expand("results/{project}/ploidy/{sample}.bin", 
-				project=wildcards.project,
+			  *expand("results/ploidy/{sample}.bin", 
 				sample=samples.sample_id.unique()),
-			  *expand("results/{project}/ploidy/{sample}.denoised.bin", 
-				project=wildcards.project, 
+			  *expand("results/ploidy/{sample}.denoised.bin", 
 				sample=samples.sample_id.unique()),
 		],
 		programs=rules.install_nQuire.output,

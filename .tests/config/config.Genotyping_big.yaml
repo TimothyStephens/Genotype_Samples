@@ -19,10 +19,3 @@ calling_filter_VCFs:
 relatedness_vcf_clone_detect:
   threshold: 94.0
 
-
-# nQuire
-ploidy_nQuire:
-  min_quality: 20
-  min_coverage: 20
-
-

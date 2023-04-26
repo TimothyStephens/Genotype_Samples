@@ -18,8 +18,7 @@ rule format_annotations:
 
 rule ploidy_nQuire_overage_file_list:
 	input:
-		cov=lambda wildcards: expand("results/{project}/ploidy/{sample}.denoised.bin.coverage.sitesProp.gz",
-			project=wildcards.project,
+		cov=lambda wildcards: expand("results/ploidy/{sample}.denoised.bin.coverage.sitesProp.gz",
 			sample=samples.sample_id.unique()),
 		annots=rules.format_annotations.output,
 	output:

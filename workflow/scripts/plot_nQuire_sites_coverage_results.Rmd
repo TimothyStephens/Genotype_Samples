@@ -44,7 +44,7 @@ x.lim.max <- 0.9
 pdf(paste("nQuire_sites_coverage_results_xLim_", x.lim.min, "-", x.lim.max, ".pdf", sep=''))
 par(mar=c(5, 3, 3, 2), cex=1.5, mfrow=c(4,2)) # number of plots per page
 for (i in 1:nsamples) {
-  AP <- read.table(paste("../ploidy/", files2plot[i,1], sep=''), header = F)
+  AP <- read.table(paste("../../ploidy/", files2plot[i,1], sep=''), header = F)
   d <- density(AP[,1], from=x.lim.min, to=x.lim.max, bw=0.01, na.rm =T)
   plot(d, xlim = c(x.lim.min,x.lim.max), main=as.character(files2plot[i,2]), col="blue", xlab = (dim(AP)[1])/2, lwd=2)
 }

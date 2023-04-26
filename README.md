@@ -89,6 +89,15 @@ conda activate Genotype_Samples
 To generate HTML reports for each of the above commands, add `--report report.zip` to the end of each command.
 
 
+
+## Notes
+If you want to stop the scheduling of new jobs and wait for all running jobs to be finished, you can send a TERM signal, e.g., via
+```bash
+killall -TERM snakemake
+```
+
+
+
 ## Results
 Results files produced by this workflow will be in `results/project_name/final/`, where `project_name` is whatever you specified in the config file.
 

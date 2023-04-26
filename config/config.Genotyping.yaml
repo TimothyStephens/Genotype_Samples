@@ -18,11 +18,5 @@ calling_filter_VCFs:
 
 # Percent similarity cutoff to use for vcf_clone_detect.py
 relatedness_vcf_clone_detect:
-  threshold: 95.0
-
-# nQuire
-ploidy_nQuire:
-  min_quality: 20
-  min_coverage: 20
-
+  threshold: 94.0
 
