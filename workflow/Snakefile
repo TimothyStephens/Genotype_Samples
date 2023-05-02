@@ -15,6 +15,7 @@ include: "rules/trimming.smk"
 include: "rules/mapping.smk"
 include: "rules/calling.smk"
 include: "rules/qc.smk"
+include: "rules/cross-mapping.smk" ##
 include: "rules/multiqc.smk"
 include: "rules/relatedness.smk"
 include: "rules/ploidy.smk"
@@ -22,17 +23,26 @@ include: "rules/annotations.smk"
 include: "rules/plotting.smk"
 
 
+if   config["module"] == "genotyping":
+	DONE_WORKFLOW = "results/{project}/genotyping.done".format(project=config["project_name"])
+elif config["module"] == "cross_mapping":
+	DONE_WORKFLOW = "results/{project}/cross_mapping.done".format(project=config["project_name"])
+else:
+	DONE_WORKFLOW = "" # How did we get here????
+
+
 localrules:
 	all,
-	full_workflow,
+	genotyping,
+	cross_mapping,
 
 
 rule all:
 	input:
-		"results/{project}/project.done".format(project=config["project_name"]),
+		DONE_WORKFLOW,
 
 
-rule full_workflow:
+rule genotyping:
 	input:
 		rules.format_filtered_VCF.output,
 		rules.format_results_NgsRelate.output,
@@ -45,6 +55,14 @@ rule full_workflow:
 		rules.plotting_nQuire_delta_loglikelihood_results.output,
 		rules.plotting_nQuire_coverage_results.output,
 	output:
-		touch("results/{project}/project.done"),
+		touch("results/{project}/genotyping.done"),
+
+
+rule cross_mapping:
+	input:
+		rules.multiqc_crossMapping.output,
+		rules.plotting_cross_mapping_results.output.html,
+	output:
+		touch("results/{project}/cross_mapping.done"),
 
 

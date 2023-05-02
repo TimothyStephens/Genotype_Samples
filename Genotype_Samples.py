@@ -9,7 +9,7 @@ __version__ = "0.0.1"
 
 
 ## Params to be used by all snakemake commands.
-SNAKEMAKE_PARAMS = ["--use-conda", "--use-singularity", "--keep-going", "--printshellcmds"]
+SNAKEMAKE_REQUIRED_PARAMS = ["--use-conda", "--use-singularity", "--keep-going", "--printshellcmds"]
 
 ## Helper script to run snakemake commands.
 def run_cmd(cmd):
@@ -26,98 +26,69 @@ def run_cmd(cmd):
 ##
 ## Pass command line arguments.
 ##
-@click.group(context_settings=dict(help_option_names=["-h", "--help"]))
+@click.command(context_settings=dict(
+	ignore_unknown_options=True, 
+	help_option_names=["-h", "--help"],
+))
 @click.version_option(__version__)
-@click.pass_context
-def cli(obj):
+@click.option(
+	"--module",
+	required=True,
+	type=click.Choice(['genotyping', 'cross_mapping']),
+	help="Module/workflow to run",
+)
+@click.option(
+	"--configfile",
+	required=True,
+	type=click.Path(exists=True, resolve_path=True),
+	help="configfile",
+)
+@click.option(
+	"-c",
+	"--cores",
+	required=False,
+	default="all",
+	help="Use at most N CPU cores/jobs in parallel. If N is omitted or 'all', the limit is set to the number of available CPU cores.",
+)
+@click.option(
+	"--max-downloads",
+	required=False,
+	default=6,
+	help="Max number of parallel fasterq-dump jobs to run at the same time. Lets the user limit the amount that is being downloaded at the same time.",
+)
+@click.argument("snakemake_args", nargs=-1, type=click.UNPROCESSED)
+def workflow(module, configfile, cores, max_downloads, snakemake_args):
 	"""
-	Genotype samples
+	\b
+	##########################
+	#### Genotype samples ####
+	##########################
+	
 	A snakemake workflow for exploring genotype + ploidy of DNA or RNA samples using a reference genome.
+	
+	\b
+	Modules:
+	  genotyping		Exploring genotype + ploidy of samples
+	  cross_mapping		Cross-mapping of samples to multiple genomes
+	
+	##########################
 	"""
-
-@cli.command(
-	"genotyping",
-	context_settings=dict(ignore_unknown_options=True),
-	short_help="Run full typing (genotyping + ploidy) workflow",
-)
-@click.option(
-	"--configfile",
-	required=True,
-	type=click.Path(exists=True, resolve_path=True),
-	help="configfile",
-)
-@click.option(
-	"-c",
-	"--cores",
-	required=False,
-	default="all",
-	help="Use at most N CPU cores/jobs in parallel. If N is omitted or 'all', the limit is set to the number of available CPU cores.",
-)
-@click.option(
-	"--max-downloads",
-	required=False,
-	default=6,
-	help="Max number of parallel fasterq-dump jobs to run at the same time. Lets the user limit the amount that is being downloaded at the same time.",
-)
-@click.argument("snakemake_args", nargs=-1, type=click.UNPROCESSED)
-def run_genotyping(configfile, cores, max_downloads, snakemake_args):
 	run_cmd((
 		"snakemake"
-		" --snakefile '{snakefile}'"
+		" --config 'module={module}'"
 		" --configfile '{configfile}'"
 		" --cores {cores}"
 		" --resources max_downloads={max_downloads}"
 		" {snakemake_args}"
 	).format(
-		snakefile="workflow/Snakefile_genotyping",
+		module=module,
 		configfile=configfile,
 		cores=cores,
 		max_downloads=max_downloads,
-		snakemake_args=" ".join(SNAKEMAKE_PARAMS + list(snakemake_args)),
+		snakemake_args=" ".join(SNAKEMAKE_REQUIRED_PARAMS + list(snakemake_args)),
 	))
 
-
-@cli.command(
-	"cross_mapping",
-	context_settings=dict(ignore_unknown_options=True),
-	short_help="Run cross mapping workflow",
-)
-@click.option(
-	"--configfile",
-	required=True,
-	type=click.Path(exists=True, resolve_path=True),
-	help="configfile",
-)
-@click.option(
-	"-c",
-	"--cores",
-	required=False,
-	default="all",
-	help="Use at most N CPU cores/jobs in parallel. If N is omitted or 'all', the limit is set to the number of available CPU cores.",
-)
-@click.option(
-	"--max-downloads",
-	required=False,
-	default=6,
-	help="Max number of parallel fasterq-dump jobs to run at the same time. Lets the user limit the amount that is being downloaded at the same time.",
-)
-@click.argument("snakemake_args", nargs=-1, type=click.UNPROCESSED)
-def run_cross_mapping(configfile, cores, max_downloads, snakemake_args):
-	run_cmd((
-		"snakemake"
-		" --snakefile '{snakefile}'"
-		" --configfile '{configfile}'"
-		" --cores {cores}"
-		" --resources max_downloads={max_downloads}"
-		" {snakemake_args}"
-	).format(
-		snakefile="workflow/Snakefile_cross_mapping",
-		configfile=configfile,
-		cores=cores,
-		max_downloads=max_downloads,
-		snakemake_args=" ".join(SNAKEMAKE_PARAMS + list(snakemake_args)),
-	))
 
 
 if __name__ == "__main__":
-	cli()
+	workflow()
