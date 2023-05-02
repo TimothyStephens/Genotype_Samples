@@ -128,11 +128,12 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# Custon
+# Custom
 .snakemake/
 report.zip
 resources/
 results/
 .keras/
 .parallel/
-
+tests/data/*.fq.gz
+tests/data/*.tar
