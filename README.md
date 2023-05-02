@@ -51,11 +51,11 @@ The `Genotype_Samples.py` script handels the high level running and organization
 Compare samples against multiple genomes and report mapping stats (% mapped reads) as a way of checking/determining the "species" that a sample is from/has highest similarity to.
 ```bash
 conda activate Genotype_Samples
-./Genotype_Samples.py cross_mapping --configfile config/config.crossMapping.yaml
+./Genotype_Samples.py --module cross_mapping --configfile config/config.crossMapping.yaml
 ```
 Once the workflow has finished you can run the same command with the `--report report.zip` flag to produce a nice HTML report.
 ```bash
-./Genotype_Samples.py cross_mapping --configfile config/config.crossMapping.yaml --report report.zip
+./Genotype_Samples.py --module cross_mapping --configfile config/config.crossMapping.yaml --report report.zip
 ```
 The HTML report will be contained within the `report.zip` file (which file can be named whatever you want in the above command so you dont overwrite reports from other projects).
 
@@ -64,11 +64,11 @@ The HTML report will be contained within the `report.zip` file (which file can b
 Full genotyping workflow. Call variants, calculate relatedness stats, estimate ploidy, and generate QC and results plots.
 ```bash
 conda activate Genotype_Samples
-./Genotype_Samples.py genotyping --configfile config/config.Genotyping.yaml
+./Genotype_Samples.py --module genotyping --configfile config/config.Genotyping.yaml
 ```
 To generate the HTML report run:
 ```bash
-./Genotype_Samples.py full_workflow --configfile config/config.Genotyping.yaml --report report.zip
+./Genotype_Samples.py --module genotyping --configfile config/config.Genotyping.yaml --report report.zip
 ```
 
 
@@ -79,12 +79,12 @@ Run test analyses using the following commands.
 conda activate Genotype_Samples
 
 # Cross-mapping
-./Genotype_Samples.py cross_mapping --configfile tests/config/config.crossMapping_small.yaml
-./Genotype_Samples.py cross_mapping --configfile tests/config/config.crossMapping_big.yaml
+./Genotype_Samples.py --module cross_mapping --configfile tests/config/config.crossMapping_small.yaml
+./Genotype_Samples.py --module cross_mapping --configfile tests/config/config.crossMapping_big.yaml
 
 # Genotyping
-./Genotype_Samples.py genotyping --configfile tests/config/config.Genotyping_small.yaml
-./Genotype_Samples.py genotyping --configfile tests/config/config.Genotyping_big.yaml
+./Genotype_Samples.py --module genotyping --configfile tests/config/config.Genotyping_small.yaml
+./Genotype_Samples.py --module genotyping --configfile tests/config/config.Genotyping_big.yaml
 ```
 To generate HTML reports for each of the above commands, add `--report report.zip` to the end of each command.
 
