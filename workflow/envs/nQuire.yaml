@@ -1,5 +1,7 @@
 name: nQuire
 channels:
   - bioconda
+  - anaconda
 dependencies:
   - python ==3.11.0
+  - make

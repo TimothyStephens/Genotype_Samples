@@ -79,12 +79,12 @@ Run test analyses using the following commands.
 conda activate Genotype_Samples
 
 # Cross-mapping
-./Genotype_Samples.py cross_mapping --configfile .tests/config/config.crossMapping_small.yaml
-./Genotype_Samples.py cross_mapping --configfile .tests/config/config.crossMapping_big.yaml
+./Genotype_Samples.py cross_mapping --configfile tests/config/config.crossMapping_small.yaml
+./Genotype_Samples.py cross_mapping --configfile tests/config/config.crossMapping_big.yaml
 
 # Genotyping
-./Genotype_Samples.py genotyping --configfile .tests/config/config.Genotyping_small.yaml
-./Genotype_Samples.py genotyping --configfile .tests/config/config.Genotyping_big.yaml
+./Genotype_Samples.py genotyping --configfile tests/config/config.Genotyping_small.yaml
+./Genotype_Samples.py genotyping --configfile tests/config/config.Genotyping_big.yaml
 ```
 To generate HTML reports for each of the above commands, add `--report report.zip` to the end of each command.
 
