@@ -7,7 +7,7 @@ project_name: 'test_small'
 samples: 'tests/config/samples.example_small.tsv'
 
 ref_genomes:
-  'test_big': tests/data/ref.fa'
+  'test_big': 'tests/data/ref.fa'
 
 
 # Filter final merged file

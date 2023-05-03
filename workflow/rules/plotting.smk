@@ -132,3 +132,28 @@ rule plotting_nQuire_coverage_results:
 		" 1>{log} 2>&1"
 
 
+rule plotting_cross_mapping_results:
+	input:
+		matrix=rules.format_crossMapping_results.output,
+	output:
+		html=report(
+			"results/{project}/final/cross_mapping_results.html",
+			#caption="../report/multiqc_calls.rst",
+			subcategory="Result plots",
+			labels={"Results": "Cross mapping results"},
+		),
+		rmd="results/{project}/final/cross_mapping_results.Rmd",
+	log:
+		"results/logs/{project}/plotting/plot_cross_mapping_results.log",
+	conda:
+		"../envs/R.yaml"
+	shell:
+		"("
+		"  export PATH=\"$CONDA_PREFIX/bin:$PATH\""
+		"; export R_LIB=\"$CONDA_PREFIX/lib/R/library\""
+		"; cp workflow/scripts/plot_cross_mapping_results.Rmd {output.rmd}"
+		"; Rscript -e \"rmarkdown::render('{output.rmd}')\""
+		")"
+		" 1>{log} 2>&1"
+
+

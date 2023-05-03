@@ -70,3 +70,36 @@ rule multiqc_variant_calls:
 		" 1>{log} 2>&1"
 
 
+rule multiqc_crossMapping:
+	input:
+		expand("results/qc/raw/{fq}_fastqc.zip", fq=expand_raw_fastqc_paths()),
+		expand("results/qc/trimmed/{fq}_fastqc.zip", fq=expand_fastq_paths()),
+		expand("results/qc/trimmed/{fq}_fastp.json", fq=expand_sample_paths()),
+		lambda wildcards: expand("results/cross-mapping/{s}.samtools_stats.txt",
+			s=expand_crossMapping_results_paths()),
+	output:
+		report(
+			"results/{project}/qc/multiqc_crossMapping.html",
+			caption="../report/multiqc_crossMapping.rst",
+			subcategory="MultiQC",
+			labels={"QC": "Reads"},
+		),
+	log:
+		"results/logs/{project}/qc/multiqc/crossMapping_reads.log",
+	params:
+		extra=config["qc_multiqc_crossMapping"]["params"],
+	conda:
+		"../envs/multiqc.yaml"
+	shell:
+		"output_dir=$(dirname {output}); "
+		"output_name=$(basename {output}); "
+		"multiqc"
+		" {params.extra}"
+		" --config workflow/report/multiqc_crossMapping_config.yaml"
+		" --force"
+		" -o $output_dir"
+		" -n $output_name"
+		" {input}"
+		" 1>{log} 2>&1"
+
+

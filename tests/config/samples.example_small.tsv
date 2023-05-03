@@ -21,3 +21,6 @@ sample_id	unit	lib_type	fq1	fq2
 1254_Trip_Ungroup	1	rna	tests/data/1254_R1.fq.gz	tests/data/1254_R2.fq.gz
 2185_Trip_Ungroup	1	rna	tests/data/2185_R1.fq.gz	tests/data/2185_R2.fq.gz
 1415_Dip_Ungroup	1	rna	tests/data/1415_R1.fq.gz	tests/data/1415_R2.fq.gz
+Mix	1	rna	tests/data/1415_R1.fq.gz	tests/data/1415_R2.fq.gz
+Mix	2	dna	tests/data/1254_R1.fq.gz	tests/data/1254_R2.fq.gz
+Mix	3	dna	tests/data/2185_R1.fq.gz
