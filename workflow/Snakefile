@@ -16,6 +16,7 @@ include: "rules/mapping.smk"
 include: "rules/calling.smk"
 include: "rules/qc.smk"
 include: "rules/cross-mapping.smk"
+include: "rules/kmer_analysis.smk"
 include: "rules/multiqc.smk"
 include: "rules/relatedness.smk"
 include: "rules/ploidy.smk"
@@ -27,6 +28,8 @@ if   config["module"] == "genotyping":
 	DONE_WORKFLOW = "results/{project}/genotyping.done".format(project=config["project_name"])
 elif config["module"] == "cross_mapping":
 	DONE_WORKFLOW = "results/{project}/cross_mapping.done".format(project=config["project_name"])
+elif config["module"] == "kmer_analysis":
+	DONE_WORKFLOW = "results/{project}/kmer_analysis.done".format(project=config["project_name"])
 else:
 	DONE_WORKFLOW = "" # How did we get here????
 
@@ -35,6 +38,7 @@ localrules:
 	all,
 	genotyping,
 	cross_mapping,
+	kmer_analysis,
 
 
 rule all:
@@ -64,5 +68,17 @@ rule cross_mapping:
 		rules.plotting_cross_mapping_results.output.html,
 	output:
 		touch("results/{project}/cross_mapping.done"),
+
+
+rule kmer_analysis:
+	input:
+		rules.multiqc_reads.output,
+		lambda wildcards: expand(
+			"results/{project}/kmer_analysis/{sample}.kmer_analysis_results.html",
+			sample=samples.loc[samples['lib_type'] == 'dna'].sample_id.unique(),
+			project=wildcards.project,
+		),
+	output:
+		touch("results/{project}/kmer_analysis.done"),
 
 

@@ -33,3 +33,14 @@ rule install_nQuire:
 		"../scripts/install_nQuire.sh"
 
 
+rule install_kmer_analysis:
+	output:
+		".snakemake/install_programs/kmer_analysis.done"
+	log:
+		"results/logs/install_programs/kmer_analysis.log",
+	conda:
+		"../envs/kmer_analysis.yaml"
+	script:
+		"../scripts/install_kmer_analysis.sh"
+
+

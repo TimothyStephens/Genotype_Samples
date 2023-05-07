@@ -1,0 +1,80 @@
+---
+title: "Plot K-mer ploidy analysis"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+  highlight: tango
+  number_sections: no
+  theme: default
+  toc: yes
+  toc_depth: 3
+  toc_float:
+    collapsed: no
+    smooth_scroll: yes
+---
+
+
+```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
+# Setup R env. Load packages and set default image export formats, size and resolution.
+library(htmltools)
+options(scipen = 999) #Prevent scientific notation
+```
+
+
+# **GenomeScope2 linear plot**
+```{r genomescape2_plots_linear, echo=FALSE, message=FALSE}
+path <- "<<<genomescape2_plots_linear>>>"
+plot <- paste(paste(strsplit(path, split="/")[[1]][-c(1,2,3)], collapse="/"), sep='/')
+htmltools::img(src = knitr::image_uri(plot),
+               style = 'height:800px;width:800px')
+```
+
+
+# **GenomeScope2 log scaled plot**
+```{r genomescape2_plots_log, echo=FALSE, message=FALSE}
+path <- "<<<genomescape2_plots_log>>>"
+plot <- paste(paste(strsplit(path, split="/")[[1]][-c(1,2,3)], collapse="/"), sep='/')
+htmltools::img(src = knitr::image_uri(plot),
+               style = 'height:800px;width:800px')
+```
+
+
+# **GenomeScope2 transformed linear plot**
+```{r genomescape2_plots_transformed_linear, echo=FALSE, message=FALSE}
+path <- "<<<genomescape2_plots_transformed_linear>>>"
+plot <- paste(paste(strsplit(path, split="/")[[1]][-c(1,2,3)], collapse="/"), sep='/')
+htmltools::img(src = knitr::image_uri(plot),
+               style = 'height:800px;width:800px')
+```
+
+
+# **GenomeScope2 transformed log scaled plot**
+```{r genomescape2_plots_transformed_log, echo=FALSE, message=FALSE}
+path <- "<<<genomescape2_plots_transformed_log>>>"
+plot <- paste(paste(strsplit(path, split="/")[[1]][-c(1,2,3)], collapse="/"), sep='/')
+htmltools::img(src = knitr::image_uri(plot),
+               style = 'height:800px;width:800px')
+```
+
+
+# **Smudgeplot plot**
+```{r smudgeplot_plot, echo=FALSE, message=FALSE}
+path <- "<<<smudgeplot_plot>>>"
+plot <- paste(paste(strsplit(path, split="/")[[1]][-c(1,2,3)], collapse="/"), sep='/')
+htmltools::img(src = knitr::image_uri(plot),
+               style = 'height:800px;width:800px')
+```
+
+
+# **Smudgeplot log scaled plot**
+```{r smudgeplot_plot_log, echo=FALSE, message=FALSE}
+path <- "<<<smudgeplot_plot_log>>>"
+plot <- paste(paste(strsplit(path, split="/")[[1]][-c(1,2,3)], collapse="/"), sep='/')
+htmltools::img(src = knitr::image_uri(plot),
+               style = 'height:800px;width:800px')
+```
+
+
+```{r ressionInfo, echo=FALSE, message=FALSE}
+#sessionInfo()
+```

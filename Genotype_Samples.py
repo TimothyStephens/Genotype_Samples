@@ -34,7 +34,7 @@ def run_cmd(cmd):
 @click.option(
 	"--module",
 	required=True,
-	type=click.Choice(['genotyping', 'cross_mapping']),
+	type=click.Choice(['genotyping', 'cross_mapping', 'kmer_analysis']),
 	help="Module/workflow to run",
 )
 @click.option(
@@ -70,6 +70,7 @@ def workflow(module, configfile, cores, max_downloads, snakemake_args):
 	Modules:
 	  genotyping		Exploring genotype + ploidy of samples
 	  cross_mapping		Cross-mapping of samples to multiple genomes
+	  kmer_analysis		K-mer ploidy analysis
 	
 	##########################
 	"""

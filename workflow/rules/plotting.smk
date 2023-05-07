@@ -157,3 +157,40 @@ rule plotting_cross_mapping_results:
 		" 1>{log} 2>&1"
 
 
+rule plotting_kmer_analysis_results:
+	input:
+		genomescape2_plots_linear=rules.kmer_analysis_genomescope2.output.plot_linear,
+		genomescape2_plots_log=rules.kmer_analysis_genomescope2.output.plot_log,
+		genomescape2_plots_transformed_linear=rules.kmer_analysis_genomescope2.output.plot_transformed_linear,
+		genomescape2_plots_transformed_log=rules.kmer_analysis_genomescope2.output.plot_transformed_log,
+		smudgeplot_plot=rules.kmer_analysis_smudgeplot.output.plot,
+		smudgeplot_plot_log=rules.kmer_analysis_smudgeplot.output.plot_log,
+	output:
+		html=report(
+			"results/{project}/kmer_analysis/{sample}.kmer_analysis_results.html",
+			#caption="../report/multiqc_calls.rst",
+			subcategory="K-mer analysis results",
+			labels={"Sample ID": "{sample}"},
+		),
+		rmd="results/{project}/kmer_analysis/{sample}.kmer_analysis_results.Rmd",
+	log:
+		"results/logs/{project}/plotting/plot_kmer_analysis_results.{sample}.log",
+	conda:
+		"../envs/R.yaml"
+	shell:
+		"("
+		"  export PATH=\"$CONDA_PREFIX/bin:$PATH\""
+		"; export R_LIB=\"$CONDA_PREFIX/lib/R/library\""
+		"; sed "
+		"    -e 's@<<<genomescape2_plots_linear>>>@{input.genomescape2_plots_linear}@'"
+		"    -e 's@<<<genomescape2_plots_log>>>@{input.genomescape2_plots_log}@'"
+		"    -e 's@<<<genomescape2_plots_transformed_linear>>>@{input.genomescape2_plots_transformed_linear}@'"
+		"    -e 's@<<<genomescape2_plots_transformed_log>>>@{input.genomescape2_plots_transformed_log}@'"
+		"    -e 's@<<<smudgeplot_plot>>>@{input.smudgeplot_plot}@'"
+		"    -e 's@<<<smudgeplot_plot_log>>>@{input.smudgeplot_plot_log}@'"
+		"   workflow/scripts/plot_kmer_analysis.Rmd > {output.rmd}"
+		"; Rscript -e \"rmarkdown::render('{output.rmd}')\""
+		")"
+		" 1>{log} 2>&1"
+
+

@@ -53,6 +53,22 @@ trimming_RNA_se:
 
 
 ################################
+#### Kmer analysis
+################################
+# Shared across all k-mer jobs (to ensure con consistency)
+kmer_analysis:
+  kmer: 21
+  min_count: 1
+  max_count: 10000
+
+# KMC build k-mer database
+kmer_analysis_createDB:
+  params: ''
+  memory: 64 #GB
+  threads: 24
+
+
+################################
 #### Cross Mapping
 ################################
 # BWA-MEM2
@@ -80,6 +96,25 @@ crossMapping_RNA_se:
   mapping_params: ''
   stats_params: ''
   threads: 24
+
+
+################################
+#### Kmer analysis
+################################
+# Shared across all k-mer jobs (to ensure con consistency)
+kmer_analysis:
+  kmer: 21
+  min_count: 1
+  max_count: 10000
+
+# KMC build k-mer database
+kmer_analysis_createDB:
+  params: ''
+  memory: 64 #GB
+  threads: 24
+
+
+
 
 
 ################################
