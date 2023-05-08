@@ -2,7 +2,7 @@
 #### Config for big dataset
 ################################
 
-project_name: 'test_small'
+project_name: 'test_small_genotyping'
 
 samples: 'tests/config/samples.example_small.tsv'
 
