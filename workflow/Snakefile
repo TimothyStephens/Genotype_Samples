@@ -1,4 +1,4 @@
-containerized: "docker://timothystephens/genotype_samples:latest"
+#container: "docker://timothystephens/genotype_samples:latest"
 
 from snakemake.utils import min_version
 min_version("6.5")
@@ -32,11 +32,11 @@ elif config["module"] == "cross_mapping":
 elif config["module"] == "kmer_analysis":
 	DONE_WORKFLOW = "results/{project}/kmer_analysis.done".format(project=config["project_name"])
 else: # All
-	DONE_WORKFLOW = ", ".join([
+	DONE_WORKFLOW = [
 			"results/{project}/genotyping.done".format(project=config["project_name"]),
 			"results/{project}/cross_mapping.done".format(project=config["project_name"]),
 			"results/{project}/kmer_analysis.done".format(project=config["project_name"]),
-		])
+			]
 
 
 localrules:
