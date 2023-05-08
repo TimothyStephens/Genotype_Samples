@@ -1,0 +1,14 @@
+################################
+#### Config for K-mer Analysis
+################################
+
+# Name of project
+project_name: 'species1_kmerAnalysis'
+
+# Path to sample manifest
+samples: 'config/samples.tsv'
+
+# Reference genome name : absolute path (can be gzipped)
+ref_genomes:
+  'genome2': 'path/to/genome2.fa.gz'
+

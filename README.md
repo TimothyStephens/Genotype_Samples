@@ -51,11 +51,11 @@ The `Genotype_Samples.py` script handels the high level running and organization
 Compare samples against multiple genomes and report mapping stats (% mapped reads) as a way of checking/determining the "species" that a sample is from/has highest similarity to.
 ```bash
 conda activate Genotype_Samples
-./Genotype_Samples.py --module cross_mapping --configfile config/config.crossMapping.yaml
+./Genotype_Samples.py --module cross_mapping --configfile config/config.CrossMapping.yaml
 ```
 Once the workflow has finished you can run the same command with the `--report report.zip` flag to produce a nice HTML report.
 ```bash
-./Genotype_Samples.py --module cross_mapping --configfile config/config.crossMapping.yaml --report report.zip
+./Genotype_Samples.py --module cross_mapping --configfile config/config.CrossMapping.yaml --report CrossMapping_report.zip
 ```
 The HTML report will be contained within the `report.zip` file (which file can be named whatever you want in the above command so you dont overwrite reports from other projects).
 
@@ -68,7 +68,20 @@ conda activate Genotype_Samples
 ```
 To generate the HTML report run:
 ```bash
-./Genotype_Samples.py --module genotyping --configfile config/config.Genotyping.yaml --report report.zip
+./Genotype_Samples.py --module genotyping --configfile config/config.Genotyping.yaml --report Genotyping_report.zip
+```
+
+
+### kmer_analysis
+Profile the ploidy of DNA samples using GenomeScope2 and Smudgeplot.
+After inspecting the plots, if you wish to change some of the cutoffs used for plotting you can do so for each sample in `results/kmer_analysis/cutoffs/`.
+```bash
+conda activate Genotype_Samples
+./Genotype_Samples.py --module kmer_analysis --configfile config/config.KmerAnalysis.yaml
+```
+To generate the HTML report run:
+```bash
+./Genotype_Samples.py --module kmer_analysis --configfile config/config.KmerAnalysis.yaml --report KmerAnalysis_report.zip
 ```
 
 
@@ -108,7 +121,7 @@ killall -TERM snakemake
 Results files produced by this workflow will be in `results/project_name/final/`, where `project_name` is whatever you specified in the config file.
 
 ### `Annotations.tsv`
-The ploidy and "group" (determined by vcf_clone_detect.py using the user specified threshold) of the input samples.
+The ploidy and "group" (determined by `vcf_clone_detect.py` using the user specified threshold) of the input samples.
 
 ### `NgsRelate.tsv`
 Relatedness results from the `NgsRelate` program. 
@@ -130,6 +143,12 @@ Matrix of the percent shared variants between each pairwise combination of sampl
 
 ### `vcftools_relatedness2.tsv`
 Matrix of the relatedness values between each pairwise combination of samples, calculated by `vcftools`.
+
+### `GenomeScope2` plots
+Original png images (for use in publications) will be in `results/project_name/kmer_analysis/genomescope2/`
+
+### `Smudgeplot` plots
+Original png images (for use in publications) will be in `results/project_name/kmer_analysis/smudgeplot/`
 
 
 # Credits

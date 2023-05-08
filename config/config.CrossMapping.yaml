@@ -1,8 +1,8 @@
 ################################
-#### Config for cross mapping
+#### Config for Cross Mapping
 ################################
 
-project_name: 'crossMapping'
+project_name: 'sample_CrossMapping'
 
 samples: 'config/samples.tsv'
 

@@ -1,9 +1,9 @@
 ################################
-#### Config for genotyping
+#### Config for Genotyping
 ################################
 
 # Name of project
-project_name: 'species1_genotyping'
+project_name: 'species1_Genotyping'
 
 # Path to sample manifest
 samples: 'config/samples.tsv'
