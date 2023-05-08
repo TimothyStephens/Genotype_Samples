@@ -23,7 +23,7 @@ rule kmer_analysis_createDB_list_files:
 	log:
 		"results/logs/kmer_analysis/kmerDB/{sample}.fof.log",
 	conda:
-		"../envs/kmer_analysis.yaml"
+		"../envs/bash.yaml"
 	shell:
 		"("
 		"echo {input} | sed -e 's/ /\\n/g' > {output.fof}"
@@ -34,7 +34,6 @@ rule kmer_analysis_createDB_list_files:
 rule kmer_analysis_createDB:
 	input:
 		fof=rules.kmer_analysis_createDB_list_files.output.fof,
-		programs=rules.install_kmer_analysis.output
 	output:
 		db="results/kmer_analysis/kmerDB/{sample}.kcmdb",
 		db_pre=temp("results/kmer_analysis/kmerDB/{sample}.kcmdb.kmc_pre"),
@@ -48,16 +47,16 @@ rule kmer_analysis_createDB:
 		max_count=config["kmer_analysis"]["max_count"],
 		extra=config["kmer_analysis_createDB"]["params"],
 	resources:
-		mem=config["kmer_analysis_createDB"]["memory"]
+		mem_gb=config["kmer_analysis_createDB"]["memory"]
 	threads: config["kmer_analysis_createDB"]["threads"]
-	conda:
-		"../envs/kmer_analysis.yaml"
+	container:
+		"docker://hamiltonjp/smudgeplot:0.2.4"
 	shell:
 		"("
 		"mkdir -p {output.tmpdir}; "
 		"kmc"
 		" -k{params.kmer}"
-		" -m{resources.mem}"
+		" -m{resources.mem_gb}"
 		" -ci{params.min_count}"
 		" -cs{params.max_count}"
 		" -t{threads}"
@@ -76,15 +75,14 @@ rule kmer_analysis_histogram:
 		db=rules.kmer_analysis_createDB.output.db,
 		db_pre=rules.kmer_analysis_createDB.output.db_pre,
 		db_suf=rules.kmer_analysis_createDB.output.db_suf,
-		programs=rules.install_kmer_analysis.output,
 	output:
 		histo="results/kmer_analysis/histogram/{sample}.histo",
 	log:
 		"results/logs/kmer_analysis/histogram/{sample}.log",
 	params:
 		max_count=config["kmer_analysis"]["max_count"],
-	conda:
-		"../envs/kmer_analysis.yaml"
+	container:
+		"docker://hamiltonjp/smudgeplot:0.2.4"
 	shell:
 		"("
 		"kmc_tools"
@@ -97,14 +95,13 @@ rule kmer_analysis_histogram:
 rule kmer_analysis_smudgeplot_cutoffs:
 	input:
 		histo=rules.kmer_analysis_histogram.output.histo,
-		programs=rules.install_kmer_analysis.output,
 	output:
 		cutoffs="results/kmer_analysis/cutoffs/{sample}.kmer_cov",
 		ploidy="results/kmer_analysis/cutoffs/{sample}.genomescope_ploidy",
 	log:
 		"results/logs/kmer_analysis/cutoffs/{sample}.cutoffs.log",
-	conda:
-		"../envs/kmer_analysis.yaml"
+	container:
+		"docker://hamiltonjp/smudgeplot:0.2.4"
 	shell:
 		"("
 		"SMP=$(which smudgeplot.py); "
@@ -122,7 +119,6 @@ rule kmer_analysis_genomescope2:
 	input:
 		histo=rules.kmer_analysis_histogram.output.histo,
 		ploidy=rules.kmer_analysis_smudgeplot_cutoffs.output.ploidy,
-		programs=rules.install_kmer_analysis.output,
 	output:
 		plot_linear="results/{project}/kmer_analysis/genomescope2/{sample}_linear_plot.png",
 		plot_log="results/{project}/kmer_analysis/genomescope2/{sample}_log_plot.png",
@@ -132,12 +128,12 @@ rule kmer_analysis_genomescope2:
 		"results/logs/{project}/kmer_analysis/genomescope2/{sample}.log",
 	params:
 		kmer=config["kmer_analysis"]["kmer"],
+		extra=config["kmer_analysis_GenomeScope2"]["params"],
 		outdir="results/{project}/kmer_analysis/genomescope2"
-	conda:
-		"../envs/kmer_analysis.yaml"
+	container:
+		"docker://abner12/genomescope:2.0"
 	shell:
 		"("
-		"export R_LIBS=$CONDA_PREFIX/lib/R/library; "
 		"P=$(grep PLOIDY {input.ploidy} | cut -f2); "
 		"genomescope.R"
 		" --ploidy $P"
@@ -145,6 +141,7 @@ rule kmer_analysis_genomescope2:
 		" -o {params.outdir}"
 		" -n {wildcards.sample}"
 		" -k {params.kmer}"
+		" {params.extra}"
 		")"
 		" 1>{log} 2>&1"
 
@@ -155,15 +152,14 @@ rule kmer_analysis_smudgeplot_tranform:
 		db=rules.kmer_analysis_createDB.output.db,
 		db_pre=rules.kmer_analysis_createDB.output.db_pre,
 		db_suf=rules.kmer_analysis_createDB.output.db_suf,
-		programs=rules.install_kmer_analysis.output,
 	output:
 		db_reduced="results/kmer_analysis/kmerDB/{sample}.reduce.kcmdb",
 		db_reduced_pre=temp("results/kmer_analysis/kmerDB/{sample}.reduce.kcmdb.kmc_pre"),
 		db_reduced_suf=temp("results/kmer_analysis/kmerDB/{sample}.reduce.kcmdb.kmc_suf"),
 	log:
 		"results/logs/kmer_analysis/kmerDB/{sample}.reduce.log",
-	conda:
-		"../envs/kmer_analysis.yaml"
+	container:
+		"docker://hamiltonjp/smudgeplot:0.2.4"
 	shell:
 		"("
 		"L=$(grep CUTOFF_LOWER {input.cutoffs} | cut -f2); "
@@ -181,15 +177,16 @@ rule kmer_analysis_smudgeplot_pairs:
 		db_reduced=rules.kmer_analysis_smudgeplot_tranform.output.db_reduced,
 		db_reduced_pre=rules.kmer_analysis_smudgeplot_tranform.output.db_reduced_pre,
 		db_reduced_suf=rules.kmer_analysis_smudgeplot_tranform.output.db_reduced_suf,
-		programs=rules.install_kmer_analysis.output,
 	output:
 		cov="results/kmer_analysis/smudgeplot/{sample}.smudge_pairs.coverages.tsv",
 		pairs="results/kmer_analysis/smudgeplot/{sample}.smudge_pairs.pairs.tsv",
 		family="results/kmer_analysis/smudgeplot/{sample}.smudge_pairs.familysizes.tsv",
 	log:
 		cov="results/logs/kmer_analysis/smudgeplot/{sample}.smudge_pairs.log",
-	conda:
-		"../envs/kmer_analysis.yaml"
+	resources:
+		mem_gb=config["kmer_analysis_smudgeplot_pairs"]["memory"]
+	container:
+		"docker://hamiltonjp/smudgeplot:0.2.4"
 	shell:
 		"("
 		"smudge_pairs"
@@ -204,25 +201,24 @@ rule kmer_analysis_smudgeplot_pairs:
 rule kmer_analysis_smudgeplot:
 	input:
 		cov=rules.kmer_analysis_smudgeplot_pairs.output.cov,
-		programs=rules.install_kmer_analysis.output,
 	output:
 		plot="results/{project}/kmer_analysis/smudgeplot/{sample}_smudgeplot.png",
 		plot_log="results/{project}/kmer_analysis/smudgeplot/{sample}_smudgeplot_log10.png",
 	params:
-		out_prefix="results/{project}/kmer_analysis/smudgeplot/{sample}",
 		kmer=config["kmer_analysis"]["kmer"],
+		extra=config["kmer_analysis_Smudgeplot"]["params"],
+		out_prefix="results/{project}/kmer_analysis/smudgeplot/{sample}",
 	log:
 		"results/logs/{project}/kmer_analysis/smudgeplot/{sample}_smudgeplot.log",
-	conda:
-		"../envs/kmer_analysis.yaml"
+	container:
+		"docker://hamiltonjp/smudgeplot:0.2.4"
 	shell:
 		"("
 		"SMP=$(which smudgeplot.py); "
-		"export R_LIBS=$CONDA_PREFIX/lib/R/library; "
-		"export PATH=$CONDA_PREFIX/bin\":$PATH\"; "
 		"python $SMP plot"
 		" -k {params.kmer}"
 		" -o {params.out_prefix}"
+		" {params.extra}"
 		" {input.cov}"
 		")"
 		" 1>{log} 2>&1"

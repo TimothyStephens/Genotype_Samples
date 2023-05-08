@@ -10,7 +10,6 @@ rule ploidy_nQuire_create:
 			ref_name=list(config["ref_genomes"].keys())[0],
 			sample="{sample}",
 		),
-		programs=rules.install_nQuire.output,
 	output:
 		"results/ploidy/{sample}.bin",
 	log:
@@ -19,8 +18,8 @@ rule ploidy_nQuire_create:
 		extra=config["ploidy_nQuire"]["create_params"],
 		min_quality=config["ploidy_nQuire"]["min_quality"],
 		min_coverage=config["ploidy_nQuire"]["min_coverage"],
-	conda:
-		"../envs/nQuire.yaml"
+	container:
+		"docker://nanozoo/nquire:0.0--e42aee8"
 	shell:
 		"(nQuire create -q {params.min_quality} -c {params.min_coverage} -x -b {input.bam} -o $(echo {output} | sed -e 's/.bin//') {params.extra}) 1>{log} 2>&1"
 
@@ -28,15 +27,14 @@ rule ploidy_nQuire_create:
 rule ploidy_nQuire_denoise:
 	input:
 		nQbin=rules.ploidy_nQuire_create.output,
-		programs=rules.install_nQuire.output,
 	output:
 		"results/ploidy/{sample}.denoised.bin",
 	log:
 		"results/logs/ploidy/nQuire_denoise/{sample}.denoise.log",
 	params:
 		extra=config["ploidy_nQuire"]["denoise_params"],
-	conda:
-		"../envs/nQuire.yaml"
+	container:
+		"docker://nanozoo/nquire:0.0--e42aee8"
 	shell:
 		"(nQuire denoise -o $(echo {output} | sed -e 's/.bin//') {params.extra} {input.nQbin}) 1>{log} 2>&1"
 
@@ -48,15 +46,14 @@ rule ploidy_nQuire_coverage:
 			sample="{sample}",
 		),
 		nQbin=rules.ploidy_nQuire_denoise.output,
-		programs=rules.install_nQuire.output,
 	output:
 		"results/ploidy/{sample}.denoised.bin.coverage.sitesProp.gz",
 	log:
 		"results/logs/ploidy/nQuire_denoise/{sample}.nQuire_coverage.log",
 	params:
 		extra=config["ploidy_nQuire"]["coverage_params"],
-	conda:
-		"../envs/nQuire.yaml"
+	container:
+		"docker://nanozoo/nquire:0.0--e42aee8"
 	shell:
 		"(nQuire view {input.nQbin} -a {input.bam} {params.extra} | awk -F'\\t' '{{print $4/$3\"\\n\"$5/$3}}' | gzip -c > {output}) 1>{log} 2>&1"
 
@@ -65,13 +62,12 @@ rule ploidy_nQuire_site_count:
 	input:
 		nQbin=rules.ploidy_nQuire_create.output,
 		nQbin_denoised=rules.ploidy_nQuire_denoise.output,
-		programs=rules.install_nQuire.output,
 	output:
 		"results/ploidy/{sample}.site_counts.tsv",
 	log:
 		"results/logs/ploidy/{sample}.count.log",
-	conda:
-		"../envs/nQuire.yaml"
+	container:
+		"docker://nanozoo/nquire:0.0--e42aee8"
 	shell:
 		"("
 		"C=$(nQuire view {input.nQbin} | wc -l)"
@@ -108,7 +104,6 @@ rule ploidy_nQuire_lrdmodel:
 			  *expand("results/ploidy/{sample}.denoised.bin", 
 				sample=samples.sample_id.unique()),
 		],
-		programs=rules.install_nQuire.output,
 	output:
 		"results/{project}/ploidy/nQuire_lrdmodel.txt",
 	log:
@@ -116,8 +111,8 @@ rule ploidy_nQuire_lrdmodel:
 	params:
 		extra=config["ploidy_nQuire"]["lrdmodel_params"],
 	threads: config["ploidy_nQuire"]["threads"]
-	conda:
-		"../envs/nQuire.yaml"
+	container:
+		"docker://nanozoo/nquire:0.0--e42aee8"
 	shell:
 		"(nQuire lrdmodel {params.extra} -t {threads} {input.nQbins} > {output}) 1>{log} 2>&1"
 

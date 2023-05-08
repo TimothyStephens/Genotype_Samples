@@ -1,8 +1,0 @@
-name: PCAngsd
-channels:
-  - bioconda
-dependencies:
-  - python >=3.6
-  - numpy
-  - scipy
-  - cython

@@ -56,6 +56,8 @@ rule calling_variants:
 		model_params=lambda wildcards: get_model_params(wildcards),
 		extra=config["calling_variants"]["params"],
 	threads: config["calling_variants"]["threads"]
+	resources:
+		mem_gb=config["calling_variants"]["memory"]
 	container:
 		"docker://google/deepvariant:1.4.0"
 	shell:

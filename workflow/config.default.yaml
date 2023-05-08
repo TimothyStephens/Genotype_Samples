@@ -55,7 +55,7 @@ trimming_RNA_se:
 ################################
 #### Kmer analysis
 ################################
-# Shared across all k-mer jobs (to ensure con consistency)
+# Shared across all k-mer analysis jobs (to ensure consistency)
 kmer_analysis:
   kmer: 21
   min_count: 1
@@ -67,6 +67,18 @@ kmer_analysis_createDB:
   memory: 64 #GB
   threads: 24
 
+# Smudgeplot k-mer pairs
+kmer_analysis_smudgeplot_pairs:
+  memory: 24 #GB
+
+# GenomeScope2 plotting
+kmer_analysis_GenomeScope2:
+  params: ''
+
+# Smudgeplot plotting
+kmer_analysis_Smudgeplot:
+  params: ''
+
 
 ################################
 #### Cross Mapping
@@ -77,12 +89,14 @@ crossMapping_DNA_pe:
   sort_params: ''
   stats_params: ''
   threads: 24
+  memory: 20 # GB
 
 crossMapping_DNA_se:
   mapping_params: ''
   sort_params: ''
   stats_params: ''
   threads: 24
+  memory: 20 # GB
 
 # STAR
 crossMapping_RNA_pe:
@@ -90,12 +104,14 @@ crossMapping_RNA_pe:
   mapping_params: ''
   stats_params: ''
   threads: 24
+  memory: 20 # GB
 
 crossMapping_RNA_se:
   sjdbOverhang: 150
   mapping_params: ''
   stats_params: ''
   threads: 24
+  memory: 20 # GB
 
 
 ################################
@@ -114,9 +130,6 @@ kmer_analysis_createDB:
   threads: 24
 
 
-
-
-
 ################################
 #### Mapping
 ################################
@@ -125,22 +138,26 @@ mapping_DNA_pe:
   mapping_params: ''
   sort_params: ''
   threads: 24
+  memory: 20 # GB
 
 mapping_DNA_se:
   mapping_params: ''
   sort_params: ''
   threads: 24
+  memory: 20 # GB
 
 # STAR
 mapping_RNA_pe:
   sjdbOverhang: 150
   mapping_params: '--twopassMode Basic'
   threads: 24
+  memory: 20 # GB
 
 mapping_RNA_se:
   sjdbOverhang: 150
   mapping_params: '--twopassMode Basic'
   threads: 24
+  memory: 20 # GB
 
 # Samtools merge
 mapping_merge:
@@ -155,6 +172,7 @@ mapping_merge:
 calling_variants:
   params: ''
   threads: 8
+  memory: 20 # GB
 
 # bcftools index of merged VCF
 calling_VCFs_index:
@@ -246,4 +264,5 @@ qc_multiqc_calls:
   params: ''
 qc_multiqc_crossMapping:
   params: ''
+
 

@@ -8,7 +8,6 @@ report: "report/workflow.rst"
 
 
 include: "rules/common.smk"
-include: "rules/install_programs.smk"
 include: "rules/ref.smk"
 include: "rules/download.smk"
 include: "rules/trimming.smk"

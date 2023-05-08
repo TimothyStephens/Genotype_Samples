@@ -90,8 +90,8 @@ rule relatedness_ANGSD_for_NgsRelate:
 		out_prefix="results/{project}/relatedness/NgsRelate.angsd",
 		extra=config["relatedness_ANGSD_for_NgsRelate"]["params"],
 	threads: config["relatedness_ANGSD_for_NgsRelate"]["threads"]
-	conda:
-		"../envs/angsd.yaml"
+	container:
+		"docker://lifebitai/angsd:0.933"
 	shell:
 		"(angsd -gl 2 -domajorminor 1 -snp_pval 1e-6 -domaf 1 -minmaf 0.05 -doGlf 3 -nThreads {threads} {params.extra} -bam {input} -out {params.out_prefix}) 1>{log} 2>&1"
 
@@ -101,7 +101,6 @@ rule relatedness_NgsRelate:
 		mafs=rules.relatedness_ANGSD_for_NgsRelate.output.mafs,
 		glf=rules.relatedness_ANGSD_for_NgsRelate.output.glf,
 		labels=rules.relatedness_write_bam_list.output.labels,
-		programs=rules.install_ngsRelate.output,
 	output:
 		"results/{project}/relatedness/NgsRelate.results.tsv",
 	log:
@@ -109,8 +108,8 @@ rule relatedness_NgsRelate:
 	params:
 		extra=config["relatedness_NgsRelate"]["params"],
 	threads: config["relatedness_NgsRelate"]["threads"]
-	conda:
-		"../envs/ngsRelate.yaml"
+	container:
+		"docker://didillysquat/ngsrelate:latest"
 	shell:
 		"(zcat {input.mafs} | cut -f5 |sed 1d > {input.mafs}.freq; "
 		"N=$(cat {input.labels} | wc -l); "
@@ -129,8 +128,8 @@ rule relatedness_ANGSD_for_PCAngsd:
 		out_prefix="results/{project}/relatedness/PCAngsd.angsd",
 		extra=config["relatedness_ANGSD_for_PCAngsd"]["params"],
 	threads: config["relatedness_ANGSD_for_PCAngsd"]["threads"]
-	conda:
-		"../envs/angsd.yaml"
+	container:
+		"docker://lifebitai/angsd:0.933"
 	shell:
 		"(angsd -GL 2 -doGlf 2 -doMajorMinor 1 -SNP_pval 1e-6 -doMaf 1 -nThreads {threads} {params.extra} -bam {input} -out {params.out_prefix}) 1>{log} 2>&1"
 
@@ -138,7 +137,6 @@ rule relatedness_ANGSD_for_PCAngsd:
 rule relatedness_PCAngsd_IndAlleleFreq:
 	input:
 		beagle=rules.relatedness_ANGSD_for_PCAngsd.output.beagle,
-		programs=rules.install_PCAngsd.output,
 	output:
 		"results/{project}/relatedness/PCAngsd.IndAlleleFreq.cov",
 	log:
@@ -147,8 +145,8 @@ rule relatedness_PCAngsd_IndAlleleFreq:
 		out_prefix="results/{project}/relatedness/PCAngsd.IndAlleleFreq",
 		extra=config["relatedness_PCAngsd_IndAlleleFreq"]["params"],
 	threads: config["relatedness_PCAngsd_IndAlleleFreq"]["threads"]
-	conda:
-		"../envs/PCAngsd.yaml"
+	container:
+		"docker://zjnolen/pcangsd:latest"
 	shell:
 		"(pcangsd --threads {threads} {params.extra} --beagle {input.beagle} --out {params.out_prefix}) 1>{log} 2>&1"
 
@@ -156,7 +154,6 @@ rule relatedness_PCAngsd_IndAlleleFreq:
 rule relatedness_PCAngsd_WithOutIndAlleleFreq:
 	input:
 		beagle=rules.relatedness_ANGSD_for_PCAngsd.output.beagle,
-		programs=rules.install_PCAngsd.output,
 	output:
 		"results/{project}/relatedness/PCAngsd.WithOutIndAlleleFreq.cov",
 	log:
@@ -165,8 +162,8 @@ rule relatedness_PCAngsd_WithOutIndAlleleFreq:
 		out_prefix="results/{project}/relatedness/PCAngsd.WithOutIndAlleleFreq",
 		extra=config["relatedness_PCAngsd_WithOutIndAlleleFreq"]["params"],
 	threads: config["relatedness_PCAngsd_WithOutIndAlleleFreq"]["threads"]
-	conda:
-		"../envs/PCAngsd.yaml"
+	container:
+		"docker://zjnolen/pcangsd:latest"
 	shell:
 		"(pcangsd --threads {threads} {params.extra} --beagle {input.beagle} --out {params.out_prefix} --iter 0) 1>{log} 2>&1"
 
@@ -174,7 +171,6 @@ rule relatedness_PCAngsd_WithOutIndAlleleFreq:
 rule relatedness_PCAngsd_Admixture:
 	input:
 		beagle=rules.relatedness_ANGSD_for_PCAngsd.output.beagle,
-		programs=rules.install_PCAngsd.output,
 	output:
 		"results/{project}/relatedness/PCAngsd.Admixture.admix.Q",
 	log:
@@ -183,8 +179,8 @@ rule relatedness_PCAngsd_Admixture:
 		out_prefix="results/{project}/relatedness/PCAngsd.Admixture",
 		extra=config["relatedness_PCAngsd_Admixture"]["params"],
 	threads: config["relatedness_PCAngsd_Admixture"]["threads"]
-	conda:
-		"../envs/PCAngsd.yaml"
+	container:
+		"docker://zjnolen/pcangsd:latest"
 	shell:
 		"(pcangsd --threads {threads} {params.extra} --beagle {input.beagle} --out {params.out_prefix} --admix --admix_alpha 50; cp {params.out_prefix}.admix.*.Q {params.out_prefix}.admix.Q) 1>{log} 2>&1"
 

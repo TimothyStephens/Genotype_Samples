@@ -15,6 +15,8 @@ rule crossMapping_DNA_pe:
 		stats_extra=config["crossMapping_DNA_pe"]["stats_params"],
 		tmpdir=temp(directory("results/cross-mapping/{ref_name}/dna/pe/{sample}-{unit}.samtools_tmp")),
 	threads: config["crossMapping_DNA_pe"]["threads"]
+	resources:
+		mem_gb=config["crossMapping_DNA_pe"]["memory"]
 	conda:
 		"../envs/bwa-mem2.yaml"
 	shell:
@@ -51,6 +53,8 @@ rule crossMapping_DNA_se:
 		stats_extra=config["crossMapping_DNA_se"]["stats_params"],
 		tmpdir=temp(directory("results/cross-mapping/{ref_name}/dna/se/{sample}-{unit}.samtools_tmp")),
 	threads: config["crossMapping_DNA_se"]["threads"]
+	resources:
+		mem_gb=config["crossMapping_DNA_se"]["memory"]
 	conda:
 		"../envs/bwa-mem2.yaml"
 	shell:
@@ -86,6 +90,8 @@ rule crossMapping_RNA_pe:
 		mapping_extra=config["crossMapping_RNA_pe"]["mapping_params"],
 		stats_extra=config["crossMapping_RNA_pe"]["stats_params"],
 	threads: config["crossMapping_RNA_pe"]["threads"]
+	resources:
+		mem_gb=config["crossMapping_RNA_pe"]["memory"]
 	conda:
 		"../envs/star.yaml"
 	shell:
@@ -126,6 +132,8 @@ rule crossMapping_RNA_se:
 		mapping_extra=config["crossMapping_RNA_se"]["mapping_params"],
 		stats_extra=config["crossMapping_RNA_se"]["stats_params"],
 	threads: config["crossMapping_RNA_se"]["threads"]
+	resources:
+		mem_gb=config["crossMapping_RNA_se"]["memory"]
 	conda:
 		"../envs/star.yaml"
 	shell:

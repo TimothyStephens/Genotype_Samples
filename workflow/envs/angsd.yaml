@@ -1,5 +1,0 @@
-name: angsd
-channels:
-  - bioconda
-dependencies:
-  - angsd ==0.940

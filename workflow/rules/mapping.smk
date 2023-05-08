@@ -15,6 +15,8 @@ rule mapping_DNA_pe:
 		sort_extra=config["mapping_DNA_pe"]["sort_params"],
 		tmpdir=temp(directory("results/mapping/{ref_name}/dna/pe/{sample}-{unit}.samtools_tmp")),
 	threads: config["mapping_DNA_pe"]["threads"]
+	resources:
+		mem_gb=config["mapping_DNA_pe"]["memory"]
 	conda:
 		"../envs/bwa-mem2.yaml"
 	shell:
@@ -54,6 +56,8 @@ rule mapping_DNA_se:
 		sort_extra=config["mapping_DNA_se"]["sort_params"],
 		tmpdir=temp(directory("results/mapping/{ref_name}/dna/pe/{sample}-{unit}.samtools_tmp")),
 	threads: config["mapping_DNA_se"]["threads"]
+	resources:
+		mem_gb=config["mapping_DNA_se"]["memory"]
 	conda:
 		"../envs/bwa-mem2.yaml"
 	shell:
@@ -91,6 +95,8 @@ rule mapping_RNA_pe:
 		sjdbOverhang=config["mapping_RNA_pe"]["sjdbOverhang"],
 		mapping_extra=config["mapping_RNA_pe"]["mapping_params"],
 	threads: config["mapping_RNA_pe"]["threads"]
+	resources:
+		mem_gb=config["mapping_RNA_pe"]["memory"]
 	conda:
 		"../envs/star.yaml"
 	shell:
@@ -130,6 +136,8 @@ rule mapping_RNA_se:
 		sjdbOverhang=config["mapping_RNA_se"]["sjdbOverhang"],
 		mapping_extra=config["mapping_RNA_se"]["mapping_params"],
 	threads: config["mapping_RNA_se"]["threads"]
+	resources:
+		mem_gb=config["mapping_RNA_se"]["memory"]
 	conda:
 		"../envs/star.yaml"
 	shell:
