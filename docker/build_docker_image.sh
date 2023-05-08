@@ -45,3 +45,9 @@ docker push --all-tags $USER/$PROG
 
 
 
+## Cleanup docker and test files
+docker image prune -af
+docker image rm -f $(docker image ls | awk 'NR>1{print $3}')
+
+
+

@@ -85,6 +85,9 @@ conda activate Genotype_Samples
 # Genotyping
 ./Genotype_Samples.py --module genotyping --configfile tests/config/config.Genotyping_small.yaml
 ./Genotype_Samples.py --module genotyping --configfile tests/config/config.Genotyping_big.yaml
+
+# K-mer analysis
+./Genotype_Samples.py --module kmer_analysis --configfile tests/config/config.KmerAnalysis_small.yaml
 ```
 To generate HTML reports for each of the above commands, add `--report report.zip` to the end of each command.
 
