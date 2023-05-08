@@ -33,7 +33,7 @@ docker build --no-cache -t $PROG:$TAG $DOCKERFILE 2>&1 | tee $BUILD_LOG
 
 
 ## Build docker image and push to repo
-BUILD=$(awk '$1=="Successfully" && $2=="built" {print $3}' build.log)
+BUILD=$(awk '$1=="Successfully" && $2=="built" {print $3}' $BUILD_LOG)
 echo "BUILD=${BUILD}"
 
 docker tag $BUILD $USER/$PROG:${TAG}
@@ -48,6 +48,6 @@ docker push --all-tags $USER/$PROG
 ## Cleanup docker and test files
 docker image prune -af
 docker image rm -f $(docker image ls | awk 'NR>1{print $3}')
-
+# rm -fr .cache .keras .parallel .snakemake resources results
 
 

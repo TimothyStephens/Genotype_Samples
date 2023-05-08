@@ -88,6 +88,9 @@ conda activate Genotype_Samples
 
 # K-mer analysis
 ./Genotype_Samples.py --module kmer_analysis --configfile tests/config/config.KmerAnalysis_small.yaml
+
+# Cleanup
+rm -fr .cache .keras .parallel .snakemake resources results
 ```
 To generate HTML reports for each of the above commands, add `--report report.zip` to the end of each command.
 
