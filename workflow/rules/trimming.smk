@@ -17,6 +17,13 @@ def get_fastq_DNA_se(wildcards):
 	else:
 		return {"sample": [fastqs.fq1]}
 
+def get_fastq_DNA_long(wildcards):
+	fastqs = samples.loc[(wildcards.sample, wildcards.unit, "dna-long"), ["fq1"]]
+	if fastqs.fq1.startswith("SRR"):
+		return {"sample": ["data/long/{}.fastq.gz".format(fastqs.fq1)]}
+	else:
+		return {"sample": [fastqs.fq1]}
+
 def get_fastq_RNA_pe(wildcards):
 	fastqs = samples.loc[(wildcards.sample, wildcards.unit, "rna"), ["fq1", "fq2"]]
 	if fastqs.fq1.startswith("SRR"):
@@ -31,6 +38,13 @@ def get_fastq_RNA_se(wildcards):
 	fastqs = samples.loc[(wildcards.sample, wildcards.unit, "rna"), ["fq1"]]
 	if fastqs.fq1.startswith("SRR"):
 		return {"sample": ["data/se/{}.fastq.gz".format(fastqs.fq1)]}
+	else:
+		return {"sample": [fastqs.fq1]}
+
+def get_fastq_RNA_long(wildcards):
+	fastqs = samples.loc[(wildcards.sample, wildcards.unit, "rna-long"), ["fq1"]]
+	if fastqs.fq1.startswith("SRR"):
+		return {"sample": ["data/long/{}.fastq.gz".format(fastqs.fq1)]}
 	else:
 		return {"sample": [fastqs.fq1]}
 
@@ -91,6 +105,31 @@ rule trimming_DNA_se:
 		" 1>{log} 2>&1"
 
 
+rule trimming_DNA_long:
+	input:
+		unpack(get_fastq_DNA_long),
+	output:
+		trimmed=["results/trimmed/dna/long/{sample}-{unit}.1.fastq.gz"],
+		html="results/qc/trimmed/dna/long/{sample}-{unit}.html",
+		json="results/qc/trimmed/dna/long/{sample}-{unit}_fastp.json",
+	log:
+		"results/logs/trimming/dna/long/{sample}-{unit}.log",
+	params:
+		extra=config["trimming_DNA_long"]["params"],
+	threads: config["trimming_DNA_long"]["threads"]
+	conda:
+		"../envs/fastp.yaml"
+	shell:
+		"fastp"
+		" --in1 {input[0]}"
+		" --out1 {output.trimmed[0]}"
+		" --json {output.json}"
+		" --html {output.html}"
+		" --thread {threads}"
+		" {params.extra}"
+		" 1>{log} 2>&1"
+
+
 rule trimming_RNA_pe:
 	input:
 		unpack(get_fastq_RNA_pe),
@@ -133,6 +172,31 @@ rule trimming_RNA_se:
 	params:
 		extra=config["trimming_RNA_se"]["params"],
 	threads: config["trimming_RNA_se"]["threads"]
+	conda:
+		"../envs/fastp.yaml"
+	shell:
+		"fastp"
+		" --in1 {input[0]}"
+		" --out1 {output.trimmed[0]}"
+		" --json {output.json}"
+		" --html {output.html}"
+		" --thread {threads}"
+		" {params.extra}"
+		" 1>{log} 2>&1"
+
+
+rule trimming_RNA_long:
+	input:
+		unpack(get_fastq_RNA_long),
+	output:
+		trimmed=["results/trimmed/dna/long/{sample}-{unit}.1.fastq.gz"],
+		html="results/qc/trimmed/dna/long/{sample}-{unit}.html",
+		json="results/qc/trimmed/dna/long/{sample}-{unit}_fastp.json",
+	log:
+		"results/logs/trimming/dna/long/{sample}-{unit}.log",
+	params:
+                extra=config["trimming_DNA_long"]["params"],
+	threads: config["trimming_DNA_long"]["threads"]
 	conda:
 		"../envs/fastp.yaml"
 	shell:

@@ -76,6 +76,47 @@ rule crossMapping_DNA_se:
 		" 1>{log} 2>&1"
 
 
+rule crossMapping_DNA_long:
+	input:
+		reads=rules.trimming_DNA_long.output.trimmed,
+		idx="resources/{ref_name}/genome.fasta",
+		idx_build="resources/{ref_name}/genome.fasta.hifi.mmi",
+	output:
+		fofn="results/cross-mapping/{ref_name}/dna/long/{sample}-{unit}.fofn",
+		stats="results/cross-mapping/{ref_name}/dna/long/{sample}-{unit}.samtools_stats.txt",
+	log:
+		"results/logs/cross-mapping/{ref_name}/dna/long/{sample}-{unit}.log",
+	params:
+		mapping_extra=config["crossMapping_DNA_long"]["mapping_params"],
+		sort_extra=config["crossMapping_DNA_long"]["sort_params"],
+		stats_extra=config["crossMapping_DNA_long"]["stats_params"],
+		tmpdir=temp(directory("results/cross-mapping/{ref_name}/dna/long/{sample}-{unit}.samtools_tmp")),
+	threads: config["crossMapping_DNA_long"]["threads"]
+	resources:
+		mem_gb=config["crossMapping_DNA_long"]["memory"]
+	conda:
+		"../envs/pbmm2.yaml"
+	shell:
+		"("
+		"echo {input.reads} | sed -e 's/ /\\n/g' > {output.fofn}; "
+		"pbmm2 align"
+		" --preset HiFi"
+		" -j {threads}"
+		" {params.mapping_extra}"
+		" {input.idx_build}"
+		" {output.fofn}"
+		" | samtools sort"
+		" {params.sort_extra}"
+		" -T {params.tmpdir}"
+		" | samtools stats"
+		" {params.stats_extra}"
+		" -"
+		" 1>{output.stats}"
+		" && rm -fr {params.tmpdir}"
+		")"
+		" 1>{log} 2>&1"
+
+
 rule crossMapping_RNA_pe:
 	input:
 		reads=rules.trimming_RNA_pe.output.trimmed,
@@ -160,11 +201,52 @@ rule crossMapping_RNA_se:
 		" 1>{log} 2>&1"
 
 
+rule crossMapping_RNA_long:
+	input:
+		reads=rules.trimming_RNA_long.output.trimmed,
+		idx="resources/{ref_name}/genome.fasta",
+		idx_build="resources/{ref_name}/genome.fasta.isoseq.mmi",
+	output:
+		fofn="results/cross-mapping/{ref_name}/rna/long/{sample}-{unit}.fofn",
+		stats="results/cross-mapping/{ref_name}/rna/long/{sample}-{unit}.samtools_stats.txt",
+	log:
+		"results/logs/cross-mapping/{ref_name}/rna/long/{sample}-{unit}.log",
+	params:
+		mapping_extra=config["crossMapping_RNA_long"]["mapping_params"],
+		sort_extra=config["crossMapping_RNA_long"]["sort_params"],
+		stats_extra=config["crossMapping_RNA_long"]["stats_params"],
+		tmpdir=temp(directory("results/cross-mapping/{ref_name}/rna/long/{sample}-{unit}.samtools_tmp")),
+	threads: config["crossMapping_RNA_long"]["threads"]
+	resources:
+		mem_gb=config["crossMapping_RNA_long"]["memory"]
+	conda:
+		"../envs/pbmm2.yaml"
+	shell:
+		"("
+		"echo {input.reads} | sed -e 's/ /\\n/g' > {output.fofn}; "
+		"pbmm2 align"
+		" --preset ISOSEQ"
+		" -j {threads}"
+		" {params.mapping_extra}"
+		" {input.idx_build}"
+		" {output.fofn}"
+		" | samtools sort"
+		" {params.sort_extra}"
+		" -T {params.tmpdir}"
+		" | samtools stats"
+		" {params.stats_extra}"
+		" -"
+		" 1>{output.stats}"
+		" && rm -fr {params.tmpdir}"
+		")"
+		" 1>{log} 2>&1"
+
+
 def expand_crossMapping_results_paths():
 	out = []
 	for ref_name in list(config["ref_genomes"].keys()):
 		for i, row in samples.iterrows():
-			if pd.notnull(row.fq2):
+			if pd.notnull(row.fq2): ## DNA pe
 				out.append("{ref_name}/{lib_type}/pe/{sample}-{unit}".format(
 					sample=row.sample_id, 
 					unit=row.unit, 
@@ -172,12 +254,27 @@ def expand_crossMapping_results_paths():
 					ref_name=ref_name,
 				))
 			else:
-				out.append("{ref_name}/{lib_type}/se/{sample}-{unit}".format(
+				if row.lib_type == "dna-long": ## DNA long
+					out.append("{ref_name}/{lib_type}/se/{sample}-{unit}".format(
 						sample=row.sample_id, 
 						unit=row.unit, 
-						lib_type=row.lib_type,
+						lib_type="dna",
 						ref_name=ref_name,
 					))
+				elif row.lib_type == "rna-long": ## RNA long
+					out.append("{ref_name}/{lib_type}/se/{sample}-{unit}".format(
+						sample=row.sample_id,
+						unit=row.unit,
+						lib_type="rna",
+						ref_name=ref_name,
+					))
+				else: ## DNA se
+					out.append("{ref_name}/{lib_type}/se/{sample}-{unit}".format(
+							sample=row.sample_id, 
+							unit=row.unit, 
+							lib_type=row.lib_type,
+							ref_name=ref_name,
+						))
 	return out
 
 

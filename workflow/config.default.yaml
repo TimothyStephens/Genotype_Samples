@@ -14,6 +14,11 @@ download_fastq_se:
   threads: 6
   retries: 5
 
+download_fastq_long:
+  params: ''
+  threads: 6
+  retries: 5
+
 
 ################################
 #### Index reference genome
@@ -26,6 +31,12 @@ ref_DNA_mapping_index:
 ref_RNA_mapping_index:
   params: ''
   threads: 1
+
+# pbmm2
+ref_DNA_longRead_mapping_index:
+  params: ''
+ref_RNA_longRead_mapping_index:
+  params: ''
 
 
 ################################
@@ -41,6 +52,11 @@ trimming_DNA_se:
   params: ''
   threads: 16
 
+# fastp DNA long read
+trimming_DNA_long:
+  params: ''
+  threads: 16
+
 # fastp RNA paired-end
 trimming_RNA_pe:
   params: ''
@@ -48,6 +64,11 @@ trimming_RNA_pe:
 
 # fastp RNA single-end
 trimming_RNA_se:
+  params: ''
+  threads: 16
+
+# fastp RNA long read
+trimming_RNA_long:
   params: ''
   threads: 16
 
@@ -109,6 +130,21 @@ crossMapping_RNA_pe:
 crossMapping_RNA_se:
   sjdbOverhang: 150
   mapping_params: ''
+  stats_params: ''
+  threads: 24
+  memory: 20 # GB
+
+# Long reads
+crossMapping_DNA_long:
+  mapping_params: ''
+  sort_params: ''
+  stats_params: ''
+  threads: 24
+  memory: 20 # GB
+
+crossMapping_RNA_long:
+  mapping_params: ''
+  sort_params: ''
   stats_params: ''
   threads: 24
   memory: 20 # GB

@@ -76,3 +76,42 @@ rule ref_RNA_mapping_index:
 		" 1>{log} 2>&1"
 
 
+rule ref_DNA_longRead_mapping_index:
+	input:
+		"resources/{ref_name}/genome.fasta",
+	output:
+                "resources/{ref_name}/genome.fasta.hifi.mmi",
+	log:
+		"results/logs/resources/{ref_name}/ref_DNA_longRead_mapping_index.log",
+	params:
+		extra=config["ref_DNA_longRead_mapping_index"]["params"],
+	conda:
+		"../envs/pbmm2.yaml"
+	shell:
+		"pbmm2 index"
+		" -j 1 --preset HiFi"
+		" {params.extra}"
+		" {input}"
+		" {output}"
+		" 1>{log} 2>&1"
+
+
+rule ref_RNA_longRead_mapping_index:
+	input:
+		"resources/{ref_name}/genome.fasta",
+	output:
+		"resources/{ref_name}/genome.fasta.isoseq.mmi",
+	log:
+		"results/logs/resources/{ref_name}/ref_RNA_longRead_mapping_index.log",
+	params:
+		extra=config["ref_RNA_longRead_mapping_index"]["params"],
+	conda:
+		"../envs/pbmm2.yaml"
+	shell:
+		"pbmm2 index"
+		" -j 1 --preset ISOSEQ"
+		" {params.extra}"
+		" {input}"
+		" {output}"
+		" 1>{log} 2>&1"
+

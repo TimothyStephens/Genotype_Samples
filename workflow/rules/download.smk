@@ -60,3 +60,32 @@ rule download_fastq_se:
 		") 1>{log} 2>&1"
 
 
+rule download_fastq_long:
+	output:
+		temp("data/long/{accession}.fastq.gz"),
+	log:
+		"results/logs/download_fastq/long/{accession}.log",
+	params:
+		out_prefix="data/long",
+		extra=config["download_fastq_long"]["params"],
+		tempdir=lambda wildcards: "data/long/{}.fasterq".format(wildcards.accession),
+	threads: config["download_fastq_long"]["threads"]
+	resources:
+		max_downloads=1
+	retries: config["download_fastq_long"]["retries"]
+	conda:
+		"../envs/sra-tools.yaml"
+	shell:
+		"("
+		"fasterq-dump"
+		" --skip-technical --force"
+		" --threads {threads}"
+		" --outdir {params.out_prefix}"
+		" --temp {params.tempdir}"
+		" {params.extra}"
+		" {wildcards.accession}"
+		"; gzip {params.out_prefix}/{wildcards.accession}.fastq"
+		"; rm -fr {params.tempdir}"
+		") 1>{log} 2>&1"
+
+
