@@ -80,7 +80,7 @@ rule kmer_analysis:
 		rules.multiqc_reads.output,
 		lambda wildcards: expand(
 			"results/{project}/kmer_analysis/{sample}.kmer_analysis_results.html",
-			sample=samples.loc[samples['lib_type'] == 'dna'].sample_id.unique(),
+			sample=samples.loc[samples['lib_type'].str.startswith('dna')].sample_id.unique(),
 			project=wildcards.project,
 		),
 	output:

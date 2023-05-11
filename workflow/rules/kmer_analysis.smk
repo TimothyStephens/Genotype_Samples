@@ -8,13 +8,10 @@ def get_trimmed_fastqs(wildcards):
 		if not row.lib_type.startswith('dna'): ## RNA pe, se, long
 			continue
 		if pd.notnull(row.fq2): ## DNA pe
-			fastqs.append("results/trimmed/dna/pe/{sample}-{unit}.1.fastq.gz".format(sample=row.sample_id, unit=row.unit))
-			fastqs.append("results/trimmed/dna/pe/{sample}-{unit}.2.fastq.gz".format(sample=row.sample_id, unit=row.unit))
-		else:
-			if row.lib_type == 'dna' and row.is_long_read: ## DNA long
-				fastqs.append("results/trimmed/dna/long/{sample}-{unit}.1.fastq.gz".format(sample=row.sample_id, unit=row.unit))
-			else: ## RNA se
-				fastqs.append("results/trimmed/dna/se/{sample}-{unit}.1.fastq.gz".format(sample=row.sample_id, unit=row.unit))
+			fastqs.append("results/trimmed/{lib_type}/{sample}-{unit}.1.fastq.gz".format(sample=row.sample_id, unit=row.unit, lib_type=row.lib_type))
+			fastqs.append("results/trimmed/{lib_type}/{sample}-{unit}.2.fastq.gz".format(sample=row.sample_id, unit=row.unit, lib_type=row.lib_type))
+		else: ## DNA se and long
+			fastqs.append("results/trimmed/{lib_type}/{sample}-{unit}.1.fastq.gz".format(sample=row.sample_id, unit=row.unit, lib_type=row.lib_type))
 	return(fastqs)
 
 
