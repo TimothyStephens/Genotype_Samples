@@ -195,6 +195,19 @@ mapping_RNA_se:
   threads: 24
   memory: 20 # GB
 
+# Long reads
+mapping_DNA_long:
+  mapping_params: ''
+  sort_params: ''
+  threads: 24
+  memory: 20 # GB
+
+mapping_RNA_long:
+  mapping_params: ''
+  sort_params: ''
+  threads: 24
+  memory: 20 # GB
+
 # Samtools merge
 mapping_merge:
   params: ''

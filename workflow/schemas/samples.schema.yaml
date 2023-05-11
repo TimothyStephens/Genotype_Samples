@@ -12,7 +12,7 @@ properties:
     description: unit name/identifier
   lib_type:
     type: string
-    allowed: ['rna', 'dna']
+    allowed: ['rna-pe', 'rna-se', 'dna-pe', 'dna-se', 'rna-long', 'dna-long']
     description: library type
   fq1:
     type: string

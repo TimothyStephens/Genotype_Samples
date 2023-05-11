@@ -6,14 +6,14 @@ rule crossMapping_DNA_pe:
 		idx="resources/{ref_name}/genome.fasta",
 		idx_build=multiext("resources/{ref_name}/genome.fasta", ".0123", ".amb", ".ann", ".bwt.2bit.64", ".pac"),
 	output:
-		"results/cross-mapping/{ref_name}/dna/pe/{sample}-{unit}.samtools_stats.txt"
+		"results/cross-mapping/{ref_name}/dna-pe/{sample}-{unit}.samtools_stats.txt"
 	log:
-		"results/logs/cross-mapping/{ref_name}/dna/pe/{sample}-{unit}.log",
+		"results/logs/cross-mapping/{ref_name}/dna-pe/{sample}-{unit}.log",
 	params:
 		mapping_extra=config["crossMapping_DNA_pe"]["mapping_params"],
 		sort_extra=config["crossMapping_DNA_pe"]["sort_params"],
 		stats_extra=config["crossMapping_DNA_pe"]["stats_params"],
-		tmpdir=temp(directory("results/cross-mapping/{ref_name}/dna/pe/{sample}-{unit}.samtools_tmp")),
+		tmpdir=temp(directory("results/cross-mapping/{ref_name}/dna-pe/{sample}-{unit}.samtools_tmp")),
 	threads: config["crossMapping_DNA_pe"]["threads"]
 	resources:
 		mem_gb=config["crossMapping_DNA_pe"]["memory"]
@@ -44,14 +44,14 @@ rule crossMapping_DNA_se:
 		idx="resources/{ref_name}/genome.fasta",
 		idx_build=multiext("resources/{ref_name}/genome.fasta", ".0123", ".amb", ".ann", ".bwt.2bit.64", ".pac"),
 	output:
-		"results/cross-mapping/{ref_name}/dna/se/{sample}-{unit}.samtools_stats.txt"
+		"results/cross-mapping/{ref_name}/dna-se/{sample}-{unit}.samtools_stats.txt"
 	log:
-		"results/logs/cross-mapping/{ref_name}/dna/se/{sample}-{unit}.log",
+		"results/logs/cross-mapping/{ref_name}/dna-se/{sample}-{unit}.log",
 	params:
 		mapping_extra=config["crossMapping_DNA_se"]["mapping_params"],
 		sort_extra=config["crossMapping_DNA_se"]["sort_params"],
 		stats_extra=config["crossMapping_DNA_se"]["stats_params"],
-		tmpdir=temp(directory("results/cross-mapping/{ref_name}/dna/se/{sample}-{unit}.samtools_tmp")),
+		tmpdir=temp(directory("results/cross-mapping/{ref_name}/dna-se/{sample}-{unit}.samtools_tmp")),
 	threads: config["crossMapping_DNA_se"]["threads"]
 	resources:
 		mem_gb=config["crossMapping_DNA_se"]["memory"]
@@ -82,15 +82,15 @@ rule crossMapping_DNA_long:
 		idx="resources/{ref_name}/genome.fasta",
 		idx_build="resources/{ref_name}/genome.fasta.hifi.mmi",
 	output:
-		fofn="results/cross-mapping/{ref_name}/dna/long/{sample}-{unit}.fofn",
-		stats="results/cross-mapping/{ref_name}/dna/long/{sample}-{unit}.samtools_stats.txt",
+		fofn="results/cross-mapping/{ref_name}/dna-long/{sample}-{unit}.fofn",
+		stats="results/cross-mapping/{ref_name}/dna-long/{sample}-{unit}.samtools_stats.txt",
 	log:
-		"results/logs/cross-mapping/{ref_name}/dna/long/{sample}-{unit}.log",
+		"results/logs/cross-mapping/{ref_name}/dna-long/{sample}-{unit}.log",
 	params:
 		mapping_extra=config["crossMapping_DNA_long"]["mapping_params"],
 		sort_extra=config["crossMapping_DNA_long"]["sort_params"],
 		stats_extra=config["crossMapping_DNA_long"]["stats_params"],
-		tmpdir=temp(directory("results/cross-mapping/{ref_name}/dna/long/{sample}-{unit}.samtools_tmp")),
+		tmpdir=temp(directory("results/cross-mapping/{ref_name}/dna-long/{sample}-{unit}.samtools_tmp")),
 	threads: config["crossMapping_DNA_long"]["threads"]
 	resources:
 		mem_gb=config["crossMapping_DNA_long"]["memory"]
@@ -122,10 +122,10 @@ rule crossMapping_RNA_pe:
 		reads=rules.trimming_RNA_pe.output.trimmed,
 		idx="resources/{ref_name}/genome.fasta.STAR",
 	output:
-		stats="results/cross-mapping/{ref_name}/rna/pe/{sample}-{unit}.samtools_stats.txt",
-		tmpdir=temp(directory("results/cross-mapping/{ref_name}/rna/pe/{sample}-{unit}.STAR")),
+		stats="results/cross-mapping/{ref_name}/rna-pe/{sample}-{unit}.samtools_stats.txt",
+		tmpdir=temp(directory("results/cross-mapping/{ref_name}/rna-pe/{sample}-{unit}.STAR")),
 	log:
-		"results/logs/cross-mapping/{ref_name}/rna/pe/{sample}-{unit}.log",
+		"results/logs/cross-mapping/{ref_name}/rna-pe/{sample}-{unit}.log",
 	params:
 		sjdbOverhang=config["crossMapping_RNA_pe"]["sjdbOverhang"],
 		mapping_extra=config["crossMapping_RNA_pe"]["mapping_params"],
@@ -164,10 +164,10 @@ rule crossMapping_RNA_se:
 		reads=rules.trimming_RNA_se.output.trimmed,
 		idx="resources/{ref_name}/genome.fasta.STAR",
 	output:
-		stats="results/cross-mapping/{ref_name}/rna/se/{sample}-{unit}.samtools_stats.txt",
-		tmpdir=temp(directory("results/cross-mapping/{ref_name}/rna/se/{sample}-{unit}.STAR")),
+		stats="results/cross-mapping/{ref_name}/rna-se/{sample}-{unit}.samtools_stats.txt",
+		tmpdir=temp(directory("results/cross-mapping/{ref_name}/rna-se/{sample}-{unit}.STAR")),
 	log:
-		"results/logs/cross-mapping/{ref_name}/rna/se/{sample}-{unit}.log",
+		"results/logs/cross-mapping/{ref_name}/rna-se/{sample}-{unit}.log",
 	params:
 		sjdbOverhang=config["crossMapping_RNA_se"]["sjdbOverhang"],
 		mapping_extra=config["crossMapping_RNA_se"]["mapping_params"],
@@ -207,15 +207,15 @@ rule crossMapping_RNA_long:
 		idx="resources/{ref_name}/genome.fasta",
 		idx_build="resources/{ref_name}/genome.fasta.isoseq.mmi",
 	output:
-		fofn="results/cross-mapping/{ref_name}/rna/long/{sample}-{unit}.fofn",
-		stats="results/cross-mapping/{ref_name}/rna/long/{sample}-{unit}.samtools_stats.txt",
+		fofn="results/cross-mapping/{ref_name}/rna-long/{sample}-{unit}.fofn",
+		stats="results/cross-mapping/{ref_name}/rna-long/{sample}-{unit}.samtools_stats.txt",
 	log:
-		"results/logs/cross-mapping/{ref_name}/rna/long/{sample}-{unit}.log",
+		"results/logs/cross-mapping/{ref_name}/rna-long/{sample}-{unit}.log",
 	params:
 		mapping_extra=config["crossMapping_RNA_long"]["mapping_params"],
 		sort_extra=config["crossMapping_RNA_long"]["sort_params"],
 		stats_extra=config["crossMapping_RNA_long"]["stats_params"],
-		tmpdir=temp(directory("results/cross-mapping/{ref_name}/rna/long/{sample}-{unit}.samtools_tmp")),
+		tmpdir=temp(directory("results/cross-mapping/{ref_name}/rna-long/{sample}-{unit}.samtools_tmp")),
 	threads: config["crossMapping_RNA_long"]["threads"]
 	resources:
 		mem_gb=config["crossMapping_RNA_long"]["memory"]
@@ -246,35 +246,12 @@ def expand_crossMapping_results_paths():
 	out = []
 	for ref_name in list(config["ref_genomes"].keys()):
 		for i, row in samples.iterrows():
-			if pd.notnull(row.fq2): ## DNA pe
-				out.append("{ref_name}/{lib_type}/pe/{sample}-{unit}".format(
-					sample=row.sample_id, 
-					unit=row.unit, 
-					lib_type=row.lib_type,
-					ref_name=ref_name,
-				))
-			else:
-				if row.lib_type == "dna-long": ## DNA long
-					out.append("{ref_name}/{lib_type}/se/{sample}-{unit}".format(
-						sample=row.sample_id, 
-						unit=row.unit, 
-						lib_type="dna",
-						ref_name=ref_name,
-					))
-				elif row.lib_type == "rna-long": ## RNA long
-					out.append("{ref_name}/{lib_type}/se/{sample}-{unit}".format(
-						sample=row.sample_id,
-						unit=row.unit,
-						lib_type="rna",
-						ref_name=ref_name,
-					))
-				else: ## DNA se
-					out.append("{ref_name}/{lib_type}/se/{sample}-{unit}".format(
-							sample=row.sample_id, 
-							unit=row.unit, 
-							lib_type=row.lib_type,
-							ref_name=ref_name,
-						))
+			out.append("{ref_name}/{lib_type}/{sample}-{unit}".format(
+				sample=row.sample_id, 
+				unit=row.unit, 
+				lib_type=row.lib_type,
+				ref_name=ref_name,
+			))
 	return out
 
 

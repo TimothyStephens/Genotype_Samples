@@ -5,13 +5,16 @@ def get_trimmed_fastqs(wildcards):
 	fastqs = []
 	rows = samples.loc[(wildcards.sample), ["sample_id", "unit", "lib_type", "fq1", "fq2"]]
 	for i, row in rows.iterrows():
-		if row.lib_type != 'dna':
+		if not row.lib_type.startswith('dna'): ## RNA pe, se, long
 			continue
-		if pd.notnull(row.fq2):
+		if pd.notnull(row.fq2): ## DNA pe
 			fastqs.append("results/trimmed/dna/pe/{sample}-{unit}.1.fastq.gz".format(sample=row.sample_id, unit=row.unit))
 			fastqs.append("results/trimmed/dna/pe/{sample}-{unit}.2.fastq.gz".format(sample=row.sample_id, unit=row.unit))
 		else:
-			fastqs.append("results/trimmed/dna/se/{sample}-{unit}.1.fastq.gz".format(sample=row.sample_id, unit=row.unit))
+			if row.lib_type == 'dna' and row.is_long_read: ## DNA long
+				fastqs.append("results/trimmed/dna/long/{sample}-{unit}.1.fastq.gz".format(sample=row.sample_id, unit=row.unit))
+			else: ## RNA se
+				fastqs.append("results/trimmed/dna/se/{sample}-{unit}.1.fastq.gz".format(sample=row.sample_id, unit=row.unit))
 	return(fastqs)
 
 
