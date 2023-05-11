@@ -7,7 +7,7 @@ IFS=$'\n\t'
 for FILE in "${snakemake_input[@]}";
 do
   SAMPLE=$(basename ${FILE%.samtools_stats.txt})
-  REF_NAME=$(basename $(dirname $(dirname $(dirname $FILE))))
+  REF_NAME=$(basename $(dirname $(dirname $FILE)))
   awk -F'\t' \
       -vSAMPLE="${SAMPLE}" \
       -vREF_NAME="${REF_NAME}" \
