@@ -25,18 +25,10 @@ include: "rules/annotations.smk"
 include: "rules/plotting.smk"
 
 
-if   config["module"] == "genotyping":
-	DONE_WORKFLOW = "results/{project}/genotyping.done".format(project=config["project_name"])
-elif config["module"] == "cross_mapping":
-	DONE_WORKFLOW = "results/{project}/cross_mapping.done".format(project=config["project_name"])
-elif config["module"] == "kmer_analysis":
-	DONE_WORKFLOW = "results/{project}/kmer_analysis.done".format(project=config["project_name"])
-else: # All
-	DONE_WORKFLOW = [
-			"results/{project}/genotyping.done".format(project=config["project_name"]),
-			"results/{project}/cross_mapping.done".format(project=config["project_name"]),
-			"results/{project}/kmer_analysis.done".format(project=config["project_name"]),
-			]
+DONE_WORKFLOW = "results/{project_name}/{module_name}.done".format(
+	project_name=config["project_name"], 
+	module_name=config["module"],
+)
 
 
 localrules:

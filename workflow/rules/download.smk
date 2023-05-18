@@ -25,8 +25,8 @@ rule download_fastq_pe:
 		" --temp {params.tempdir}"
 		" {params.extra}"
 		" {wildcards.accession}"
-		"; gzip {params.out_prefix}/{wildcards.accession}_1.fastq"
-		"; gzip {params.out_prefix}/{wildcards.accession}_2.fastq"
+		"; pigz --processes {threads} {params.out_prefix}/{wildcards.accession}_1.fastq"
+		"; pigz --processes {threads} {params.out_prefix}/{wildcards.accession}_2.fastq"
 		"; rm -fr {params.tempdir}"
 		") 1>{log} 2>&1"
 
@@ -55,7 +55,7 @@ rule download_fastq_se:
 		" --temp {params.tempdir}"
 		" {params.extra}"
 		" {wildcards.accession}"
-		"; gzip {params.out_prefix}/{wildcards.accession}.fastq"
+		"; pigz --processes {threads} {params.out_prefix}/{wildcards.accession}.fastq"
 		"; rm -fr {params.tempdir}"
 		") 1>{log} 2>&1"
 
@@ -84,7 +84,7 @@ rule download_fastq_long:
 		" --temp {params.tempdir}"
 		" {params.extra}"
 		" {wildcards.accession}"
-		"; gzip {params.out_prefix}/{wildcards.accession}.fastq"
+		"; pigz --processes {threads} {params.out_prefix}/{wildcards.accession}.fastq"
 		"; rm -fr {params.tempdir}"
 		") 1>{log} 2>&1"
 

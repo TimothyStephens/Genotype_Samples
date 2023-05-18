@@ -13,7 +13,7 @@ validate(config, schema="../schemas/config.schema.yaml")
 #############################
 ##### Load sample sheet #####
 #############################
-samples = pd.read_table(config["samples"], dtype=str)
+samples = pd.read_table(config["samples"], dtype=str, comment='#')
 validate(samples, schema="../schemas/samples.schema.yaml")
 
 # Set index of dataframe

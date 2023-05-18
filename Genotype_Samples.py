@@ -4,6 +4,8 @@ import os
 import subprocess
 import click
 import psutil, math
+from snakemake.io import load_configfile
+from snakemake.utils import validate
 
 
 __version__ = "0.0.1"
@@ -57,7 +59,7 @@ def check_user_max_mem(user_max_mem):
 @click.option(
 	"--module",
 	required=True,
-	type=click.Choice(['genotyping', 'cross_mapping', 'kmer_analysis', 'all']),
+	type=click.Choice(['genotyping', 'cross_mapping', 'kmer_analysis']),
 	help="Module/workflow to run",
 )
 @click.option(
@@ -101,10 +103,10 @@ def workflow(module, configfile, cores, max_downloads, max_memory, snakemake_arg
 	  genotyping		Exploring genotype + ploidy of samples
 	  cross_mapping		Cross-mapping of samples to multiple genomes
 	  kmer_analysis		K-mer ploidy analysis
-	  all			Run all of the above workflows
 	
 	##########################
 	"""
+	
 	# Check max mem is <= system mem
 	check_user_max_mem(max_memory)
 	
@@ -126,6 +128,33 @@ def workflow(module, configfile, cores, max_downloads, max_memory, snakemake_arg
 		max_memory=max_memory,
 		snakemake_args=" ".join(SNAKEMAKE_REQUIRED_PARAMS + list(snakemake_args)),
 	))
+	
+	# Build report '.zip' file if we have finished running the workflow AND we havent previously made the report
+	conf = load_configfile(configfile)
+	#validate(conf, schema="workflow/schemas/config.schema.yaml")
+	project_name = conf["project_name"]
+	
+	done_workflow = "results/{project_name}/{module_name}.done".format(
+		project_name=project_name, 
+		module_name=module,
+	)
+	report_path   = "results/{project_name}/report.zip".format(
+		project_name=project_name
+	)
+	
+	if os.path.isfile(done_workflow) and not os.path.isfile(report_path):
+		run_cmd((
+			"snakemake"
+			" --config 'module={module}'"
+			" --configfile '{configfile}'"
+			" --report {report_path}"
+			" {snakemake_args}"
+		).format(
+			module=module,
+			configfile=configfile,
+			report_path=report_path,
+			snakemake_args=" ".join(SNAKEMAKE_REQUIRED_PARAMS + list(snakemake_args)),
+		))
 
 
 

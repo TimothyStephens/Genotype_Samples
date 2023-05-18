@@ -1,5 +1,7 @@
 name: sra-tools
 channels:
   - bioconda
+  - conda-forge
 dependencies:
-  - sra-tools=3.0.3
+  - sra-tools=3.0.5
+  - pigz=2.6

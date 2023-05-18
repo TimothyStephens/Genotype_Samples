@@ -28,13 +28,13 @@ module_order:
       name: "Aligned reads stats"
       anchor: "samtools_stats"
       path_filters:
-        - "*_samtools_stats.txt"
+        - "*.samtools_stats.txt"
 
 extra_fn_clean_exts:
   - ".1"
   - ".2"
   - "_fastp"
-  - "_samtools_stats.txt"
+  - ".samtools_stats.txt"
 
 table_columns_visible:
   R1_fastqc_raw:
