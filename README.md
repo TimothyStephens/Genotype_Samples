@@ -53,11 +53,7 @@ Compare samples against multiple genomes and report mapping stats (% mapped read
 conda activate Genotype_Samples
 ./Genotype_Samples.py --module cross_mapping --configfile config/config.CrossMapping.yaml
 ```
-Once the workflow has finished you can run the same command with the `--report report.zip` flag to produce a nice HTML report.
-```bash
-./Genotype_Samples.py --module cross_mapping --configfile config/config.CrossMapping.yaml --report CrossMapping_report.zip
-```
-The HTML report will be contained within the `report.zip` file (which file can be named whatever you want in the above command so you dont overwrite reports from other projects).
+Once the workflow has finished it should have generated a report for all the major outputs and plots. This report will be in the project results directory, it will the form of a HTML file which will be contained in a zip file, and will be named after the workflow that you ran (i.e., the report HTML will be in `/results/project_name/module_type.zip`).
 
 
 ### genotyping
@@ -65,10 +61,6 @@ Full genotyping workflow. Call variants, calculate relatedness stats, estimate p
 ```bash
 conda activate Genotype_Samples
 ./Genotype_Samples.py --module genotyping --configfile config/config.Genotyping.yaml
-```
-To generate the HTML report run:
-```bash
-./Genotype_Samples.py --module genotyping --configfile config/config.Genotyping.yaml --report Genotyping_report.zip
 ```
 
 
@@ -78,10 +70,6 @@ After inspecting the plots, if you wish to change some of the cutoffs used for p
 ```bash
 conda activate Genotype_Samples
 ./Genotype_Samples.py --module kmer_analysis --configfile config/config.KmerAnalysis.yaml
-```
-To generate the HTML report run:
-```bash
-./Genotype_Samples.py --module kmer_analysis --configfile config/config.KmerAnalysis.yaml --report KmerAnalysis_report.zip
 ```
 
 
@@ -105,7 +93,6 @@ conda activate Genotype_Samples
 # Cleanup
 rm -fr .cache .keras .parallel .snakemake resources results
 ```
-To generate HTML reports for each of the above commands, add `--report report.zip` to the end of each command.
 
 
 
