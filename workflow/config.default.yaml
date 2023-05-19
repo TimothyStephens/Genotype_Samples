@@ -110,14 +110,14 @@ crossMapping_DNA_pe:
   sort_params: ''
   stats_params: ''
   threads: 24
-  memory: 20 # GB
+  memory: 40 # GB
 
 crossMapping_DNA_se:
   mapping_params: ''
   sort_params: ''
   stats_params: ''
   threads: 24
-  memory: 20 # GB
+  memory: 40 # GB
 
 # STAR
 crossMapping_RNA_pe:
@@ -174,13 +174,13 @@ mapping_DNA_pe:
   mapping_params: ''
   sort_params: ''
   threads: 24
-  memory: 20 # GB
+  memory: 40 # GB
 
 mapping_DNA_se:
   mapping_params: ''
   sort_params: ''
   threads: 24
-  memory: 20 # GB
+  memory: 40 # GB
 
 # STAR
 mapping_RNA_pe:
@@ -221,7 +221,7 @@ mapping_merge:
 calling_variants:
   params: ''
   threads: 8
-  memory: 20 # GB
+  memory: 30 # GB
 
 # bcftools index of merged VCF
 calling_VCFs_index:

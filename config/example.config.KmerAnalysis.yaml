@@ -8,7 +8,7 @@ project_name: 'species1_kmerAnalysis'
 # Path to sample manifest
 samples: 'config/samples.tsv'
 
-# Reference genome name : absolute path (can be gzipped)
+# Reference genome is not used during K-mer analysis, so you can leave this unchanged.
 ref_genomes:
   'genome2': 'path/to/genome2.fa.gz'
 
