@@ -28,7 +28,7 @@ The main params that need to be changed are:
  - `ref_genomes`:  The name and location of the reference genome to use for analysis. 
 
 The second config/metadata file is the `config/samples.tsv` file.
-This file lists the names and locations of all samples that will be considered by the workflow. 
+This file lists the names and locations of all samples that will be considered by the workflow. Any additional columns that are present in this file will be considered metadata that is to be plotted along with the results (e.g., putative species, collection location, etc.). Colors will be automatically assigned but can be changed manually after the workflow has finished. 
  - `sample_id`  The ID of the sample
  - `unit`       A number used to differentiate samples with multiple input read sets. If you only have one set of reads per sample then keep this number as `1`. If you have multiple seqs of reads per sample then give each set a different number. Reads from the same sample_id but different "units" will be QC'ed, trimmed, and aligned separatly, but combine after that for final variant calling, genotyping, and ploidy analysis. 
  - `lib_type`   Lets you specify if the reads are from "dna" or "rna" sequencing. 
@@ -41,6 +41,7 @@ NOTE:
  - If you wish to add more samples to an existing project, simply add them to the config file and let snakemake do the rest.
  - Default config values are stored in `workflow/config.default.yaml`. If you want to modify them globally then do so in the `config.default.yaml` file, if you want to do it for a single project, simply add them to your project config file. The project config file provided by the user will overwrite any params in the global default file, so it is OK for a param to be set in both.
  - In the `samples.tsv` file, the `unit` column allows samples split across multiple `fastq` files to be combined.
+ - Colors will be automatically assigned to each category in the additional metadata included in the `samples.tsv` file provided by the user. Once the workflow has finished the user can change the colors used by altering the hex values in `results/{project_name}/final/colors.tsv`, removing the `results/{project_name}/*.done` file, and rerunning the original workflow command.
 
 
 ## Running the workflow
@@ -107,6 +108,9 @@ killall -TERM snakemake
 ## Results
 Results files produced by this workflow will be in `results/project_name/final/`, where `project_name` is whatever you specified in the config file.
 
+### `report.zip`
+A HTML report that summarizes all plots and run stats for the given workflow. All of the R Markdown scripts and data to generate plots shown in the report are present in the `final/` directory, so the user can adjust the final plots as they wish.
+
 ### `Annotations.tsv`
 The ploidy and "group" (determined by `vcf_clone_detect.py` using the user specified threshold) of the input samples.
 
@@ -141,4 +145,31 @@ Original png images (for use in publications) will be in `results/project_name/k
 # Credits
 This workflow is based on the [deepvariant workflow](https://github.com/nikostr/dna-seq-deepvariant-glnexus-variant-calling).
 It also takes inspiration from the design of [Metagenome-Atlas](https://github.com/metagenome-atlas/atlas).
+
+Conda packages used by this workflow:
+`for F in workflow/envs/*.yaml; do awk '{ if($1=="dependencies:"){F=1}else{if(F==1){print}} }' $F; done | sort | uniq`
+  - bcftools=1.16
+  - bwa-mem2=2.2.1
+  - fastp=0.23.2
+  - fastqc=0.11.9
+  - multiqc=1.14
+  - numpy=1.24.2
+  - pbmm2=1.10.0
+  - pigz=2.6
+  - python=3.11.0
+  - python=3.8.0
+  - qualimap=2.2.2a
+  - r-cowplot=1.1.1
+  - r-ggdendro=0.1.23
+  - r-ggplot2=3.4.1
+  - r-heatmaply=1.4.2
+  - r-RColorBrewer=1.1_3
+  - r-reshape2=1.4.4
+  - r-rmarkdown=2.14
+  - r-tibble=3.2.1
+  - samtools=1.16.1
+  - scikit-network=0.29.0
+  - sra-tools=3.0.5
+  - star=2.7.10b
+  - vcftools=0.1.16
 

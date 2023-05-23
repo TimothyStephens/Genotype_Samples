@@ -2,4 +2,4 @@ name: qualimap
 channels:
   - bioconda
 dependencies:
-  - qualimap ==2.2.2a
+  - qualimap=2.2.2a

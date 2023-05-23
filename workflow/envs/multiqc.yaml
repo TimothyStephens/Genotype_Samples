@@ -2,4 +2,4 @@ name: multiqc
 channels:
   - bioconda
 dependencies:
-  - multiqc ==1.14
+  - multiqc=1.14

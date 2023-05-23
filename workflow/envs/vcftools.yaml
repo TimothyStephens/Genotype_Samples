@@ -2,4 +2,4 @@ name: vcftools
 channels:
   - bioconda
 dependencies:
-  - vcftools ==0.1.16
+  - vcftools=0.1.16

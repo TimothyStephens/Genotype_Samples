@@ -2,5 +2,5 @@ name: pbmm2
 channels:
   - bioconda
 dependencies:
-  - pbmm2 ==1.10.0
-  - samtools ==1.16.1
+  - pbmm2=1.10.0
+  - samtools=1.16.1
