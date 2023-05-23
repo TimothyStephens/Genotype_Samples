@@ -21,7 +21,7 @@ BUILD_LOG="docker/build.log"
 
 ## Snakemake containerize
 cd ../
-./Genotype_Samples.py --module all --configfile tests/config/config.Genotyping_small.yaml --containerize \
+./Genotype_Samples.py --module genotyping --configfile tests/config/config.Genotyping_small.yaml --containerize \
   | sed -e '/Running snakemake command/d' -e '/module=all/d' \
   > $DOCKERFILE
 
