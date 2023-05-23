@@ -25,48 +25,35 @@ library(cowplot)
 options(scipen = 999) #Prevent scientific notation
 ```
 
-```{r file_names, echo=FALSE, message=FALSE}
+
+```{r data_file_names, echo=FALSE, message=FALSE}
 # File names and important variables.
-annot.file <- "Annotations.tsv"
+annotations.file <- "samples.genotyping.tsv"
+colors.file <- "colors.tsv"
 admixture.file <- "PCAngsd.Admixture.tsv"
 allelFreqs.file <- "PCAngsd.IndAlleleFreq.tsv"
 ```
 
-```{r load_metadata, echo=FALSE, message=FALSE}
-#*Annotations*
-annot <- read.table(annot.file, header=T, sep='\t', comment.char='') %>% 
-  column_to_rownames(var = "sample_id")
-```
 
-```{r color_palette, echo=FALSE, message=FALSE}
-#*Color palette*
-annot.labels <- annot[c("group_id","best_ploidy_model")]
-annot.cols <- annot[c("group_id_color","best_ploidy_model_color")] %>% 
-  rename("group_id" = "group_id_color") %>% 
-  rename("best_ploidy_model" = "best_ploidy_model_color")
-
-# Get color combinations for plotting
-palette <- as.character(c(
-  annot.cols$group_id, 
-  annot.cols$best_ploidy_model
-))
-names(palette) <- as.character(c(
-  annot.labels$group_id, 
-  annot.labels$best_ploidy_model
-))
-palette <- palette[!duplicated(palette)]
-```
-
-```{r load_Admixture_data, echo=FALSE, message=FALSE}
+```{r load_data_files, echo=FALSE, message=FALSE}
 #*Admixture*
-admixture <- read.table(admixture.file, header=T, sep='\t', comment.char='', check.names=FALSE) %>% 
+admixture <- read.table(admixture.file, header=T, sep='\t', comment.char='', check.names=FALSE) %>%
   column_to_rownames(var = "sample_id")
-```
 
-```{r load_IndAlleleFreq_data, echo=FALSE, message=FALSE}
 #*IndAlleleFreq*
-allelFreqs <- read.table(allelFreqs.file, header=T, sep='\t', comment.char='', check.names=FALSE) %>% 
+allelFreqs <- read.table(allelFreqs.file, header=T, sep='\t', comment.char='', check.names=FALSE) %>%
   column_to_rownames(var = "sample_id")
+
+#*Annotations*
+annotations <- read.table(annotations.file, header=T, sep='\t', comment.char='#', check.names=FALSE) %>%
+  mutate(Name = paste(sample_id, unit, sep="-")) %>%
+  column_to_rownames(var = "Name") %>%
+  select(-c("sample_id", "unit", "fq1", "fq2", "best_ploidy_model_num"))
+
+#*Colors matrix*
+tmp.colors <- read.table(colors.file, header=F, sep='\t', comment.char='', check.names=FALSE)
+colors <- c(tmp.colors[,2])
+names(colors) <- c(tmp.colors[,1])
 ```
 
 
@@ -182,33 +169,33 @@ cluster_plot <- function(data, samples, selected_columns,
 
 ```{r plot_Admixture, echo=FALSE, message=FALSE}
 # Plot Admixture results. Use the admixture matrix to generate the degdrogram and sample order.
-cluster_plot(admixture, annot.labels, c("group_id", "best_ploidy_model"), colors=palette, x.label.font.size=2)
+cluster_plot(admixture, annotations, colnames(annotations), colors=colors, x.label.font.size=2)
 ```
 
 
-```{r load_PCAngsd_IndAllelFreq_data, echo=FALSE, message=FALSE}
+```{r generate_eigen_vectors_IndAllelFreq, echo=FALSE, message=FALSE}
 # Generate eigen vectors.
 C <- as.matrix(allelFreqs)
 e <- eigen(C)
 df <- as.data.frame(e$vectors)
 rownames(df) <- rownames(C)
-df <- cbind(df, annot.labels)
+df <- cbind(df, annotations)
 ```
 
 
-```{r plotly_PCAngsd_IndAllelFreq_PC1_PC2, echo=FALSE, message=FALSE}
+```{r plotly_IndAllelFreq_PC1_PC2, echo=FALSE, message=FALSE}
 # Plot PC1 and PC2 of PCAngsd results WITH estimated individual allele frequencies using the `plotly` package.
 # group_id
 p <- plot_ly(df, x=~V1, y=~V2, text=rownames(df), type = "scatter",
-             mode="markers", color=~group_id, colors=palette, marker=list(size=11))
+             mode="markers", color=~group_id, colors=colors, marker=list(size=11))
 p <- layout(p,title="Without individual allele frequency - colored by group_id",
             xaxis=list(title="PC1"),
             yaxis=list(title="PC2"))
 p
 
-# Reef
+# Ploidy
 p <- plot_ly(df, x=~V1, y=~V2, text=rownames(df), type = "scatter",
-             mode="markers", color=~best_ploidy_model, colors=palette, marker=list(size=11))
+             mode="markers", color=~best_ploidy_model, colors=colors, marker=list(size=11))
 p <- layout(p,title="Without individual allele frequency - colored by best_ploidy_model",
             xaxis=list(title="PC1"),
             yaxis=list(title="PC2"))

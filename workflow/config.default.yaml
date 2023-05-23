@@ -109,45 +109,59 @@ crossMapping_DNA_pe:
   mapping_params: ''
   sort_params: ''
   stats_params: ''
-  threads: 24
-  memory: 40 # GB
+  mapping_threads: 24
+  mapping_memory: 40 # GB
+  sort_threads: 6
+  sort_memory: 1 # GB
+  stats_threads: 2
 
 crossMapping_DNA_se:
   mapping_params: ''
   sort_params: ''
   stats_params: ''
-  threads: 24
-  memory: 40 # GB
+  mapping_threads: 24
+  mapping_memory: 40 # GB
+  sort_threads: 6
+  sort_memory: 1 # GB
+  stats_threads: 2
 
 # STAR
 crossMapping_RNA_pe:
   sjdbOverhang: 150
   mapping_params: ''
   stats_params: ''
-  threads: 24
-  memory: 20 # GB
+  mapping_threads: 24
+  mapping_memory: 20 # GB
+  stats_threads: 2
 
 crossMapping_RNA_se:
   sjdbOverhang: 150
   mapping_params: ''
   stats_params: ''
-  threads: 24
-  memory: 20 # GB
+  mapping_threads: 24
+  mapping_memory: 20 # GB
+  stats_threads: 2
 
 # Long reads
 crossMapping_DNA_long:
   mapping_params: ''
   sort_params: ''
   stats_params: ''
-  threads: 24
-  memory: 20 # GB
+  mapping_threads: 24
+  mapping_memory: 20 # GB
+  sort_threads: 6
+  sort_memory: 1 # GB
+  stats_threads: 2
 
 crossMapping_RNA_long:
   mapping_params: ''
   sort_params: ''
   stats_params: ''
-  threads: 24
-  memory: 20 # GB
+  mapping_threads: 24
+  mapping_memory: 20 # GB
+  sort_threads: 6
+  sort_memory: 1 # GB
+  stats_threads: 2
 
 
 ################################
@@ -173,45 +187,54 @@ kmer_analysis_createDB:
 mapping_DNA_pe:
   mapping_params: ''
   sort_params: ''
-  threads: 24
-  memory: 40 # GB
+  mapping_threads: 24
+  mapping_memory: 40 # GB
+  sort_threads: 6
+  sort_memory: 1 # GB
 
 mapping_DNA_se:
   mapping_params: ''
   sort_params: ''
-  threads: 24
-  memory: 40 # GB
+  mapping_threads: 24
+  mapping_memory: 40 # GB
+  sort_threads: 6
+  sort_memory: 1 # GB
 
 # STAR
 mapping_RNA_pe:
   sjdbOverhang: 150
   mapping_params: '--twopassMode Basic'
-  threads: 24
-  memory: 20 # GB
+  mapping_threads: 24
+  mapping_memory: 20 # GB
 
 mapping_RNA_se:
   sjdbOverhang: 150
   mapping_params: '--twopassMode Basic'
-  threads: 24
-  memory: 20 # GB
+  mapping_threads: 24
+  mapping_memory: 20 # GB
 
 # Long reads
 mapping_DNA_long:
   mapping_params: ''
   sort_params: ''
-  threads: 24
-  memory: 20 # GB
+  mapping_threads: 24
+  mapping_memory: 20 # GB
+  sort_threads: 6
+  sort_memory: 1 # GB
 
 mapping_RNA_long:
   mapping_params: ''
   sort_params: ''
-  threads: 24
-  memory: 20 # GB
+  mapping_threads: 24
+  mapping_memory: 20 # GB
+  sort_threads: 6
+  sort_memory: 1 # GB
 
 # Samtools merge
 mapping_merge:
   params: ''
-  threads: 8
+  merge_threads: 8
+  view_threads: 2
 
 
 ################################

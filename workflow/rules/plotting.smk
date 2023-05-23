@@ -2,7 +2,8 @@
 
 rule plotting_ANGSD_results:
 	input:
-		annot=rules.format_annotations.output,
+		samples=rules.combine_genotyping_results.output.samples,
+		color_list=rules.format_annotations.output.color_list,
 		admixture=rules.format_results_PCAngsd_Admixture.output,
 		allelFreqs=rules.format_results_PCAngsd_IndAlleleFreq.output,
 	output:
@@ -29,7 +30,8 @@ rule plotting_ANGSD_results:
 
 rule plotting_vcf_clone_detect_results:
 	input:
-		annot=rules.format_annotations.output,
+		samples=rules.combine_genotyping_results.output.samples,
+		color_list=rules.format_annotations.output.color_list,
 		matrix=rules.format_results_vcf_clone_detect_counts.output,
 	output:
 		html=report(
@@ -58,7 +60,8 @@ rule plotting_vcf_clone_detect_results:
 
 rule plotting_vcftools_relatedness2_results:
 	input:
-		annot=rules.format_annotations.output,
+		samples=rules.combine_genotyping_results.output.samples,
+		color_list=rules.format_annotations.output.color_list,
 		matrix=rules.format_results_vcftools_relatedness2.output,
 	output:
 		html=report(
@@ -135,6 +138,8 @@ rule plotting_nQuire_coverage_results:
 rule plotting_cross_mapping_results:
 	input:
 		matrix=rules.format_crossMapping_results.output,
+		samples=rules.format_annotations.output.samples,
+		color_list=rules.format_annotations.output.color_list,
 	output:
 		html=report(
 			"results/{project}/final/cross_mapping_results.html",

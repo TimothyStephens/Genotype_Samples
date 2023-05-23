@@ -23,60 +23,57 @@ options(scipen = 999) #Prevent scientific notation
 ```
 
 
-```{r file_names, echo=FALSE, message=FALSE}
+```{r data_file_names, echo=FALSE, message=FALSE}
 # File names and important variables.
-annot.file <- "Annotations.tsv"
+annotations.file <- "samples.genotyping.tsv"
+colors.file <- "colors.tsv"
 data.file <- "vcf_clone_detect.counts.tsv"
 similarity.threshold <- <<<similarity.threshold>>>
 ```
 
 
-```{r load_metadata, echo=FALSE, message=FALSE}
-#*Annotations*
-annot <- read.table(annot.file, header=T, sep='\t', comment.char='') %>% 
-  column_to_rownames(var = "sample_id")
-```
-
-
-```{r color_palette, echo=FALSE, message=FALSE}
-#*Color palette*
-annot.labels <- annot[c("group_id","best_ploidy_model")]
-annot.cols <- annot[c("group_id_color","best_ploidy_model_color")] %>% 
-  rename("group_id" = "group_id_color") %>% 
-  rename("best_ploidy_model" = "best_ploidy_model_color")
-
-# Get color combinations for plotting
-palette <- as.character(c(
-  annot.cols$group_id, 
-  annot.cols$best_ploidy_model
-))
-names(palette) <- as.character(c(
-  annot.labels$group_id, 
-  annot.labels$best_ploidy_model
-))
-palette <- palette[!duplicated(palette)]
-```
-
-
-```{r load_pairwise_simScores, echo=FALSE, message=FALSE}
+```{r load_data_files, echo=FALSE, message=FALSE}
 #*Data matrix*
-data <- read.table(data.file, header=T, sep='\t', comment.char='', check.names=FALSE) %>% 
+data <- read.table(data.file, header=T, sep='\t', comment.char='', check.names=FALSE) %>%
   column_to_rownames(var = "sample_id")
+
+#*Annotations matrix*
+annotations <- read.table(annotations.file, header=T, sep='\t', comment.char='#', check.names=FALSE) %>%
+  column_to_rownames(var = "sample_id") %>%
+  select(-c("unit", "fq1", "fq2", "best_ploidy_model_num"))
+
+#*Colors matrix*
+tmp.colors <- read.table(colors.file, header=F, sep='\t', comment.char='', check.names=FALSE)
+colors <- c(tmp.colors[,2])
+names(colors) <- c(tmp.colors[,1])
 ```
 
 
 ```{r heatmap, echo=FALSE, message=FALSE}
+# Sort rows for plotting using annotations (NOTE: Need to uncomment Rowv for this to take effect)
+rownames.ordered <- annotations %>%
+#  arrange(species, location, lib_type) %>% # Sort rows by selected annotation columns
+#  filter(species=="Mcapitata") %>% # Plot only rows with specific annotations
+  rownames()
+
 # Plot matrix heatmap
 heatmaply(
-  data,
-  #plot_method = "plotly",
-  col_side_colors=annot.labels[colnames(data),],
-  row_side_colors=annot.labels[colnames(data),],
-  row_side_palette=palette,
-  col_side_palette=palette,
+  data[rownames.ordered, ],
+  plot_method = "plotly",
+  width = 1000,
+  height = 4000,
+  row_side_colors=annotations[rownames.ordered,],
+  col_side_colors=annotations[rownames.ordered,],
+  row_side_palette=colors,
+  col_side_palette=colors,
+  side_color_colorbar_len=0.5,
+  colorbar_xpos=1.05,
+  colorbar_ypos=-0.3,
   column_text_angle=90,
-  cexRow=0.2,
-  cexCol=0.2,
+  cexRow=1.0*(20/nrow(data)),
+  cexCol=1.0*(20/nrow(data)),
+  #scale="row", # Scale rows instead of using min and max of whole matrix
+  #Rowv=FALSE, # Dont plot row dendrogram - Use row order in rownames.ordered
 )
 ```
 

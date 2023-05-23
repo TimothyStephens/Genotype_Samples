@@ -107,10 +107,10 @@ def workflow(module, configfile, cores, max_downloads, max_memory, snakemake_arg
 	##########################
 	"""
 	
-	# Check max mem is <= system mem
+	### Check max mem is <= system mem
 	check_user_max_mem(max_memory)
 	
-	# Run Snakemake command
+	### Run Snakemake command
 	run_cmd((
 		"snakemake"
 		" --config 'module={module}'"
@@ -129,12 +129,11 @@ def workflow(module, configfile, cores, max_downloads, max_memory, snakemake_arg
 		snakemake_args=" ".join(SNAKEMAKE_REQUIRED_PARAMS + list(snakemake_args)),
 	))
 	
-	# Build report '.zip' file if we have finished running the workflow AND we havent previously made the report
+	#### Build report '.zip' file if we have finished running the workflow AND we havent previously made the report
 	conf = load_configfile(configfile)
-	#validate(conf, schema="workflow/schemas/config.schema.yaml")
 	project_name = conf["project_name"]
 	
-	done_workflow = "results/{project_name}/{module_name}.done".format(
+	done_workflow_path = "results/{project_name}/{module_name}.done".format(
 		project_name=project_name, 
 		module_name=module,
 	)
@@ -142,7 +141,15 @@ def workflow(module, configfile, cores, max_downloads, max_memory, snakemake_arg
 		project_name=project_name
 	)
 	
-	if os.path.isfile(done_workflow) and not os.path.isfile(report_path):
+	# Check if report doesnt exist or if the workflow was run more reciently then the report was created.
+	done_workflow_time = 0
+	report_time = 0
+	if os.path.isfile(done_workflow_path):
+		done_workflow_time = os.path.getmtime(done_workflow_path)
+	if os.path.isfile(report_path):
+		report_time = os.path.getmtime(report_path)
+	
+	if done_workflow_time > report_time:
 		run_cmd((
 			"snakemake"
 			" --config 'module={module}'"

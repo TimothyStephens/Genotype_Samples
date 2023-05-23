@@ -26,24 +26,52 @@ options(scipen = 999) #Prevent scientific notation
 ```{r file_names, echo=FALSE, message=FALSE}
 # File names and important variables.
 data.file <- "mapping_rates.tsv"
+annotations.file <- "samples.tsv"
+colors.file <- "colors.tsv"
 ```
 
 
-```{r load_pairwise_simScores, echo=FALSE, message=FALSE}
+```{r load_files, echo=FALSE, message=FALSE}
 #*Data matrix*
-data <- read.table(data.file, header=T, sep='\t', comment.char='', check.names=FALSE) %>% 
+data <- read.table(data.file, header=T, sep='\t', comment.char='', check.names=FALSE) %>%
   column_to_rownames(var = "sample_id")
+
+#*Annotations matrix*
+annotations <- read.table(annotations.file, header=T, sep='\t', comment.char='#', check.names=FALSE) %>% 
+  mutate(Name = paste(sample_id, unit, sep="-")) %>%
+  column_to_rownames(var = "Name") %>%
+  select(-c("sample_id", "unit", "fq1", "fq2"))
+
+#*Colors matrix*
+tmp.colors <- read.table(colors.file, header=F, sep='\t', comment.char='', check.names=FALSE)
+colors <- c(tmp.colors[,2])
+names(colors) <- c(tmp.colors[,1])
 ```
 
 
 ```{r heatmap, echo=FALSE, message=FALSE}
+# Sort rows for plotting using annotations (NOTE: Need to uncomment Rowv for this to take effect)
+rownames.ordered <- annotations %>%
+#  arrange(species, location, lib_type) %>% # Sort rows by selected annotation columns
+#  filter(species=="Mcapitata") %>% # Plot only rows with specific annotations
+  rownames()
+
 # Plot matrix heatmap
 heatmaply(
-  data,
-  #plot_method = "plotly",
+  data[rownames.ordered, ],
+  plot_method = "plotly",
+  width = 1000,
+  height = 4000,
+  row_side_colors=annotations[rownames.ordered,],
+  row_side_palette=colors,
+  side_color_colorbar_len=0.5,
+  colorbar_xpos=1.05,
+  colorbar_ypos=-0.3,
   column_text_angle=90,
-  cexRow=1,
-  cexCol=1,
+  cexRow=1.0*(20/nrow(data)),
+  cexCol=1.0*(2/ncol(data)),
+  #scale="row", # Scale rows instead of using min and max of whole matrix
+  #Rowv=FALSE, # Dont plot row dendrogram - Use row order in rownames.ordered
 )
 ```
 

@@ -35,7 +35,7 @@ def get_raw_fastq_paths(wildcards):
 			if row.fq1.startswith("SRR") and pd.notnull(row.fq2):
 				return ["data/pe/{}_1.fastq.gz".format(row.fq1)]
 			elif row.fq1.startswith("SRR") and pd.isnull(row.fq2):
-				return ["data/se/{}_1.fastq.gz".format(row.fq1)]
+				return ["data/se/{}.fastq.gz".format(row.fq1)]
 			else:
 				return [row.fq1]
 		elif wildcards.fq == "{sample}-{unit}.2".format(sample=row.sample_id, unit=row.unit):

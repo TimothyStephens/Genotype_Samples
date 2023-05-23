@@ -2,25 +2,41 @@
 
 rule format_annotations:
 	input:
+		samples=config["samples"],
+		color_list="workflow/scripts/color_list.txt",
+	output:
+		samples="results/{project}/final/samples.tsv",
+		color_list="results/{project}/final/colors.tsv",
+	log:
+		"results/logs/{project}/final/format_annotations.log",
+	conda:
+		"../envs/bash.yaml"
+	script:
+		"../scripts/format_annotations.sh"
+
+
+rule combine_genotyping_results:
+	input:
+		samples=rules.format_annotations.output.samples,
 		groups=rules.format_results_vcf_clone_detect_groups.output,
 		nQuire=rules.format_nQuire_results.output,
 	output:
-		"results/{project}/final/Annotations.tsv",
+		samples="results/{project}/final/samples.genotyping.tsv",
 	log:
-		"results/logs/{project}/relatedness/format_Annotations.log",
+		"results/logs/{project}/relatedness/combine_genotyping_results.log",
 	params:
 		add_values="workflow/scripts/add_value_to_table.py"
 	conda:
 		"../envs/bash.yaml"
 	script:
-		"../scripts/format_Annotations.sh"
+		"../scripts/combine_genotyping_results.sh"
 
 
 rule ploidy_nQuire_overage_file_list:
 	input:
 		cov=lambda wildcards: expand("results/ploidy/{sample}.denoised.bin.coverage.sitesProp.gz",
 			sample=samples.sample_id.unique()),
-		annots=rules.format_annotations.output,
+		annots=rules.combine_genotyping_results.output.samples,
 	output:
 		"results/{project}/ploidy/nQuire_overage_file_list.tsv",
 	log:

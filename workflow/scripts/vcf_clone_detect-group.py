@@ -258,7 +258,7 @@ def write_sample_groups(clone_groups, comparisons, output_filename):
 				sample_ids.remove(sample)
 			clone_group += 1
 		for sample in sample_ids:
-			fh.write('{}\tUngroup\n'.format(sample))
+			fh.write('{}\tUngrouped\n'.format(sample))
 	
 
 def main(input_filename, output_filename, threshold):

@@ -11,26 +11,33 @@ rule crossMapping_DNA_pe:
 		"results/logs/cross-mapping/{ref_name}/dna-pe/{sample}-{unit}.log",
 	params:
 		mapping_extra=config["crossMapping_DNA_pe"]["mapping_params"],
+		mapping_threads=config["crossMapping_DNA_pe"]["mapping_threads"],
 		sort_extra=config["crossMapping_DNA_pe"]["sort_params"],
+		sort_threads=config["crossMapping_DNA_pe"]["sort_threads"],
+		sort_memory=config["crossMapping_DNA_pe"]["sort_memory"],
 		stats_extra=config["crossMapping_DNA_pe"]["stats_params"],
+		stats_threads=config["crossMapping_DNA_pe"]["stats_threads"],
 		tmpdir=temp(directory("results/cross-mapping/{ref_name}/dna-pe/{sample}-{unit}.samtools_tmp")),
-	threads: config["crossMapping_DNA_pe"]["threads"]
+	threads: config["crossMapping_DNA_pe"]["mapping_threads"] + config["crossMapping_DNA_pe"]["sort_threads"] + config["crossMapping_DNA_pe"]["stats_threads"]
 	resources:
-		mem_gb=config["crossMapping_DNA_pe"]["memory"]
+		mem_gb=config["crossMapping_DNA_pe"]["mapping_memory"] + (config["crossMapping_DNA_pe"]["sort_threads"] * config["crossMapping_DNA_pe"]["sort_memory"])
 	conda:
 		"../envs/bwa-mem2.yaml"
 	shell:
 		"("
 		"bwa-mem2 mem"
-		" -t {threads}"
+		" -t {params.mapping_threads}"
 		" {params.mapping_extra}"
 		" {input.idx}"
 		" {input.reads}"
 		" | samtools sort"
 		" {params.sort_extra}"
 		" -T {params.tmpdir}"
+		" -@ {params.sort_threads}"
+		" -m {params.sort_memory}G"
 		" | samtools stats"
 		" {params.stats_extra}"
+		" -@ {params.stats_threads}"
 		" -"
 		" 1>{output}"
 		" && rm -fr {params.tmpdir}"
@@ -49,26 +56,33 @@ rule crossMapping_DNA_se:
 		"results/logs/cross-mapping/{ref_name}/dna-se/{sample}-{unit}.log",
 	params:
 		mapping_extra=config["crossMapping_DNA_se"]["mapping_params"],
+		mapping_threads=config["crossMapping_DNA_se"]["mapping_threads"],
 		sort_extra=config["crossMapping_DNA_se"]["sort_params"],
+		sort_threads=config["crossMapping_DNA_se"]["sort_threads"],
+		sort_memory=config["crossMapping_DNA_se"]["sort_memory"],
 		stats_extra=config["crossMapping_DNA_se"]["stats_params"],
+		stats_threads=config["crossMapping_DNA_se"]["stats_threads"],
 		tmpdir=temp(directory("results/cross-mapping/{ref_name}/dna-se/{sample}-{unit}.samtools_tmp")),
-	threads: config["crossMapping_DNA_se"]["threads"]
+	threads: config["crossMapping_DNA_se"]["mapping_threads"] + config["crossMapping_DNA_se"]["sort_threads"] + config["crossMapping_DNA_se"]["stats_threads"]
 	resources:
-		mem_gb=config["crossMapping_DNA_se"]["memory"]
+		mem_gb=config["crossMapping_DNA_se"]["mapping_memory"] + (config["crossMapping_DNA_se"]["sort_threads"] * config["crossMapping_DNA_se"]["sort_memory"])
 	conda:
 		"../envs/bwa-mem2.yaml"
 	shell:
 		"("
 		"bwa-mem2 mem"
-		" -t {threads}"
+		" -t {params.mapping_threads}"
 		" {params.mapping_extra}"
 		" {input.idx}"
 		" {input.reads}"
 		" | samtools sort"
 		" {params.sort_extra}"
 		" -T {params.tmpdir}"
+		" -@ {params.sort_threads}"
+		" -m {params.sort_memory}G"
 		" | samtools stats"
 		" {params.stats_extra}"
+		" -@ {params.stats_threads}"
 		" -"
 		" 1>{output}"
 		" && rm -fr {params.tmpdir}"
@@ -88,12 +102,16 @@ rule crossMapping_DNA_long:
 		"results/logs/cross-mapping/{ref_name}/dna-long/{sample}-{unit}.log",
 	params:
 		mapping_extra=config["crossMapping_DNA_long"]["mapping_params"],
+		mapping_threads=config["crossMapping_DNA_long"]["mapping_threads"],
 		sort_extra=config["crossMapping_DNA_long"]["sort_params"],
+		sort_threads=config["crossMapping_DNA_long"]["sort_threads"],
+		sort_memory=config["crossMapping_DNA_long"]["sort_memory"],
 		stats_extra=config["crossMapping_DNA_long"]["stats_params"],
+		stats_threads=config["crossMapping_DNA_long"]["stats_threads"],
 		tmpdir=temp(directory("results/cross-mapping/{ref_name}/dna-long/{sample}-{unit}.samtools_tmp")),
-	threads: config["crossMapping_DNA_long"]["threads"]
+	threads: config["crossMapping_DNA_long"]["mapping_threads"] + config["crossMapping_DNA_long"]["sort_threads"] + config["crossMapping_DNA_long"]["stats_threads"]
 	resources:
-		mem_gb=config["crossMapping_DNA_long"]["memory"]
+		mem_gb=config["crossMapping_DNA_long"]["mapping_memory"] + (config["crossMapping_DNA_long"]["sort_threads"] * config["crossMapping_DNA_long"]["sort_memory"])
 	conda:
 		"../envs/pbmm2.yaml"
 	shell:
@@ -102,15 +120,18 @@ rule crossMapping_DNA_long:
 		"pbmm2 align"
 		" --preset HiFi"
 		" --unmapped"
-		" -j {threads}"
+		" -j {params.mapping_threads}"
 		" {params.mapping_extra}"
 		" {input.idx_build}"
 		" {output.fofn}"
 		" | samtools sort"
 		" {params.sort_extra}"
 		" -T {params.tmpdir}"
+		" -@ {params.sort_threads}"
+		" -m {params.sort_memory}G"
 		" | samtools stats"
 		" {params.stats_extra}"
+		" -@ {params.stats_threads}"
 		" -"
 		" 1>{output.stats}"
 		" && rm -fr {params.tmpdir}"
@@ -128,12 +149,14 @@ rule crossMapping_RNA_pe:
 	log:
 		"results/logs/cross-mapping/{ref_name}/rna-pe/{sample}-{unit}.log",
 	params:
-		sjdbOverhang=config["crossMapping_RNA_pe"]["sjdbOverhang"],
 		mapping_extra=config["crossMapping_RNA_pe"]["mapping_params"],
+		mapping_threads=config["crossMapping_RNA_pe"]["mapping_threads"],
+		sjdbOverhang=config["crossMapping_RNA_pe"]["sjdbOverhang"],
 		stats_extra=config["crossMapping_RNA_pe"]["stats_params"],
-	threads: config["crossMapping_RNA_pe"]["threads"]
+		stats_threads=config["crossMapping_RNA_pe"]["stats_threads"],
+	threads: config["crossMapping_RNA_pe"]["mapping_threads"] + config["crossMapping_RNA_pe"]["stats_threads"]
 	resources:
-		mem_gb=config["crossMapping_RNA_pe"]["memory"]
+		mem_gb=config["crossMapping_RNA_pe"]["mapping_memory"]
 	conda:
 		"../envs/star.yaml"
 	shell:
@@ -141,7 +164,7 @@ rule crossMapping_RNA_pe:
 		"rm -fr {output.tmpdir}/tmp; "
 		"ulimit -n 100000; "
 		"STAR"
-		" --runThreadN {threads}"
+		" --runThreadN {params.mapping_threads}"
 		" --genomeDir {input.idx}"
 		" --readFilesIn {input.reads}"
 		" --readFilesCommand \"gunzip -c\""
@@ -154,6 +177,7 @@ rule crossMapping_RNA_pe:
 		" --outStd BAM_SortedByCoordinate"
 		" | samtools stats"
 		" {params.stats_extra}"
+		" -@ {params.stats_threads}"
 		" -"
 		" 1>{output.stats}"
 		")"
@@ -170,12 +194,14 @@ rule crossMapping_RNA_se:
 	log:
 		"results/logs/cross-mapping/{ref_name}/rna-se/{sample}-{unit}.log",
 	params:
-		sjdbOverhang=config["crossMapping_RNA_se"]["sjdbOverhang"],
 		mapping_extra=config["crossMapping_RNA_se"]["mapping_params"],
+		mapping_threads=config["crossMapping_RNA_se"]["mapping_threads"],
+		sjdbOverhang=config["crossMapping_RNA_se"]["sjdbOverhang"],
 		stats_extra=config["crossMapping_RNA_se"]["stats_params"],
-	threads: config["crossMapping_RNA_se"]["threads"]
+		stats_threads=config["crossMapping_RNA_se"]["stats_threads"],
+	threads: config["crossMapping_RNA_se"]["mapping_threads"] + config["crossMapping_RNA_se"]["stats_threads"]
 	resources:
-		mem_gb=config["crossMapping_RNA_se"]["memory"]
+		mem_gb=config["crossMapping_RNA_se"]["mapping_memory"]
 	conda:
 		"../envs/star.yaml"
 	shell:
@@ -183,7 +209,7 @@ rule crossMapping_RNA_se:
 		"rm -fr {output.tmpdir}/tmp; "
 		"ulimit -n 100000; "
 		"STAR"
-		" --runThreadN {threads}"
+		" --runThreadN {params.mapping_threads}"
 		" --genomeDir {input.idx}"
 		" --readFilesIn {input.reads}"
 		" --readFilesCommand \"gunzip -c\""
@@ -196,6 +222,7 @@ rule crossMapping_RNA_se:
 		" --outStd BAM_SortedByCoordinate"
 		" | samtools stats"
 		" {params.stats_extra}"
+		" -@ {params.stats_threads}"
 		" -"
 		" 1>{output.stats}"
 		")"
@@ -214,12 +241,16 @@ rule crossMapping_RNA_long:
 		"results/logs/cross-mapping/{ref_name}/rna-long/{sample}-{unit}.log",
 	params:
 		mapping_extra=config["crossMapping_RNA_long"]["mapping_params"],
+		mapping_threads=config["crossMapping_RNA_long"]["mapping_threads"],
 		sort_extra=config["crossMapping_RNA_long"]["sort_params"],
+		sort_threads=config["crossMapping_RNA_long"]["sort_threads"],
+		sort_memory=config["crossMapping_RNA_long"]["sort_memory"],
 		stats_extra=config["crossMapping_RNA_long"]["stats_params"],
+		stats_threads=config["crossMapping_RNA_long"]["stats_threads"],
 		tmpdir=temp(directory("results/cross-mapping/{ref_name}/rna-long/{sample}-{unit}.samtools_tmp")),
-	threads: config["crossMapping_RNA_long"]["threads"]
+	threads: config["crossMapping_RNA_long"]["mapping_threads"] + config["crossMapping_RNA_long"]["sort_threads"] + config["crossMapping_RNA_long"]["stats_threads"]
 	resources:
-		mem_gb=config["crossMapping_RNA_long"]["memory"]
+		mem_gb=config["crossMapping_RNA_long"]["mapping_memory"] + (config["crossMapping_RNA_long"]["sort_threads"] * config["crossMapping_RNA_long"]["sort_memory"])
 	conda:
 		"../envs/pbmm2.yaml"
 	shell:
@@ -228,15 +259,18 @@ rule crossMapping_RNA_long:
 		"pbmm2 align"
 		" --preset ISOSEQ"
 		" --unmapped"
-		" -j {threads}"
+		" -j {params.mapping_threads}"
 		" {params.mapping_extra}"
 		" {input.idx_build}"
 		" {output.fofn}"
 		" | samtools sort"
 		" {params.sort_extra}"
+		" -@ {params.sort_threads}"
+		" -m {params.sort_memory}G"
 		" -T {params.tmpdir}"
 		" | samtools stats"
 		" {params.stats_extra}"
+		" -@ {params.stats_threads}"
 		" -"
 		" 1>{output.stats}"
 		" && rm -fr {params.tmpdir}"
