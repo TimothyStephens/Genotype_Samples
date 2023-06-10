@@ -12,7 +12,7 @@ __version__ = "0.0.1"
 
 
 ## Params to be used by all snakemake commands.
-SNAKEMAKE_REQUIRED_PARAMS = ["--use-conda", "--use-singularity", "--keep-going", "--printshellcmds"]
+SNAKEMAKE_REQUIRED_PARAMS = ["--use-conda", "--use-singularity", "--keep-going", "--printshellcmds", "--keep-incomplete"]
 
 ## Helper script to run snakemake commands.
 def run_cmd(cmd):

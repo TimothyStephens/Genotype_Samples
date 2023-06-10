@@ -25,7 +25,7 @@ def get_model_params(wildcards):
 	use_DNA = False
 	rows = samples.loc[(wildcards.sample), ["sample_id", "unit", "lib_type", "fq1", "fq2"]]
 	for i, row in rows.iterrows():
-		if row.lib_type == 'dna':
+		if 'dna' in row.lib_type:
 			use_DNA = True
 	if use_DNA:
 		return "--model_type WGS"

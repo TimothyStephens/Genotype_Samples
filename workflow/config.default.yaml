@@ -272,27 +272,29 @@ relatedness_vcf_clone_detect:
 
 relatedness_ANGSD_for_NgsRelate:
   params: ''
-  threads: 8
+  threads: 2
+  memory: 50
 
 relatedness_NgsRelate:
   params: ''
-  threads: 8
+  threads: 2
 
 relatedness_ANGSD_for_PCAngsd:
   params: ''
-  threads: 8
+  threads: 2
+  memory: 50
 
 relatedness_PCAngsd_IndAlleleFreq:
   params: ''
-  threads: 8
+  threads: 2
 
 relatedness_PCAngsd_WithOutIndAlleleFreq:
   params: ''
-  threads: 8
+  threads: 2
 
 relatedness_PCAngsd_Admixture:
   params: ''
-  threads: 8
+  threads: 2
 
 
 ################################
@@ -324,6 +326,7 @@ qc_samtools_stats:
 # qualimap
 qc_qualimap:
   params: ''
+  memory: 8 # GB
 
 # bcftools stats
 qc_bcftools_stats:

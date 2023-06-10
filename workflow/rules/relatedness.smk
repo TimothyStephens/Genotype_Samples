@@ -89,6 +89,8 @@ rule relatedness_ANGSD_for_NgsRelate:
 	params:
 		out_prefix="results/{project}/relatedness/NgsRelate.angsd",
 		extra=config["relatedness_ANGSD_for_NgsRelate"]["params"],
+	resources:
+		mem_gb=config["relatedness_ANGSD_for_NgsRelate"]["memory"]
 	threads: config["relatedness_ANGSD_for_NgsRelate"]["threads"]
 	container:
 		"docker://lifebitai/angsd:0.933"
@@ -127,6 +129,8 @@ rule relatedness_ANGSD_for_PCAngsd:
 	params:
 		out_prefix="results/{project}/relatedness/PCAngsd.angsd",
 		extra=config["relatedness_ANGSD_for_PCAngsd"]["params"],
+	resources:
+		mem_gb=config["relatedness_ANGSD_for_PCAngsd"]["memory"]
 	threads: config["relatedness_ANGSD_for_PCAngsd"]["threads"]
 	container:
 		"docker://lifebitai/angsd:0.933"

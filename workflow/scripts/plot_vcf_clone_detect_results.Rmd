@@ -70,8 +70,8 @@ heatmaply(
   colorbar_xpos=1.05,
   colorbar_ypos=-0.3,
   column_text_angle=90,
-  cexRow=1.0*(20/nrow(data)),
-  cexCol=1.0*(20/nrow(data)),
+  cexRow=min(1, 1.0*(20/nrow(data))),
+  cexCol=min(1, 1.0*(20/nrow(data))),
   #scale="row", # Scale rows instead of using min and max of whole matrix
   #Rowv=FALSE, # Dont plot row dendrogram - Use row order in rownames.ordered
 )

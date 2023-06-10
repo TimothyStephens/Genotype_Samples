@@ -34,7 +34,8 @@ rule combine_genotyping_results:
 
 rule ploidy_nQuire_overage_file_list:
 	input:
-		cov=lambda wildcards: expand("results/ploidy/{sample}.denoised.bin.coverage.sitesProp.gz",
+		cov=lambda wildcards: expand("results/ploidy/{ref_name}/{sample}.denoised.bin.coverage.sitesProp.gz",
+			ref_name=list(config["ref_genomes"].keys())[0],
 			sample=samples.sample_id.unique()),
 		annots=rules.combine_genotyping_results.output.samples,
 	output:

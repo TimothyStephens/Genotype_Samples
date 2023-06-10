@@ -119,11 +119,14 @@ rule qc_qualimap:
 		"results/logs/qc/mapping_merged/{ref_name}/{sample}.qualimap.log",
 	params:
 		extra=config["qc_qualimap"]["params"],
+	resources:
+		mem_gb=config["qc_qualimap"]["memory"]
 	conda:
 		"../envs/qualimap.yaml"
 	shell:
 		"qualimap bamqc"
 		" {params.extra}"
+		" --java-mem-size={resources.mem_gb}G"
 		" -bam {input.bam}"
 		" -outdir {output}"
 		" -outformat HTML"

@@ -39,7 +39,7 @@ awk -F'\t' '{ if(FNR==NR){ COL[FNR]=$1 }else{ print $1"\t"COL[FNR] } }' \
   > "${snakemake_output['color_list']}"
 
 # Append ploidy colors to list
-echo -e "Diploid\t#1b9e77\nTriploid\t#d95f02\nTetraploid\t#7570b3" \
+echo -e "Diploid\t#1b9e77\nTriploid\t#d95f02\nTetraploid\t#7570b3\nUnknown\t#808080" \
   >> "${snakemake_output['color_list']}"
 
 # Append "Group" IDs to end of list

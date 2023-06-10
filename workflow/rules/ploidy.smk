@@ -1,19 +1,47 @@
 
 
-rule ploidy_nQuire_create:
+def get_lib_type(wildcards):
+	'''
+	If any of the units (libraires that are merged into a single bam file) are classified as "rna" then we need to run GATK SplitNCigarReads. 
+	Else, we assume they are DNA and we can just use the results directly.
+	'''
+	use_RNA = False
+	rows = samples.loc[(wildcards.sample), ["sample_id", "unit", "lib_type", "fq1", "fq2"]]
+	for i, row in rows.iterrows():
+		if "rna" in row.lib_type:
+			use_RNA = True
+	if use_RNA:
+		return "rna"
+	else:
+		return "dna"
+
+
+rule ploidy_SplitNCigarReads:
 	input:
-		bam="results/mapping_merged/{ref_name}/{sample}.bam".format(
+		bam="results/mapping_merged/{ref_name}/{sample}.bam",
+		idx="results/mapping_merged/{ref_name}/{sample}.bam.csi",
+		ref="resources/{ref_name}/genome.fasta".format(
 			ref_name=list(config["ref_genomes"].keys())[0],
-			sample="{sample}",
-		),
-		idx="results/mapping_merged/{ref_name}/{sample}.bam.csi".format(
-			ref_name=list(config["ref_genomes"].keys())[0],
-			sample="{sample}",
 		),
 	output:
-		"results/ploidy/{sample}.bin",
+		bam=temp("results/ploidy/{ref_name}/{sample}.bam"),
+		bai=temp("results/ploidy/{ref_name}/{sample}.bai"),
 	log:
-		"results/logs/ploidy/nQuire_create/{sample}.log",
+		"results/logs/ploidy/{ref_name}/SplitNCigarReads/{sample}.log",
+	conda:
+		"../envs/gatk4.yaml"
+	shell:
+		"(gatk SplitNCigarReads -R {input.ref} -I {input.bam} -O {output.bam}) 1>{log} 2>&1"
+
+
+rule ploidy_nQuire_create:
+	input:
+		bam=rules.ploidy_SplitNCigarReads.input.bam,
+		idx=rules.ploidy_SplitNCigarReads.input.idx,
+	output:
+		"results/ploidy/{ref_name}/{sample}.bin",
+	log:
+		"results/logs/ploidy/{ref_name}/nQuire_create/{sample}.log",
 	params:
 		extra=config["ploidy_nQuire"]["create_params"],
 		min_quality=config["ploidy_nQuire"]["min_quality"],
@@ -28,9 +56,9 @@ rule ploidy_nQuire_denoise:
 	input:
 		nQbin=rules.ploidy_nQuire_create.output,
 	output:
-		"results/ploidy/{sample}.denoised.bin",
+		"results/ploidy/{ref_name}/{sample}.denoised.bin",
 	log:
-		"results/logs/ploidy/nQuire_denoise/{sample}.denoise.log",
+		"results/logs/ploidy/{ref_name}/nQuire_denoise/{sample}.denoise.log",
 	params:
 		extra=config["ploidy_nQuire"]["denoise_params"],
 	container:
@@ -47,9 +75,9 @@ rule ploidy_nQuire_coverage:
 		),
 		nQbin=rules.ploidy_nQuire_denoise.output,
 	output:
-		"results/ploidy/{sample}.denoised.bin.coverage.sitesProp.gz",
+		"results/ploidy/{ref_name}/{sample}.denoised.bin.coverage.sitesProp.gz",
 	log:
-		"results/logs/ploidy/nQuire_denoise/{sample}.nQuire_coverage.log",
+		"results/logs/ploidy/{ref_name}/nQuire_denoise/{sample}.nQuire_coverage.log",
 	params:
 		extra=config["ploidy_nQuire"]["coverage_params"],
 	container:
@@ -63,9 +91,9 @@ rule ploidy_nQuire_site_count:
 		nQbin=rules.ploidy_nQuire_create.output,
 		nQbin_denoised=rules.ploidy_nQuire_denoise.output,
 	output:
-		"results/ploidy/{sample}.site_counts.tsv",
+		"results/ploidy/{ref_name}/{sample}.site_counts.tsv",
 	log:
-		"results/logs/ploidy/{sample}.count.log",
+		"results/logs/ploidy/{ref_name}/{sample}.count.log",
 	container:
 		"docker://nanozoo/nquire:0.0--e42aee8"
 	shell:
@@ -80,7 +108,8 @@ rule ploidy_nQuire_site_count:
 
 rule ploidy_nQuire_merge_site_counts:
 	input:
-		lambda wildcards: expand("results/ploidy/{sample}.site_counts.tsv",
+		lambda wildcards: expand("results/ploidy/{ref_name}/{sample}.site_counts.tsv",
+			ref_name=list(config["ref_genomes"].keys())[0],
 			sample=samples.sample_id.unique()),
 	output:
 		"results/{project}/ploidy/nQuire_sites_count.txt",
@@ -99,9 +128,11 @@ rule ploidy_nQuire_merge_site_counts:
 rule ploidy_nQuire_lrdmodel:
 	input:
 		nQbins=lambda wildcards: [
-			  *expand("results/ploidy/{sample}.bin", 
+			  *expand("results/ploidy/{ref_name}/{sample}.bin", 
+				ref_name=list(config["ref_genomes"].keys())[0],
 				sample=samples.sample_id.unique()),
-			  *expand("results/ploidy/{sample}.denoised.bin", 
+			  *expand("results/ploidy/{ref_name}/{sample}.denoised.bin", 
+				ref_name=list(config["ref_genomes"].keys())[0],
 				sample=samples.sample_id.unique()),
 		],
 	output:
