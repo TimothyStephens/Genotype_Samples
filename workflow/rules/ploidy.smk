@@ -21,7 +21,7 @@ rule ploidy_SplitNCigarReads:
 rule ploidy_nQuire_create:
 	input:
 		bam=rules.ploidy_SplitNCigarReads.output.bam,
-		idx=rules.ploidy_SplitNCigarReads.output.idx,
+		idx=rules.ploidy_SplitNCigarReads.output.bia,
 	output:
 		"results/ploidy/{ref_name}/{sample}.bin",
 	log:
