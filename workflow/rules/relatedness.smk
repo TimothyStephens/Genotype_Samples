@@ -138,9 +138,23 @@ rule relatedness_ANGSD_for_PCAngsd:
 		"(angsd -GL 2 -doGlf 2 -doMajorMinor 1 -SNP_pval 1e-6 -doMaf 1 -nThreads {threads} {params.extra} -bam {input} -out {params.out_prefix}) 1>{log} 2>&1"
 
 
+rule relatedness_gzvcftobeagle_for_PCAngsd:
+	input:
+		vcf=rules.calling_filter_merged_VCF.output,
+	output:
+		beagle="results/{project}/relatedness/PCAngsd.vcf2beagle.beagle.gz",
+	log:
+		"results/logs/{project}/relatedness/PCAngsd.vcf2beagle.log",
+	conda:
+		"../envs/vcftools.yaml"
+	script:
+		"../scripts/convert_vcf_to_beagle.sh"
+
+
 rule relatedness_PCAngsd_IndAlleleFreq:
 	input:
-		beagle=rules.relatedness_ANGSD_for_PCAngsd.output.beagle,
+		#beagle=rules.relatedness_ANGSD_for_PCAngsd.output.beagle,
+		beagle=rules.relatedness_gzvcftobeagle_for_PCAngsd.output.beagle,
 	output:
 		"results/{project}/relatedness/PCAngsd.IndAlleleFreq.cov",
 	log:
@@ -157,7 +171,8 @@ rule relatedness_PCAngsd_IndAlleleFreq:
 
 rule relatedness_PCAngsd_WithOutIndAlleleFreq:
 	input:
-		beagle=rules.relatedness_ANGSD_for_PCAngsd.output.beagle,
+		#beagle=rules.relatedness_ANGSD_for_PCAngsd.output.beagle,
+		beagle=rules.relatedness_gzvcftobeagle_for_PCAngsd.output.beagle,
 	output:
 		"results/{project}/relatedness/PCAngsd.WithOutIndAlleleFreq.cov",
 	log:
@@ -174,7 +189,8 @@ rule relatedness_PCAngsd_WithOutIndAlleleFreq:
 
 rule relatedness_PCAngsd_Admixture:
 	input:
-		beagle=rules.relatedness_ANGSD_for_PCAngsd.output.beagle,
+		#beagle=rules.relatedness_ANGSD_for_PCAngsd.output.beagle,
+		beagle=rules.relatedness_gzvcftobeagle_for_PCAngsd.output.beagle,
 	output:
 		"results/{project}/relatedness/PCAngsd.Admixture.admix.Q",
 	log:

@@ -88,7 +88,7 @@ rule trimming_DNA_se:
 		html="results/qc/trimmed/dna-se/{sample}-{unit}.html",
 		json="results/qc/trimmed/dna-se/{sample}-{unit}_fastp.json",
 	log:
-		"results/logs/trimming/dna-se/{sample}-{unit}.log",
+		"results/logs/trimmed/dna-se/{sample}-{unit}.log",
 	params:
 		extra=config["trimming_DNA_se"]["params"],
 	threads: config["trimming_DNA_se"]["threads"]
@@ -113,7 +113,7 @@ rule trimming_DNA_long:
 		html="results/qc/trimmed/dna-long/{sample}-{unit}.html",
 		json="results/qc/trimmed/dna-long/{sample}-{unit}_fastp.json",
 	log:
-		"results/logs/trimming/dna-long/{sample}-{unit}.log",
+		"results/logs/trimmed/dna-long/{sample}-{unit}.log",
 	params:
 		extra=config["trimming_DNA_long"]["params"],
 	threads: config["trimming_DNA_long"]["threads"]
@@ -168,7 +168,7 @@ rule trimming_RNA_se:
 		html="results/qc/trimmed/rna-se/{sample}-{unit}.html",
 		json="results/qc/trimmed/rna-se/{sample}-{unit}_fastp.json",
 	log:
-		"results/logs/trimming/rna-se/{sample}-{unit}.log",
+		"results/logs/trimmed/rna-se/{sample}-{unit}.log",
 	params:
 		extra=config["trimming_RNA_se"]["params"],
 	threads: config["trimming_RNA_se"]["threads"]
@@ -193,7 +193,7 @@ rule trimming_RNA_long:
 		html="results/qc/trimmed/rna-long/{sample}-{unit}.html",
 		json="results/qc/trimmed/rna-long/{sample}-{unit}_fastp.json",
 	log:
-		"results/logs/trimming/rna-long/{sample}-{unit}.log",
+		"results/logs/trimmed/rna-long/{sample}-{unit}.log",
 	params:
                 extra=config["trimming_RNA_long"]["params"],
 	threads: config["trimming_RNA_long"]["threads"]

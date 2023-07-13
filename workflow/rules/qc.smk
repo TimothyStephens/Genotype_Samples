@@ -1,5 +1,6 @@
 
 
+
 rule qc_fastqc:
 	input:
 		"results/trimmed/{fq}.fastq.gz",
@@ -11,6 +12,7 @@ rule qc_fastqc:
 		"results/logs/qc/trimmed/{fq}.log",
 	params:
 		extra=config["qc_FastQC"]["params"],
+		mem_mb=config["qc_FastQC"]["mem_mb"],
 	threads: config["qc_FastQC"]["threads"]
 	conda:
 		"../envs/fastqc.yaml"
@@ -21,6 +23,7 @@ rule qc_fastqc:
 		"fastqc"
 		" {params.extra}"
 		" -t {threads}"
+		" --memory {params.mem_mb}"
 		" --outdir {output.tmpdir}"
 		" {input};"
 		" mv {output.tmpdir}/${{prefix}}_fastqc.zip  {output.zip};"
@@ -32,10 +35,12 @@ rule qc_fastqc:
 def get_raw_fastq_paths(wildcards):
 	for i, row in samples.iterrows():
 		if wildcards.fq == "{sample}-{unit}.1".format(sample=row.sample_id, unit=row.unit):
-			if row.fq1.startswith("SRR") and pd.notnull(row.fq2):
+			if row.fq1.startswith("SRR") and row.lib_type.endswith("-pe"):
 				return ["data/pe/{}_1.fastq.gz".format(row.fq1)]
-			elif row.fq1.startswith("SRR") and pd.isnull(row.fq2):
+			elif row.fq1.startswith("SRR") and row.lib_type.endswith("-se"):
 				return ["data/se/{}.fastq.gz".format(row.fq1)]
+			elif row.fq1.startswith("SRR") and row.lib_type.endswith("-long"):
+				return ["data/long/{}.fastq.gz".format(row.fq1)]
 			else:
 				return [row.fq1]
 		elif wildcards.fq == "{sample}-{unit}.2".format(sample=row.sample_id, unit=row.unit):
@@ -56,6 +61,7 @@ rule qc_fastqc_rawReads:
 		"results/logs/qc/raw/{fq}.log",
 	params:
 		extra=config["qc_FastQC"]["params"],
+		mem_mb=config["qc_FastQC"]["mem_mb"],
 	threads: config["qc_FastQC"]["threads"]
 	conda:
 		"../envs/fastqc.yaml"
@@ -73,6 +79,7 @@ rule qc_fastqc_rawReads:
 		"fastqc"
 		" {params.extra}"
 		" -t {threads}"
+		" --memory {params.mem_mb}"
 		" --extract"
 		" --outdir {output.tmpdir}"
 		" {input};"

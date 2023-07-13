@@ -1,21 +1,5 @@
 
 
-def get_lib_type(wildcards):
-	'''
-	If any of the units (libraires that are merged into a single bam file) are classified as "rna" then we need to run GATK SplitNCigarReads. 
-	Else, we assume they are DNA and we can just use the results directly.
-	'''
-	use_RNA = False
-	rows = samples.loc[(wildcards.sample), ["sample_id", "unit", "lib_type", "fq1", "fq2"]]
-	for i, row in rows.iterrows():
-		if "rna" in row.lib_type:
-			use_RNA = True
-	if use_RNA:
-		return "rna"
-	else:
-		return "dna"
-
-
 rule ploidy_SplitNCigarReads:
 	input:
 		bam="results/mapping_merged/{ref_name}/{sample}.bam",
@@ -36,8 +20,8 @@ rule ploidy_SplitNCigarReads:
 
 rule ploidy_nQuire_create:
 	input:
-		bam=rules.ploidy_SplitNCigarReads.input.bam,
-		idx=rules.ploidy_SplitNCigarReads.input.idx,
+		bam=rules.ploidy_SplitNCigarReads.output.bam,
+		idx=rules.ploidy_SplitNCigarReads.output.idx,
 	output:
 		"results/ploidy/{ref_name}/{sample}.bin",
 	log:

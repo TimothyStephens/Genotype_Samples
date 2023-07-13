@@ -54,7 +54,7 @@ trimming_DNA_se:
 
 # fastp DNA long read
 trimming_DNA_long:
-  params: ''
+  params: '--disable_quality_filtering --length_required 500'
   threads: 16
 
 # fastp RNA paired-end
@@ -69,7 +69,7 @@ trimming_RNA_se:
 
 # fastp RNA long read
 trimming_RNA_long:
-  params: ''
+  params: '--disable_quality_filtering --length_required 500'
   threads: 16
 
 
@@ -317,6 +317,7 @@ ploidy_nQuire:
 # FastQC
 qc_FastQC:
   params: ''
+  mem_mb: 512
   threads: 1
 
 # Samtools stats
