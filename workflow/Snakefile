@@ -46,7 +46,7 @@ rule all:
 rule genotyping:
 	input:
 		rules.format_filtered_VCF.output,
-		rules.format_results_NgsRelate.output,
+		#rules.format_results_NgsRelate.output,
 		rules.format_results_PCAngsd_WithOutIndAlleleFreq.output,
 		rules.multiqc_reads.output,
 		rules.multiqc_variant_calls.output,
