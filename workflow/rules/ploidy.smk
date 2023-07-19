@@ -7,21 +7,30 @@ rule ploidy_SplitNCigarReads:
 		ref="resources/{ref_name}/genome.fasta".format(
 			ref_name=list(config["ref_genomes"].keys())[0],
 		),
+		ref_dict="resources/{ref_name}/genome.dict".format(
+			ref_name=list(config["ref_genomes"].keys())[0],
+		),
 	output:
 		bam=temp("results/ploidy/{ref_name}/{sample}.bam"),
 		bai=temp("results/ploidy/{ref_name}/{sample}.bai"),
 	log:
 		"results/logs/ploidy/{ref_name}/SplitNCigarReads/{sample}.log",
+	resources:
+		mem_gb=30
+	threads: 6
 	conda:
 		"../envs/gatk4.yaml"
 	shell:
-		"(gatk SplitNCigarReads -R {input.ref} -I {input.bam} -O {output.bam}) 1>{log} 2>&1"
+		"("
+		" export PATH=\"$CONDA_PREFIX/bin:$PATH\";"
+		" gatk --java-options \"-XX:ConcGCThreads=1 -XX:ParallelGCThreads=1\" SplitNCigarReads -R {input.ref} -I {input.bam} -O {output.bam}"
+		") 1>{log} 2>&1"
 
 
 rule ploidy_nQuire_create:
 	input:
 		bam=rules.ploidy_SplitNCigarReads.output.bam,
-		idx=rules.ploidy_SplitNCigarReads.output.bia,
+		idx=rules.ploidy_SplitNCigarReads.output.bai,
 	output:
 		"results/ploidy/{ref_name}/{sample}.bin",
 	log:
@@ -53,10 +62,7 @@ rule ploidy_nQuire_denoise:
 
 rule ploidy_nQuire_coverage:
 	input:
-		bam="results/mapping_merged/{ref_name}/{sample}.bam".format(
-			ref_name=list(config["ref_genomes"].keys())[0],
-			sample="{sample}",
-		),
+		bam=rules.ploidy_SplitNCigarReads.output.bam,
 		nQbin=rules.ploidy_nQuire_denoise.output,
 	output:
 		"results/ploidy/{ref_name}/{sample}.denoised.bin.coverage.sitesProp.gz",

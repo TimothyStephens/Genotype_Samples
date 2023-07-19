@@ -28,6 +28,22 @@ rule ref_faidx:
 		" 1>{log} 2>&1"
 
 
+rule ref_dict:
+	input:
+		"resources/{ref_name}/genome.fasta",
+	output:
+		"resources/{ref_name}/genome.dict",
+	log:
+		"results/logs/resources/{ref_name}/ref_dict.log",
+	conda:
+		"../envs/gatk4.yaml"
+	shell:
+		"("
+		" export PATH=\"$CONDA_PREFIX/bin:$PATH\";"
+		" gatk CreateSequenceDictionary -R {input} -O {output}"
+		") 1>{log} 2>&1"
+
+
 rule ref_DNA_mapping_index:
 	input:
 		"resources/{ref_name}/genome.fasta",

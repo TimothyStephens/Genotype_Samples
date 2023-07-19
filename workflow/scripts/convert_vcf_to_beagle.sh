@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 
-set -euo pipefail
+## Cant use pipefail becuse vcftools will return errorcode > 0 if no variants identified for a scaffold.
+## This happens a lot with short or weird scaffolds, so is an expected behavior.
+## vcftools error:
+##	Error: Require GL or PL FORMAT tags in VCF file to output BEAGLE input.
+#set -euo pipefail
 IFS=$'\n\t'
 
 (
