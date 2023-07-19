@@ -308,7 +308,7 @@ ploidy_nQuire:
   coverage_params: ''
   min_quality: 1
   min_coverage: 10
-  threads: 8
+  threads: 24
 
 
 ################################
