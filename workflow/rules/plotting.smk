@@ -123,13 +123,17 @@ rule plotting_nQuire_coverage_results:
 		rmd="results/{project}/final/nQuire_sites_coverage_results.Rmd",
 	log:
 		"results/logs/{project}/plotting/plot_nQuire_sites_coverage_results.log",
+	params:
+		ref_name=list(config["ref_genomes"].keys())[0],
 	conda:
 		"../envs/R.yaml"
 	shell:
 		"("
 		"  export PATH=\"$CONDA_PREFIX/bin:$PATH\""
 		"; export R_LIB=\"$CONDA_PREFIX/lib/R/library\""
-		"; cp workflow/scripts/plot_nQuire_sites_coverage_results.Rmd {output.rmd}"
+		"; sed "
+		"    -e 's@<<<files2plot.prefix>>>@../../ploidy/{params.ref_name}/@'"
+		"   workflow/scripts/plot_nQuire_sites_coverage_results.Rmd > {output.rmd}"
 		"; Rscript -e \"rmarkdown::render('{output.rmd}')\""
 		")"
 		" 1>{log} 2>&1"

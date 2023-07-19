@@ -8,6 +8,7 @@ IFS=$'\n\t'
 # Cleanup samples.tsv file. Remove commented and blank lines
 awk -F'\t' '$1!~"^#" && $0!=""' \
     "${snakemake_input['samples']}" \
+  | sed -e 's/\r$//' \
   > "${snakemake_output['samples']}"
 
 # Get indexes of columns that we want to use for annotations in plots
@@ -48,6 +49,9 @@ awk -F'\t' '{ print "Group"NR"\t"$1 }' \
   >> "${snakemake_output['color_list']}"
 echo -e "Ungrouped\t#808080" \
   >> "${snakemake_output['color_list']}"
+
+# Clean any windows characteris that might have slipped in
+sed -i -e 's/\r\t/\t/g' "${snakemake_output['color_list']}"
 
 ) 1> "${snakemake_log[0]}" 2>&1
 
