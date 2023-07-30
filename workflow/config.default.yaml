@@ -306,9 +306,9 @@ ploidy_nQuire:
   denoise_params: ''
   lrdmodel_params: ''
   coverage_params: ''
-  min_quality: 1
-  min_coverage: 10
-  threads: 24
+  min_quality: 20
+  min_coverage: 20
+  threads: 48
 
 
 ################################
