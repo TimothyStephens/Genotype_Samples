@@ -164,9 +164,9 @@ rule relatedness_PCAngsd_IndAlleleFreq:
 		extra=config["relatedness_PCAngsd_IndAlleleFreq"]["params"],
 	threads: config["relatedness_PCAngsd_IndAlleleFreq"]["threads"]
 	container:
-		"docker://zjnolen/pcangsd:latest"
+		"docker://didillysquat/pcangsd:latest"
 	shell:
-		"(pcangsd --threads {threads} {params.extra} --beagle {input.beagle} --out {params.out_prefix}) 1>{log} 2>&1"
+		"(pcangsd.py -threads {threads} {params.extra} -beagle {input.beagle} -out {params.out_prefix}) 1>{log} 2>&1"
 
 
 rule relatedness_PCAngsd_WithOutIndAlleleFreq:
@@ -182,9 +182,9 @@ rule relatedness_PCAngsd_WithOutIndAlleleFreq:
 		extra=config["relatedness_PCAngsd_WithOutIndAlleleFreq"]["params"],
 	threads: config["relatedness_PCAngsd_WithOutIndAlleleFreq"]["threads"]
 	container:
-		"docker://zjnolen/pcangsd:latest"
+		"docker://didillysquat/pcangsd:latest"
 	shell:
-		"(pcangsd --threads {threads} {params.extra} --beagle {input.beagle} --out {params.out_prefix} --iter 0) 1>{log} 2>&1"
+		"(pcangsd.py -threads {threads} {params.extra} -beagle {input.beagle} -out {params.out_prefix} -iter 0) 1>{log} 2>&1"
 
 
 rule relatedness_PCAngsd_Admixture:
@@ -200,9 +200,9 @@ rule relatedness_PCAngsd_Admixture:
 		extra=config["relatedness_PCAngsd_Admixture"]["params"],
 	threads: config["relatedness_PCAngsd_Admixture"]["threads"]
 	container:
-		"docker://zjnolen/pcangsd:latest"
+		"docker://didillysquat/pcangsd:latest"
 	shell:
-		"(pcangsd --threads {threads} {params.extra} --beagle {input.beagle} --out {params.out_prefix} --admix --admix_alpha 50; cp {params.out_prefix}.admix.*.Q {params.out_prefix}.admix.Q) 1>{log} 2>&1"
+		"(pcangsd.py -threads {threads} {params.extra} -beagle {input.beagle} -out {params.out_prefix} -admix -admix_alpha 50; cp {params.out_prefix}.admix.*.Q {params.out_prefix}.admix.Q) 1>{log} 2>&1"
 
 
 rule format_results_PCAngsd_IndAlleleFreq:
