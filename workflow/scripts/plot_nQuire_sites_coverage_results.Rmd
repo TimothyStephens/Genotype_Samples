@@ -46,8 +46,12 @@ pdf(paste("nQuire_sites_coverage_results_xLim_", x.lim.min, "-", x.lim.max, ".pd
 par(mar=c(5, 3, 3, 2), cex=1.5, mfrow=c(4,2)) # number of plots per page
 for (i in 1:nsamples) {
   AP <- read.table(paste(files2plot.prefix, files2plot[i,1], sep=''), header = F)
+  
+  t <- AP[ ,1]
+  t <- t[t > x.lim.min & t < x.lim.max]
+  
   d <- density(AP[,1], from=x.lim.min, to=x.lim.max, bw=0.01, na.rm =T)
-  plot(d, xlim = c(x.lim.min,x.lim.max), main=as.character(files2plot[i,2]), col="blue", xlab = (dim(AP)[1])/2, lwd=2)
+  plot(d, xlim = c(x.lim.min,x.lim.max), main=as.character(files2plot[i,2]), col="blue", xlab = length(t), lwd=2)
 }
 dev.off()
 ```

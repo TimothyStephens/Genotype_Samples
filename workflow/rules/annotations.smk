@@ -47,10 +47,10 @@ rule ploidy_nQuire_overage_file_list:
 	shell:
 		"("
 		" awk -F'\\t' 'NR>1' {input.annots} "
-		" | sort -k5,5n -k1,1"
+		" | sort -k11,11n -k1,1"
 		" | awk -F'\\t' '{{"
 		"F=$1\".denoised.bin.coverage.sitesProp.gz\";"
-		"print F\"\\t\"$1\" (\"$4\")\"}}'"
+		"print F\"\\t\"$1\" (\"$10\")\"}}'"
 		" > {output}"
 		")"
 		" 1>{log} 2>&1"

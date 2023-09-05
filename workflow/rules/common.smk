@@ -44,10 +44,10 @@ def expand_raw_fastqc_paths():
 def expand_fastq_paths():
 	out = []
 	for i, row in samples.iterrows():
-		if row.lib_type == "dna-pe": ## DNA pe
+		if row.lib_type == "dna-pe" or row.lib_type == "rna-pe": ## DNA or RNA pe
 			out.append("{lib_type}/{sample}-{unit}.1".format(sample=row.sample_id, unit=row.unit, lib_type=row.lib_type))
 			out.append("{lib_type}/{sample}-{unit}.2".format(sample=row.sample_id, unit=row.unit, lib_type=row.lib_type))
-		else: ## DNA and RNA se + DNa and RNA long
+		else: ## DNA and RNA se + DNA and RNA long
 			out.append("{lib_type}/{sample}-{unit}.1".format(sample=row.sample_id, unit=row.unit, lib_type=row.lib_type))
 	return out
 
