@@ -30,7 +30,7 @@ cat "${snakemake_input['samples']}" \
     -c 1 -d "NA" \
     -a <(awk -F'\t' 'NR==1 || $2=="denoised"{print $1"\t"$13"\t"$14}' "${snakemake_input['nQuire']}") \
   | cut -f3- \
-  | sed -i -e 's/\r\t/\t/g' \
+  | sed -e 's/\r\t/\t/g' \
   > "${snakemake_output['samples']}"
 
 ) 1> "${snakemake_log[0]}" 2>&1
