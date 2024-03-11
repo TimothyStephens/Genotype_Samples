@@ -31,7 +31,7 @@ The second config/metadata file is the `config/samples.tsv` file.
 This file lists the names and locations of all samples that will be considered by the workflow. Any additional columns that are present in this file will be considered metadata that is to be plotted along with the results (e.g., putative species, collection location, etc.). Colors will be automatically assigned but can be changed manually after the workflow has finished. 
  - `sample_id`  The ID of the sample
  - `unit`       A number used to differentiate samples with multiple input read sets. If you only have one set of reads per sample then keep this number as `1`. If you have multiple seqs of reads per sample then give each set a different number. Reads from the same sample_id but different "units" will be QC'ed, trimmed, and aligned separatly, but combine after that for final variant calling, genotyping, and ploidy analysis. 
- - `lib_type`   Lets you specify if the reads are from "dna" or "rna" sequencing. 
+ - `lib_type`   Lets you specify if the reads are `dna-se`, `dna-pe`, `rna-se`, `rna-pe`, `dna-long`, or `rna-long` sequencing. 
  - `fq1`        Location (absolute path) of the 1st read file OR the SRA ID of the sample which you wish the workflow to download and process for you.
  - `fq2`        Location (absolute path) of the 2nd read file (if present) OR the SRA ID of the sample which you wish the workflow to download and process for you. If you have samples that are single end, omit this column for those samples.
 
