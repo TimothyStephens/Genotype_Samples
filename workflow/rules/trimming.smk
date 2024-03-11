@@ -2,51 +2,59 @@
 
 def get_fastq_DNA_pe(wildcards):
 	fastqs = samples.loc[(wildcards.sample, wildcards.unit, "dna-pe"), ["fq1", "fq2"]]
-	if fastqs.fq1.startswith("DRR") or fastqs.fq1.startswith("ERR") or fastqs.fq1.startswith("SRR"):
+	fq1 = fastqs.fq1.iloc[0]
+	fq2 = fastqs.fq2.iloc[0]
+	if fq1.startswith("DRR") or fq1.startswith("ERR") or fq1.startswith("SRR"):
 		return {"sample": [
-				"data/pe/{}_1.fastq.gz".format(fastqs.fq1), 
-				"data/pe/{}_2.fastq.gz".format(fastqs.fq2),
+				"data/pe/{}_1.fastq.gz".format(fq1), 
+				"data/pe/{}_2.fastq.gz".format(fq2),
 				]}
 	else:
-		return {"sample": [fastqs.fq1, fastqs.fq2]}
+		return {"sample": [fq1, fq2]}
 
 def get_fastq_DNA_se(wildcards):
 	fastqs = samples.loc[(wildcards.sample, wildcards.unit, "dna-se"), ["fq1"]]
-	if fastqs.fq1.startswith("DRR") or fastqs.fq1.startswith("ERR") or fastqs.fq1.startswith("SRR"):
-		return {"sample": ["data/se/{}.fastq.gz".format(fastqs.fq1)]}
+	fq1 = fastqs.fq1.iloc[0]
+	if fq1.startswith("DRR") or fq1.startswith("ERR") or fq1.startswith("SRR"):
+		return {"sample": ["data/se/{}.fastq.gz".format(fq1)]}
 	else:
-		return {"sample": [fastqs.fq1]}
+		return {"sample": [fq1]}
 
 def get_fastq_DNA_long(wildcards):
 	fastqs = samples.loc[(wildcards.sample, wildcards.unit, "dna-long"), ["fq1"]]
-	if fastqs.fq1.startswith("DRR") or fastqs.fq1.startswith("ERR") or fastqs.fq1.startswith("SRR"):
-		return {"sample": ["data/long/{}.fastq.gz".format(fastqs.fq1)]}
+	fq1 = fastqs.fq1.iloc[0]
+	if fq1.startswith("DRR") or fq1.startswith("ERR") or fq1.startswith("SRR"):
+		return {"sample": ["data/long/{}.fastq.gz".format(fq1)]}
 	else:
-		return {"sample": [fastqs.fq1]}
+		return {"sample": [fq1]}
 
 def get_fastq_RNA_pe(wildcards):
 	fastqs = samples.loc[(wildcards.sample, wildcards.unit, "rna-pe"), ["fq1", "fq2"]]
-	if fastqs.fq1.startswith("DRR") or fastqs.fq1.startswith("ERR") or fastqs.fq1.startswith("SRR"):
+	fq1 = fastqs.fq1.iloc[0]
+	fq2 = fastqs.fq2.iloc[0]
+	if fq1.startswith("DRR") or fq1.startswith("ERR") or fq1.startswith("SRR"):
 		return {"sample": [
-				"data/pe/{}_1.fastq.gz".format(fastqs.fq1), 
-				"data/pe/{}_2.fastq.gz".format(fastqs.fq2),
+				"data/pe/{}_1.fastq.gz".format(fq1), 
+				"data/pe/{}_2.fastq.gz".format(fq2),
 				]}
 	else:
-		return {"sample": [fastqs.fq1, fastqs.fq2]}
+		return {"sample": [fq1, fq2]}
 
 def get_fastq_RNA_se(wildcards):
 	fastqs = samples.loc[(wildcards.sample, wildcards.unit, "rna-se"), ["fq1"]]
-	if fastqs.fq1.startswith("DRR") or fastqs.fq1.startswith("ERR") or fastqs.fq1.startswith("SRR"):
-		return {"sample": ["data/se/{}.fastq.gz".format(fastqs.fq1)]}
+	fq1 = fastqs.fq1.iloc[0]
+	if fq1.startswith("DRR") or fq1.startswith("ERR") or fq1.startswith("SRR"):
+		return {"sample": ["data/se/{}.fastq.gz".format(fq1)]}
 	else:
-		return {"sample": [fastqs.fq1]}
+		return {"sample": [fq1]}
 
 def get_fastq_RNA_long(wildcards):
 	fastqs = samples.loc[(wildcards.sample, wildcards.unit, "rna-long"), ["fq1"]]
-	if fastqs.fq1.startswith("DRR") or fastqs.fq1.startswith("ERR") or fastqs.fq1.startswith("SRR"):
-		return {"sample": ["data/long/{}.fastq.gz".format(fastqs.fq1)]}
+	fq1 = fastqs.fq1.iloc[0]
+	if fq1.startswith("DRR") or fq1.startswith("ERR") or fq1.startswith("SRR"):
+		return {"sample": ["data/long/{}.fastq.gz".format(fq1)]}
 	else:
-		return {"sample": [fastqs.fq1]}
+		return {"sample": [fq1]}
 
 
 rule trimming_DNA_pe:
