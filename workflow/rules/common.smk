@@ -20,10 +20,12 @@ validate(samples, schema="../schemas/samples.schema.yaml")
 samples = samples.set_index(
 	["sample_id", "unit", "lib_type"], drop=False
 )
-# enforce str in index
+# Enforce str in index
 samples.index = samples.index.set_levels(
 	[i.astype(str) for i in samples.index.levels]
 )
+# Sort index
+samples = samples.sort_index()
 
 
 ############################
