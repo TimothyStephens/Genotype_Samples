@@ -55,6 +55,8 @@ rule genotyping:
 		rules.plotting_vcftools_relatedness2_results.output.html,
 		rules.plotting_nQuire_delta_loglikelihood_results.output,
 		rules.plotting_nQuire_coverage_results.output,
+		rules.plotting_raw_VCF.output.html,
+		rules.plotting_filtered_VCF.output.html,
 	output:
 		touch("results/{project}/genotyping.done"),
 

@@ -253,11 +253,20 @@ calling_VCFs_index:
 
 # bcftools merge final VCFs
 calling_merge_VCFs:
+  threads: 48
+  memory: 350 #GB
   params: ''
 
 # Filter final merged file
 calling_filter_VCFs:
-  filter: '--remove-indels --min-meanDP 10 --max-missing 1.0'
+  # Variables for plotting
+  maf: 0.05
+  miss: 1.0
+  qual: 35
+  min_depth: 10
+  max_depth: 60
+  # Varibale for filtering using vcftools
+  filter: '--remove-indels --maf 0.05 --max-missing 1.0 --min-meanDP 10 --max-meanDP 60 --minDP 10 --maxDP 60 --minQ 35'
 
 
 ################################

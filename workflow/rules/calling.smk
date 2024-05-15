@@ -77,12 +77,12 @@ rule calling_variants:
 rule calling_merge_VCFs:
 	input:
 		calls=lambda wildcards:	expand(
-			"results/calling/{ref_name}/{sample}.vcf.gz",
+			"results/calling/{ref_name}/{sample}.g.vcf.gz",
 			ref_name=list(config["ref_genomes"].keys())[0],
 			sample=samples.sample_id.unique()
 		),
 		idxs=lambda wildcards: expand(
-			"results/calling/{ref_name}/{sample}.vcf.gz.csi",
+			"results/calling/{ref_name}/{sample}.g.vcf.gz.csi",
 			ref_name=list(config["ref_genomes"].keys())[0],
 			sample=samples.sample_id.unique()
 		),
@@ -92,16 +92,67 @@ rule calling_merge_VCFs:
 		"results/logs/{project}/calling_merged/VCFs_merge.log",
 	params:
 		extra=config["calling_merge_VCFs"]["params"],
-	conda:
-		"../envs/bcftools.yaml"
+		mem_gb=config["calling_merge_VCFs"]["memory"],
+		tmp=temp("results/logs/calling/GLnexus.DB"),
+		bcf=temp("results/{project}/calling_merged/calls.unfiltered.bcf"),
+	threads: config["calling_merge_VCFs"]["threads"]
+	container:
+		"docker://quay.io/mlin/glnexus:v1.3.1"
 	shell:
-		"bcftools merge"
-		" --output-type z"
-		" --output {output}"
-		" --force-samples"
+		"("
+		"glnexus_cli"
 		" {params.extra}"
+		" --config DeepVariant"
+		" --dir {params.tmp}"
+		" --mem-gbytes {params.mem_gb}"
+		" --threads {threads}"
 		" {input.calls}"
-		" 1>{log} 2>&1"
+		" > {params.bcf};"
+		"bcftools view {params.bcf} | gzip -c > {output}"
+		") 1>{log} 2>&1"
+
+
+rule calling_merged_VCF_stats:
+	input:
+		rules.calling_merge_VCFs.output,
+	output:
+		lqual  = "results/{project}/calling_merged/calls.unfiltered.lqual",
+		ldepth = "results/{project}/calling_merged/calls.unfiltered.ldepth.mean",
+		lmiss  = "results/{project}/calling_merged/calls.unfiltered.lmiss",
+		frq    = "results/{project}/calling_merged/calls.unfiltered.frq",
+		idepth = "results/{project}/calling_merged/calls.unfiltered.idepth",
+		imiss  = "results/{project}/calling_merged/calls.unfiltered.imiss",
+		het    = "results/{project}/calling_merged/calls.unfiltered.het",
+	log:
+		"results/logs/{project}/calling_merged/merged_VCF_stats.log",
+	params:
+		out="results/{project}/calling_merged/calls.unfiltered",
+	conda:
+		"../envs/vcftools.yaml"
+	shell:
+		"("
+		# Calculate allele frequency
+		"vcftools --gzvcf {input} --freq2 --out {params.out} --max-alleles 2; "
+		
+		# Calculate mean depth per individual
+		"vcftools --gzvcf {input} --depth --out {params.out}; "
+		
+		# Calculate mean depth per site
+		"vcftools --gzvcf {input} --site-mean-depth --out {params.out}; "
+		
+		# Calculate site quality
+		"vcftools --gzvcf {input} --site-quality --out {params.out}; "
+		
+		# Calculate proportion of missing data per individual
+		"vcftools --gzvcf {input} --missing-indv --out {params.out}; "
+		
+		# Calculate proportion of missing data per site
+		"vcftools --gzvcf {input} --missing-site --out {params.out}; "
+		
+		# Calculate heterozygosity and inbreeding coefficient per individual
+		"vcftools --gzvcf {input} --het --out {params.out} "
+		
+		") 1>{log} 2>&1"
 
 
 rule calling_VCF_index:
@@ -146,6 +197,49 @@ rule calling_filter_merged_VCF:
 		" --stdout | gzip -c >{output}"
 		")"
 		" 1>{log} 2>&1"
+
+
+rule calling_merged_filtered_VCF_stats:
+	input:
+		rules.calling_filter_merged_VCF.output,
+	output:
+		lqual  = "results/{project}/calling_merged/calls.filtered.lqual",
+		ldepth = "results/{project}/calling_merged/calls.filtered.ldepth.mean",
+		lmiss  = "results/{project}/calling_merged/calls.filtered.lmiss",
+		frq    = "results/{project}/calling_merged/calls.filtered.frq",
+		idepth = "results/{project}/calling_merged/calls.filtered.idepth",
+		imiss  = "results/{project}/calling_merged/calls.filtered.imiss",
+		het    = "results/{project}/calling_merged/calls.filtered.het",
+	log:
+		"results/logs/{project}/calling_merged/filtered_VCF_stats.log",
+	params:
+		out="results/{project}/calling_merged/calls.filtered",
+	conda:
+		"../envs/vcftools.yaml"
+	shell:
+		"("
+		# Calculate allele frequency
+		"vcftools --gzvcf {input} --freq2 --out {params.out} --max-alleles 2; "
+		
+		# Calculate mean depth per individual
+		"vcftools --gzvcf {input} --depth --out {params.out}; "
+		
+		# Calculate mean depth per site
+		"vcftools --gzvcf {input} --site-mean-depth --out {params.out}; "
+		
+		# Calculate site quality
+		"vcftools --gzvcf {input} --site-quality --out {params.out}; "
+		
+		# Calculate proportion of missing data per individual
+		"vcftools --gzvcf {input} --missing-indv --out {params.out}; "
+		
+		# Calculate proportion of missing data per site
+		"vcftools --gzvcf {input} --missing-site --out {params.out}; "
+		
+		# Calculate heterozygosity and inbreeding coefficient per individual
+		"vcftools --gzvcf {input} --het --out {params.out} "
+		
+		") 1>{log} 2>&1"
 
 
 rule format_filtered_VCF:

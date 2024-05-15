@@ -1,0 +1,169 @@
+---
+title: "VCF QC plots of filtered variants"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+  highlight: tango
+  number_sections: no
+  theme: default
+  toc: yes
+  toc_depth: 3
+  toc_float:
+    collapsed: no
+    smooth_scroll: yes
+---
+
+
+
+# Setup
+
+Setup R env. Load packages and set default image export formats, size and resolution.
+
+```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      fig.height = 8, 
+                      fig.width = 12, 
+                      dev = c("png", "pdf"),
+                      dpi = 1000)
+library(tidyverse)
+options(scipen = 999) #Prevent scientific notation
+```
+
+
+
+# Variant based statistics
+
+```{r vars, echo=FALSE, message=FALSE}
+var_qual.file  <- "../calling_merged/calls.filtered.lqual"
+var_depth.file <- "../calling_merged/calls.filtered.ldepth.mean"
+var_miss.file  <- "../calling_merged/calls.filtered.lmiss"
+var_freq.file  <- "../calling_merged/calls.filtered.frq"
+ind_depth.file <- "../calling_merged/calls.filtered.idepth"
+ind_miss.file  <- "../calling_merged/calls.filtered.imiss"
+ind_het.file   <- "../calling_merged/calls.filtered.het"
+
+var_qual.min  <- <<<cutoff.qual>>>
+var_depth.min <- <<<cutoff.min_depth>>>
+var_depth.max <- <<<cutoff.max_depth>>>
+var_miss.min  <- <<<cutoff.miss>>>
+var_freq.min  <- 0.01
+```
+
+
+## Variant quality
+
+```{r var_qual, echo=FALSE, message=FALSE}
+var_qual <- read_delim(var_qual.file, delim = "\t",
+                       col_names = c("chr", "pos", "qual"), skip = 1)
+var_qual.plot <- ggplot(var_qual, aes(qual)) +
+  geom_density(fill = "dodgerblue1", colour = "black", alpha = 0.3) +
+  theme_light() +
+  geom_vline(xintercept = var_qual.min, color = "red", linewidth=1.0)
+var_qual.plot
+```
+
+
+
+## Variant mean depth
+
+```{r var_depth, echo=FALSE, message=FALSE}
+var_depth <- read_delim(var_depth.file, delim = "\t",
+                       col_names = c("chr", "pos", "mean_depth", "var_depth"), skip = 1)
+summary(var_depth$mean_depth)
+var_depth.plot <- ggplot(var_depth, aes(mean_depth)) +
+  geom_density(fill = "dodgerblue1", colour = "black", alpha = 0.3) +
+  theme_light() +
+  geom_vline(xintercept = var_depth.min, color = "red", size=1.0) +
+  geom_vline(xintercept = var_depth.max, color = "red", size=1.0)
+var_depth.plot
+```
+
+
+```{r var_depth_limited}
+var_depth.plot + theme_light() + xlim(0, 100)
+```
+
+
+
+## Variant missingness
+
+```{r var_miss, echo=FALSE, message=FALSE}
+var_miss <- read_delim(var_miss.file, delim = "\t",
+                       col_names = c("chr", "pos", "nchr", "nfiltered", "nmiss", "fmiss"), skip = 1)
+summary(var_miss$fmiss)
+var_miss.plot <- ggplot(var_miss, aes(fmiss)) +
+  geom_density(fill = "dodgerblue1", colour = "black", alpha = 0.3) +
+  theme_light() +
+  geom_vline(xintercept = var_miss.min, color = "red", size=1.0)
+var_miss.plot
+```
+
+
+
+## Minor allele frequency
+
+```{r var_freq, echo=FALSE, message=FALSE}
+var_freq <- read_delim(var_freq.file, delim = "\t",
+                       col_names = c("chr", "pos", "nalleles", "nchr", "a1", "a2"), skip = 1)
+# find minor allele frequency
+var_freq$maf <- var_freq %>% select(a1, a2) %>% apply(1, function(z) min(z))
+summary(var_freq$maf)
+var_freq.plot <- ggplot(var_freq, aes(maf)) +
+  geom_density(fill = "dodgerblue1", colour = "black", alpha = 0.3) +
+  theme_light() +
+  geom_vline(xintercept = var_freq.min, color = "red", size=1.0)
+var_freq.plot
+```
+
+
+
+
+
+# Individual based statistics
+
+## Mean depth per individual
+
+```{r ind_depth, echo=FALSE, message=FALSE}
+ind_depth <- read_delim(ind_depth.file, delim = "\t",
+                        col_names = c("ind", "nsites", "depth"), skip = 1)
+ind_depth.plot <- ggplot(ind_depth, aes(depth)) +
+  geom_histogram(fill = "dodgerblue1", colour = "black", alpha = 0.3) +
+  theme_light()
+ind_depth.plot
+```
+
+
+
+## Proportion of missing data per individual
+
+```{r ind_miss, echo=FALSE, message=FALSE}
+ind_miss  <- read_delim(ind_miss.file, delim = "\t",
+                        col_names = c("ind", "ndata", "nfiltered", "nmiss", "fmiss"), skip = 1)
+ind_miss.plot <- ggplot(ind_miss, aes(fmiss)) +
+  geom_histogram(fill = "dodgerblue1", colour = "black", alpha = 0.3) +
+  theme_light()
+ind_miss.plot
+```
+
+
+
+## Heterozygosity and inbreeding coefficient per individual
+
+```{r ind_het, echo=FALSE, message=FALSE}
+ind_het <- read_delim(ind_het.file, delim = "\t",
+           col_names = c("ind","ho", "he", "nsites", "f"), skip = 1)
+ind_het.plot <- ggplot(ind_het, aes(f)) +
+  geom_histogram(fill = "dodgerblue1", colour = "black", alpha = 0.3) +
+  theme_light()
+ind_het.plot
+```
+
+
+
+
+
+# Session Info
+
+```{r ressionInfo, echo=FALSE, message=FALSE}
+#sessionInfo()
+```

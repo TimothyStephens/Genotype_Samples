@@ -28,6 +28,82 @@ rule plotting_ANGSD_results:
 		" 1>{log} 2>&1"
 
 
+rule plotting_raw_VCF:
+	input:
+		rules.calling_merge_VCFs.output,
+		rules.calling_merged_VCF_stats.output.lqual,
+		rules.calling_merged_VCF_stats.output.ldepth,
+		rules.calling_merged_VCF_stats.output.lmiss,
+		rules.calling_merged_VCF_stats.output.frq,
+		rules.calling_merged_VCF_stats.output.idepth,
+		rules.calling_merged_VCF_stats.output.imiss,
+		rules.calling_merged_VCF_stats.output.het,
+	output:
+		html=report(
+			"results/{project}/final/vcf_filtered_variants_QC.html",
+			caption="../report/vcf_filtered_variants_QC_plots.rst",
+			subcategory="VCF Filtered variants QC plots",
+			labels={"Results": "VCF Filtered variants QC plots"},
+		),
+		rmd="results/{project}/final/vcf_filtered_variants_QC_plots.Rmd",
+	log:
+		"results/logs/{project}/plotting/plot_vcf_filtered_variants_QC.log",
+	params:
+		maf=config["calling_filter_VCFs"]["maf"],
+		miss=config["calling_filter_VCFs"]["miss"],
+		qual=config["calling_filter_VCFs"]["qual"],
+		min_depth=config["calling_filter_VCFs"]["min_depth"],
+		max_depth=config["calling_filter_VCFs"]["max_depth"],
+	conda:
+		"../envs/R.yaml"
+	shell:
+		"("
+		"  export PATH=\"$CONDA_PREFIX/bin:$PATH\""
+		"; export R_LIB=\"$CONDA_PREFIX/lib/R/library\""
+		"; sed -e 's/<<<cutoff.miss>>>/{params.miss}/' -e 's/<<<cutoff.qual>>>/{params.qual}/' -e 's/<<<cutoff.min_depth>>>/{params.min_depth}/' -e 's/<<<cutoff.max_depth>>>/{params.max_depth}/' workflow/scripts/plot_vcf_filtered_variants_QC.Rmd > {output.rmd}"
+		"; Rscript -e \"rmarkdown::render('{output.rmd}')\""
+		")"
+		" 1>{log} 2>&1"
+
+
+rule plotting_filtered_VCF:
+	input:
+		rules.calling_merge_VCFs.output,
+		rules.calling_merged_filtered_VCF_stats.output.lqual,
+		rules.calling_merged_filtered_VCF_stats.output.ldepth,
+		rules.calling_merged_filtered_VCF_stats.output.lmiss,
+		rules.calling_merged_filtered_VCF_stats.output.frq,
+		rules.calling_merged_filtered_VCF_stats.output.idepth,
+		rules.calling_merged_filtered_VCF_stats.output.imiss,
+		rules.calling_merged_filtered_VCF_stats.output.het,
+	output:
+		html=report(
+			"results/{project}/final/vcf_raw_variants_QC.html",
+			caption="../report/vcf_raw_variants_QC_plots.rst",
+			subcategory="VCF Raw variants QC plots",
+			labels={"Results": "VCF Raw variants QC plots"},
+		),
+		rmd="results/{project}/final/vcf_raw_variants_QC_plots.Rmd",
+	log:
+		"results/logs/{project}/plotting/plot_vcf_raw_variants_QC.log",
+	params:
+		maf=config["calling_filter_VCFs"]["maf"],
+		miss=config["calling_filter_VCFs"]["miss"],
+		qual=config["calling_filter_VCFs"]["qual"],
+		min_depth=config["calling_filter_VCFs"]["min_depth"],
+		max_depth=config["calling_filter_VCFs"]["max_depth"],
+	conda:
+		"../envs/R.yaml"
+	shell:
+		"("
+		"  export PATH=\"$CONDA_PREFIX/bin:$PATH\""
+		"; export R_LIB=\"$CONDA_PREFIX/lib/R/library\""
+		"; sed -e 's/<<<cutoff.miss>>>/{params.miss}/' -e 's/<<<cutoff.qual>>>/{params.qual}/' -e 's/<<<cutoff.min_depth>>>/{params.min_depth}/' -e 's/<<<cutoff.max_depth>>>/{params.max_depth}/' workflow/scripts/plot_vcf_raw_variants_QC.Rmd > {output.rmd}"
+		"; Rscript -e \"rmarkdown::render('{output.rmd}')\""
+		")"
+		" 1>{log} 2>&1"
+
+
 rule plotting_vcf_clone_detect_results:
 	input:
 		samples=rules.combine_genotyping_results.output.samples,
