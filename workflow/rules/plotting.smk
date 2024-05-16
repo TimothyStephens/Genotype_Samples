@@ -40,7 +40,7 @@ rule plotting_raw_VCF:
 		rules.calling_merged_VCF_stats.output.het,
 	output:
 		html=report(
-			"results/{project}/final/vcf_filtered_variants_QC.html",
+			"results/{project}/final/vcf_filtered_variants_QC_plots.html",
 			caption="../report/vcf_filtered_variants_QC_plots.rst",
 			subcategory="VCF Filtered variants QC plots",
 			labels={"Results": "VCF Filtered variants QC plots"},
@@ -78,7 +78,7 @@ rule plotting_filtered_VCF:
 		rules.calling_merged_filtered_VCF_stats.output.het,
 	output:
 		html=report(
-			"results/{project}/final/vcf_raw_variants_QC.html",
+			"results/{project}/final/vcf_raw_variants_QC_plots.html",
 			caption="../report/vcf_raw_variants_QC_plots.rst",
 			subcategory="VCF Raw variants QC plots",
 			labels={"Results": "VCF Raw variants QC plots"},
