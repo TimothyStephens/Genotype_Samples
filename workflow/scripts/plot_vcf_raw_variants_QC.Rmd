@@ -79,7 +79,7 @@ var_depth.plot
 ```
 
 
-```{r var_depth_limited}
+```{r var_depth_limited, echo=FALSE, message=FALSE}
 var_depth.plot + theme_light() + xlim(0, 100)
 ```
 
@@ -160,10 +160,7 @@ ind_het.plot
 
 
 
-
-
-# Session Info
-
 ```{r ressionInfo, echo=FALSE, message=FALSE}
+# Session Info
 #sessionInfo()
 ```
