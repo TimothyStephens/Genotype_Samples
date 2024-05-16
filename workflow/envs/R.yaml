@@ -4,6 +4,7 @@ channels:
 dependencies:
   - r-rmarkdown=2.14
   - r-tibble=3.2.1
+  - r-tidyverse=2.0.0
   - r-ggplot2=3.4.1
   - r-heatmaply=1.4.2
   - r-ggdendro=0.1.23
