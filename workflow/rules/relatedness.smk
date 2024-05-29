@@ -118,133 +118,103 @@ rule relatedness_NgsRelate:
 		"ngsRelate -g {input.glf} -n $N -f {input.mafs}.freq -z {input.labels} -O {output} -p {threads} {params.extra}) 1>{log} 2>&1"
 
 
-rule relatedness_ANGSD_for_PCAngsd:
-	input:
-		rules.relatedness_write_bam_list.output.files,
-	output:
-		mafs="results/{project}/relatedness/PCAngsd.angsd.mafs.gz",
-		beagle="results/{project}/relatedness/PCAngsd.angsd.beagle.gz",
-	log:
-		"results/logs/{project}/relatedness/PCAngsd.angsd.log",
-	params:
-		out_prefix="results/{project}/relatedness/PCAngsd.angsd",
-		extra=config["relatedness_ANGSD_for_PCAngsd"]["params"],
-	resources:
-		mem_gb=config["relatedness_ANGSD_for_PCAngsd"]["memory"]
-	threads: config["relatedness_ANGSD_for_PCAngsd"]["threads"]
-	container:
-		"docker://lifebitai/angsd:0.933"
-	shell:
-		"(angsd -GL 2 -doGlf 2 -doMajorMinor 1 -SNP_pval 1e-6 -doMaf 1 -nThreads {threads} {params.extra} -bam {input} -out {params.out_prefix}) 1>{log} 2>&1"
-
-
-rule relatedness_gzvcftobeagle_for_PCAngsd:
+rule relatedness_plink_PCA:
 	input:
 		vcf=rules.calling_filter_merged_VCF.output,
 	output:
-		beagle="results/{project}/relatedness/PCAngsd.vcf2beagle.beagle.gz",
+		eigenval="results/{project}/relatedness/plink.PCA.eigenval",
+		eigenvec="results/{project}/relatedness/plink.PCA.eigenvec",
 	log:
-		"results/logs/{project}/relatedness/PCAngsd.vcf2beagle.log",
+		"results/logs/{project}/relatedness/plink.PCA.log",
+	params:
+		out="results/{project}/relatedness/plink.PCA"
 	conda:
-		"../envs/vcftools.yaml"
-	script:
-		"../scripts/convert_vcf_to_beagle.sh"
-
-
-rule relatedness_PCAngsd_IndAlleleFreq:
-	input:
-		#beagle=rules.relatedness_ANGSD_for_PCAngsd.output.beagle,
-		beagle=rules.relatedness_gzvcftobeagle_for_PCAngsd.output.beagle,
-	output:
-		"results/{project}/relatedness/PCAngsd.IndAlleleFreq.cov",
-	log:
-		"results/logs/{project}/relatedness/PCAngsd.IndAlleleFreq.log",
-	params:
-		out_prefix="results/{project}/relatedness/PCAngsd.IndAlleleFreq",
-		extra=config["relatedness_PCAngsd_IndAlleleFreq"]["params"],
-	threads: config["relatedness_PCAngsd_IndAlleleFreq"]["threads"]
-	container:
-		"docker://didillysquat/pcangsd:latest"
+		"../envs/plink.yaml"
 	shell:
-		"(pcangsd.py -threads {threads} {params.extra} -beagle {input.beagle} -out {params.out_prefix}) 1>{log} 2>&1"
+		"("
+		"plink --vcf {input.vcf} --double-id --allow-extra-chr"
+		" --set-missing-var-ids @:#"
+		" --indep-pairwise 50 10 0.1"
+		" --out {params.out}; "
+		"plink --vcf {input.vcf} --double-id --allow-extra-chr"
+		" --set-missing-var-ids @:#"
+		" --extract {params.out}.prune.in"
+		" --make-bed --pca --out {params.out}"
+		") 1>{log} 2>&1"
 
 
-rule relatedness_PCAngsd_WithOutIndAlleleFreq:
+rule relatedness_plink_Admixture_prepData:
 	input:
-		#beagle=rules.relatedness_ANGSD_for_PCAngsd.output.beagle,
-		beagle=rules.relatedness_gzvcftobeagle_for_PCAngsd.output.beagle,
+		vcf=rules.calling_filter_merged_VCF.output,
 	output:
-		"results/{project}/relatedness/PCAngsd.WithOutIndAlleleFreq.cov",
+		"results/{project}/relatedness/plink.Admixture.bed",
 	log:
-		"results/logs/{project}/relatedness/PCAngsd.WithOutIndAlleleFreq.log",
+		"results/logs/{project}/relatedness/plink.Admixture.prepData.log",
 	params:
-		out_prefix="results/{project}/relatedness/PCAngsd.WithOutIndAlleleFreq",
-		extra=config["relatedness_PCAngsd_WithOutIndAlleleFreq"]["params"],
-	threads: config["relatedness_PCAngsd_WithOutIndAlleleFreq"]["threads"]
-	container:
-		"docker://didillysquat/pcangsd:latest"
+		out="results/{project}/relatedness/plink.Admixture",
+	conda:
+		"../envs/plink.yaml"
 	shell:
-		"(pcangsd.py -threads {threads} {params.extra} -beagle {input.beagle} -out {params.out_prefix} -iter 0) 1>{log} 2>&1"
+		"("
+		"plink --vcf {input.vcf} --make-bed --out {params.out} --allow-extra-chr; "
+		"awk '{{$1=\"0\";print $0}}' {params.out}.bim > {params.out}.bim.tmp; "
+		"mv {params.out}.bim.tmp {params.out}.bim"
+		") 1>{log} 2>&1"
 
 
-rule relatedness_PCAngsd_Admixture:
+rule relatedness_plink_Admixture:
 	input:
-		#beagle=rules.relatedness_ANGSD_for_PCAngsd.output.beagle,
-		beagle=rules.relatedness_gzvcftobeagle_for_PCAngsd.output.beagle,
+		rules.relatedness_plink_Admixture_prepData.output,
 	output:
-		"results/{project}/relatedness/PCAngsd.Admixture.admix.Q",
+		best="results/logs/{project}/relatedness/plink.Admixture.best.Q",
+		nosex="results/logs/{project}/relatedness/plink.Admixture.nosex",
 	log:
-		"results/logs/{project}/relatedness/PCAngsd.Admixture.log",
+		"results/logs/{project}/relatedness/plink.Admixture.log",
 	params:
-		out_prefix="results/{project}/relatedness/PCAngsd.Admixture",
-		extra=config["relatedness_PCAngsd_Admixture"]["params"],
-	threads: config["relatedness_PCAngsd_Admixture"]["threads"]
-	container:
-		"docker://didillysquat/pcangsd:latest"
+		out="results/logs/{project}/relatedness/plink.Admixture",
+		Kmin=config["relatedness_plink_Admixture"]["Kmin"],
+		Kmax=config["relatedness_plink_Admixture"]["Kmax"],
+	conda:
+		"../envs/admixture.yaml"
+	threads: config["relatedness_plink_Admixture"]["threads"]
 	shell:
-		"(pcangsd.py -threads {threads} {params.extra} -beagle {input.beagle} -out {params.out_prefix} -admix -admix_alpha 50; cp {params.out_prefix}.admix.*.Q {params.out_prefix}.admix.Q) 1>{log} 2>&1"
+		"("
+		"for i in {{{params.Kmin}..{params.Kmax}}}; do echo \"admixture --cv {input} $i 1>{log}.$i\" 2>&1; done | parallel --progress -j {threads}; "
+		"min_CV=1; "
+		"for i in {{{params.Kmin}..{params.Kmax}}}; do grep \"CV\" {log}.$i | awk '{{print $4}}' > {params.out}.CV; CV=$(cat {params.out}.CV); if [[ $CV -lt $min_CV ]]; then min_CV=$CV; cp {params.out}.$i.Q {output.best}; fi; done; "
+		") 1>{log} 2>&1"
 
 
-rule format_results_PCAngsd_IndAlleleFreq:
+rule format_results_plink_PCA:
 	input:
-		rules.relatedness_write_bam_list.output.labels,
-		rules.relatedness_PCAngsd_IndAlleleFreq.output,
+		eigenval=rules.relatedness_plink_PCA.output.eigenval,
+		eigenvec=rules.relatedness_plink_PCA.output.eigenvec,
 	output:
-		"results/{project}/final/PCAngsd.IndAlleleFreq.tsv",
+		eigenval="results/{project}/final/plink.PCA.eigenval",
+		eigenvec="results/{project}/final/plink.PCA.eigenvec",
 	log:
-		"results/logs/{project}/relatedness/format_PCAngsd_IndAlleleFreq_results.log",
+		"results/logs/{project}/relatedness/format_plink_PCA_results.log",
+	conda:
+		"../envs/bash.yaml"
+	shell:
+		"("
+		"cp {input.eigenval} {output.eigenval}"
+		"cp {input.eigenvec} {output.eigenvec}"
+		") 1>{log} 2>&1"
+
+
+rule format_results_plink_Admixture:
+	input:
+		rules.relatedness_plink_Admixture.output.nosex,
+		rules.relatedness_plink_Admixture.output.best,
+	output:
+		"results/{project}/final/Admixture.tsv",
+	log:
+		"results/logs/{project}/relatedness/format_plink_Admixture_results.log",
 	conda:
 		"../envs/bash.yaml"
 	script:
-		"../scripts/format_PCAngsd_results.sh"
-
-
-rule format_results_PCAngsd_WithOutIndAlleleFreq:
-	input:
-		rules.relatedness_write_bam_list.output.labels,
-		rules.relatedness_PCAngsd_WithOutIndAlleleFreq.output,
-	output:
-		"results/{project}/final/PCAngsd.WithOutIndAlleleFreq.tsv",
-	log:
-		"results/logs/{project}/relatedness/format_PCAngsd_WithOutIndAlleleFreq_results.log",
-	conda:
-		"../envs/bash.yaml"
-	script:
-		"../scripts/format_PCAngsd_results.sh"
-
-
-rule format_results_PCAngsd_Admixture:
-	input:
-		rules.relatedness_write_bam_list.output.labels,
-		rules.relatedness_PCAngsd_Admixture.output,
-	output:
-		"results/{project}/final/PCAngsd.Admixture.tsv",
-	log:
-		"results/logs/{project}/relatedness/format_PCAngsd_Admixture_results.log",
-	conda:
-		"../envs/bash.yaml"
-	script:
-		"../scripts/format_PCAngsd_Admixture_results.sh"
+		"../scripts/format_plink_Admixture_results.sh"
 
 
 rule format_results_vcftools_relatedness2:

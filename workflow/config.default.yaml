@@ -288,22 +288,10 @@ relatedness_NgsRelate:
   params: ''
   threads: 2
 
-relatedness_ANGSD_for_PCAngsd:
-  params: ''
-  threads: 2
-  memory: 50
-
-relatedness_PCAngsd_IndAlleleFreq:
-  params: ''
-  threads: 2
-
-relatedness_PCAngsd_WithOutIndAlleleFreq:
-  params: ''
-  threads: 2
-
-relatedness_PCAngsd_Admixture:
-  params: ''
-  threads: 2
+relatedness_plink_Admixture:
+  Kmin: 2
+  Kmax: 20
+  threads: 18
 
 
 ################################

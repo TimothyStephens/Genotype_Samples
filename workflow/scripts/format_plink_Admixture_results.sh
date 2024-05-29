@@ -13,7 +13,7 @@ awk -F' ' 'FNR==NR{
       L=L"\tP"i
     };
     print L
-  }; 
+  };
   gsub(" ","\t",$0)
   print names[FNR]"\t"$0
 }' "${snakemake_input[0]}" "${snakemake_input[1]}" > "${snakemake_output[0]}"

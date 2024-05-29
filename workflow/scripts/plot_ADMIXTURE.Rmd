@@ -1,5 +1,5 @@
 ---
-title: "Plot `ANGSD` results"
+title: "Plot PCA and ADMIXTURE results"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
   html_document:
@@ -30,8 +30,9 @@ options(scipen = 999) #Prevent scientific notation
 # File names and important variables.
 annotations.file <- "samples.genotyping.tsv"
 colors.file <- "colors.tsv"
-admixture.file <- "PCAngsd.Admixture.tsv"
-allelFreqs.file <- "PCAngsd.IndAlleleFreq.tsv"
+admixture.file <- "Admixture.tsv"
+pca.file <- "plink.PCA.eigenvec"
+eigenval.file <- "plink.PCA.eigenval"
 ```
 
 
@@ -40,9 +41,9 @@ allelFreqs.file <- "PCAngsd.IndAlleleFreq.tsv"
 admixture <- read.table(admixture.file, header=T, sep='\t', comment.char='', check.names=FALSE) %>%
   column_to_rownames(var = "sample_id")
 
-#*IndAlleleFreq*
-allelFreqs <- read.table(allelFreqs.file, header=T, sep='\t', comment.char='', check.names=FALSE) %>%
-  column_to_rownames(var = "sample_id")
+#*PCA*
+pca <- read_table2(pca.file, col_names = FALSE)
+eigenval <- scan(eigenval.file)
 
 #*Annotations*
 annotations <- read.table(annotations.file, header=T, sep='\t', comment.char='#', check.names=FALSE) %>%
@@ -174,11 +175,13 @@ cluster_plot(admixture, annotations, colnames(annotations), colors=colors, x.lab
 
 
 ```{r generate_eigen_vectors_IndAllelFreq, echo=FALSE, message=FALSE}
-# Generate eigen vectors.
-C <- as.matrix(allelFreqs)
-e <- eigen(C)
-df <- as.data.frame(e$vectors)
-rownames(df) <- rownames(C)
+# sort out the pca data
+# remove nuisance column
+pca <- pca[,-1]
+# set names
+names(pca)[1] <- "ind"
+names(pca)[2:ncol(pca)] <- paste0("PC", 1:(ncol(pca)-1))
+
 df <- cbind(df, annotations)
 ```
 

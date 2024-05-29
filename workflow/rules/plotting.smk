@@ -1,28 +1,29 @@
 
 
-rule plotting_ANGSD_results:
+rule plotting_ADMIXTURE_results:
 	input:
 		samples=rules.combine_genotyping_results.output.samples,
 		color_list=rules.format_annotations.output.color_list,
-		admixture=rules.format_results_PCAngsd_Admixture.output,
-		allelFreqs=rules.format_results_PCAngsd_IndAlleleFreq.output,
+		admixture=rules.format_results_plink_Admixture.output,
+		eigenval=rules.format_results_plink_PCA.output.eigenval,
+		eigenvec=rules.format_results_plink_PCA.output.eigenvec,
 	output:
 		html=report(
-			"results/{project}/final/ANGSD_results.html",
+			"results/{project}/final/ADMIXTURE_results.html",
 			#caption="../report/multiqc_calls.rst",
 			subcategory="Result plots",
-			labels={"Results": "ANGSD results"},
+			labels={"Results": "ADMIXTURE results"},
 		),
-		rmd="results/{project}/final/ANGSD_results.Rmd",
+		rmd="results/{project}/final/ADMIXTURE_results.Rmd",
 	log:
-		"results/logs/{project}/plotting/plot_ANGSD_results.log",
+		"results/logs/{project}/plotting/plot_ADMIXTURE_results.log",
 	conda:
 		"../envs/R.yaml"
 	shell:
 		"("
 		"  export PATH=\"$CONDA_PREFIX/bin:$PATH\""
 		"; export R_LIB=\"$CONDA_PREFIX/lib/R/library\""
-		"; cp workflow/scripts/plot_ANGSD_results.Rmd {output.rmd}"
+		"; cp workflow/scripts/plot_ADMIXTURE_results.Rmd {output.rmd}"
 		"; Rscript -e \"rmarkdown::render('{output.rmd}')\""
 		")"
 		" 1>{log} 2>&1"

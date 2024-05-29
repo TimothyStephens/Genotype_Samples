@@ -47,10 +47,9 @@ rule genotyping:
 	input:
 		rules.format_filtered_VCF.output,
 		#rules.format_results_NgsRelate.output,
-		rules.format_results_PCAngsd_WithOutIndAlleleFreq.output,
 		rules.multiqc_reads.output,
 		rules.multiqc_variant_calls.output,
-		rules.plotting_ANGSD_results.output.html,
+		rules.plotting_ADMIXTURE_results.output.html,
 		rules.plotting_vcf_clone_detect_results.output.html,
 		rules.plotting_vcftools_relatedness2_results.output.html,
 		rules.plotting_nQuire_delta_loglikelihood_results.output,
