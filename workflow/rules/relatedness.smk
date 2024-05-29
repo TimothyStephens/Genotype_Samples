@@ -198,7 +198,7 @@ rule format_results_plink_PCA:
 		"../envs/bash.yaml"
 	shell:
 		"("
-		"cp {input.eigenval} {output.eigenval}"
+		"cp {input.eigenval} {output.eigenval}; "
 		"cp {input.eigenvec} {output.eigenvec}"
 		") 1>{log} 2>&1"
 
