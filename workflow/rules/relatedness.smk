@@ -157,7 +157,7 @@ rule relatedness_plink_Admixture_prepData:
 	shell:
 		"("
 		"plink --vcf {input.vcf} --make-bed --out {params.out} --allow-extra-chr; "
-		"awk '{{$1=\"0\";print $0}}' {params.out}.bim > {params.out}.bim.tmp; "
+		"awk '{{$1=\"0\"; print $0}}' {params.out}.bim > {params.out}.bim.tmp; "
 		"mv {params.out}.bim.tmp {params.out}.bim"
 		") 1>{log} 2>&1"
 
@@ -166,12 +166,13 @@ rule relatedness_plink_Admixture:
 	input:
 		rules.relatedness_plink_Admixture_prepData.output,
 	output:
-		best="results/logs/{project}/relatedness/plink.Admixture.best.Q",
-		nosex="results/logs/{project}/relatedness/plink.Admixture.nosex",
+		best="results/{project}/relatedness/plink.Admixture.best.Q",
+		nosex="results/{project}/relatedness/plink.Admixture.nosex",
 	log:
 		"results/logs/{project}/relatedness/plink.Admixture.log",
 	params:
-		out="results/logs/{project}/relatedness/plink.Admixture",
+		out_dir="results/{project}/relatedness",
+		out_prefix="plink.Admixture",
 		Kmin=config["relatedness_plink_Admixture"]["Kmin"],
 		Kmax=config["relatedness_plink_Admixture"]["Kmax"],
 	conda:
@@ -179,9 +180,9 @@ rule relatedness_plink_Admixture:
 	threads: config["relatedness_plink_Admixture"]["threads"]
 	shell:
 		"("
-		"for i in {{{params.Kmin}..{params.Kmax}}}; do echo \"admixture --cv {input} $i 1>{log}.$i\" 2>&1; done | parallel --progress -j {threads}; "
-		"min_CV=1; "
-		"for i in {{{params.Kmin}..{params.Kmax}}}; do grep \"CV\" {log}.$i | awk '{{print $4}}' > {params.out}.CV; CV=$(cat {params.out}.CV); if [[ $CV -lt $min_CV ]]; then min_CV=$CV; cp {params.out}.$i.Q {output.best}; fi; done; "
+		" ( cd {params.out_dir}; for i in {{{params.Kmin}..{params.Kmax}}}; do echo \"admixture --cv {params.out_prefix} $i 1>{params.out_prefix}.$i.log\" 2>&1; done | parallel --progress -j {threads} ); "
+		"min_CV=99999999999999; "
+		"for i in {{{params.Kmin}..{params.Kmax}}}; do grep \"CV\" {params.out_dir}/{params.out_prefix}.$i.log | awk '{{print $4}}' > {params.out_dir}/{params.out_prefix}.CV; CV=$(sed -e 's/^0.//' {params.out_dir}/{params.out_prefix}.CV); if [[ $CV -lt $min_CV ]]; then min_CV=$CV; cp {params.out_dir}/{params.out_prefix}.$i.Q {output.best}; fi; done; "
 		") 1>{log} 2>&1"
 
 
