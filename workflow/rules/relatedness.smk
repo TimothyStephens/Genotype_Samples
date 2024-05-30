@@ -124,6 +124,7 @@ rule relatedness_plink_PCA:
 	output:
 		eigenval="results/{project}/relatedness/plink.PCA.eigenval",
 		eigenvec="results/{project}/relatedness/plink.PCA.eigenvec",
+		nosex="results/{project}/relatedness/plink.PCA.nosex",
 	log:
 		"results/logs/{project}/relatedness/plink.PCA.log",
 	params:
@@ -167,7 +168,6 @@ rule relatedness_plink_Admixture:
 		rules.relatedness_plink_Admixture_prepData.output,
 	output:
 		best="results/{project}/relatedness/plink.Admixture.best.Q",
-		nosex="results/{project}/relatedness/plink.Admixture.nosex",
 	log:
 		"results/logs/{project}/relatedness/plink.Admixture.log",
 	params:
@@ -206,7 +206,7 @@ rule format_results_plink_PCA:
 
 rule format_results_plink_Admixture:
 	input:
-		rules.relatedness_plink_Admixture.output.nosex,
+		rules.relatedness_plink_PCA.output.nosex,
 		rules.relatedness_plink_Admixture.output.best,
 	output:
 		"results/{project}/final/Admixture.tsv",
