@@ -191,8 +191,8 @@ rule format_results_plink_PCA:
 		eigenval=rules.relatedness_plink_PCA.output.eigenval,
 		eigenvec=rules.relatedness_plink_PCA.output.eigenvec,
 	output:
-		eigenval="results/{project}/final/plink.PCA.eigenval",
-		eigenvec="results/{project}/final/plink.PCA.eigenvec",
+		eigenval="results/{project}/final/PCA.eigenval",
+		eigenvec="results/{project}/final/PCA.eigenvec",
 	log:
 		"results/logs/{project}/relatedness/format_plink_PCA_results.log",
 	conda:
