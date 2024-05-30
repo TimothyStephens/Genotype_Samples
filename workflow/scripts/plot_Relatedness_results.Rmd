@@ -174,7 +174,6 @@ cluster_plot <- function(data, samples, selected_columns,
   comb <- plot_grid(p.dendr, p.barplot, p.sampleInfo, align = 'v', ncol = 1, axis = "lr", rel_heights = rel_heights)
   print(comb)
 }
-cluster_plot(admixture, annotations, colnames(annotations), colors=colors, x.label.font.size=6)
 ```
 
 

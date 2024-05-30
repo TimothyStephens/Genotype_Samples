@@ -43,8 +43,8 @@ rule plotting_raw_VCF:
 		html=report(
 			"results/{project}/final/vcf_filtered_variants_QC_plots.html",
 			caption="../report/vcf_filtered_variants_QC_plots.rst",
-			subcategory="VCF Filtering variants QC plots",
-			labels={"Results": "VCF Filtering plots"},
+			subcategory="VCF variants QC plots",
+			labels={"Results": "Raw VCF Filtering plots"},
 		),
 		rmd="results/{project}/final/vcf_filtered_variants_QC_plots.Rmd",
 	log:
@@ -81,8 +81,8 @@ rule plotting_filtered_VCF:
 		html=report(
 			"results/{project}/final/vcf_raw_variants_QC_plots.html",
 			caption="../report/vcf_raw_variants_QC_plots.rst",
-			subcategory="VCF Raw variants QC plots",
-			labels={"Results": "VCF Filtering plots"},
+			subcategory="VCF variants QC plots",
+			labels={"Results": "Filtered VCF Filtering plots"},
 		),
 		rmd="results/{project}/final/vcf_raw_variants_QC_plots.Rmd",
 	log:
