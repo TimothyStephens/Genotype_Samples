@@ -15,6 +15,7 @@ output:
 
 ```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
 # Setup R env. Load packages and set default image export formats, size and resolution.
+library(tidyverse)
 library(tibble)
 library(ggplot2)
 library(ggdendro)
