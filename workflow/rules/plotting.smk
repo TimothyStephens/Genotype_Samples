@@ -1,6 +1,6 @@
 
 
-rule plotting_ADMIXTURE_results:
+rule plotting_Relatedness_results:
 	input:
 		samples=rules.combine_genotyping_results.output.samples,
 		color_list=rules.format_annotations.output.color_list,
@@ -9,21 +9,21 @@ rule plotting_ADMIXTURE_results:
 		eigenvec=rules.format_results_plink_PCA.output.eigenvec,
 	output:
 		html=report(
-			"results/{project}/final/ADMIXTURE_results.html",
+			"results/{project}/final/Relatedness_results.html",
 			#caption="../report/multiqc_calls.rst",
 			subcategory="Result plots",
-			labels={"Results": "ADMIXTURE results"},
+			labels={"Results": "Relatedness results"},
 		),
-		rmd="results/{project}/final/ADMIXTURE_results.Rmd",
+		rmd="results/{project}/final/Relatedness_results.Rmd",
 	log:
-		"results/logs/{project}/plotting/plot_ADMIXTURE_results.log",
+		"results/logs/{project}/plotting/plot_Relatedness_results.log",
 	conda:
 		"../envs/R.yaml"
 	shell:
 		"("
 		"  export PATH=\"$CONDA_PREFIX/bin:$PATH\""
 		"; export R_LIB=\"$CONDA_PREFIX/lib/R/library\""
-		"; cp workflow/scripts/plot_ADMIXTURE_results.Rmd {output.rmd}"
+		"; cp workflow/scripts/plot_Relatedness_results.Rmd {output.rmd}"
 		"; Rscript -e \"rmarkdown::render('{output.rmd}')\""
 		")"
 		" 1>{log} 2>&1"

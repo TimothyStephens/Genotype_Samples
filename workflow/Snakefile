@@ -49,7 +49,7 @@ rule genotyping:
 		#rules.format_results_NgsRelate.output,
 		rules.multiqc_reads.output,
 		rules.multiqc_variant_calls.output,
-		rules.plotting_ADMIXTURE_results.output.html,
+		rules.plotting_Relatedness_results.output.html,
 		rules.plotting_vcf_clone_detect_results.output.html,
 		rules.plotting_vcftools_relatedness2_results.output.html,
 		rules.plotting_nQuire_delta_loglikelihood_results.output,

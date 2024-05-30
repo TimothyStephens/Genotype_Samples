@@ -32,27 +32,40 @@ options(scipen = 999) #Prevent scientific notation
 annotations.file <- "samples.genotyping.tsv"
 colors.file <- "colors.tsv"
 admixture.file <- "Admixture.tsv"
-pca.file <- "plink.PCA.eigenvec"
-eigenval.file <- "plink.PCA.eigenval"
+pca.file <- "PCA.eigenvec"
+eigenval.file <- "PCA.eigenval"
 ```
 
 
 ```{r load_data_files, echo=FALSE, message=FALSE}
-#*Admixture*
-admixture <- read.table(admixture.file, header=T, sep='\t', comment.char='', check.names=FALSE) %>%
+#### *Annotations*
+annotations <- read.table(annotations.file, header=T, sep='\t', comment.char='#', check.names=FALSE) %>%
+  select(-c("unit", "fq1", "fq2", "best_ploidy_model_num")) %>%
+  unique() %>%
   column_to_rownames(var = "sample_id")
 
-#*PCA*
+#### *Admixture*
+admixture <- read.table(admixture.file, header=T, sep='\t', comment.char='', check.names=FALSE) %>%
+  column_to_rownames(var = "sample_id")
+admixture <- admixture[rownames(annotations),]
+
+#### *PCA*
 pca <- read_table2(pca.file, col_names = FALSE)
+# sort out the pca data
+# remove nuisance column
+pca <- pca[,-1]
+# set names
+names(pca)[1] <- "ind"
+names(pca)[2:ncol(pca)] <- paste0("PC", 1:(ncol(pca)-1))
+rownames(pca) <- pca$ind
+pca <- pca[rownames(annotations), ]
+
+# Percent variance
 eigenval <- scan(eigenval.file)
+pve <- data.frame(PC = 1:length(eigenval), pve = eigenval/sum(eigenval)*100)
 
-#*Annotations*
-annotations <- read.table(annotations.file, header=T, sep='\t', comment.char='#', check.names=FALSE) %>%
-  mutate(Name = paste(sample_id, unit, sep="-")) %>%
-  column_to_rownames(var = "Name") %>%
-  select(-c("sample_id", "unit", "fq1", "fq2", "best_ploidy_model_num"))
 
-#*Colors matrix*
+#### *Colors matrix*
 tmp.colors <- read.table(colors.file, header=F, sep='\t', comment.char='', check.names=FALSE)
 colors <- c(tmp.colors[,2])
 names(colors) <- c(tmp.colors[,1])
@@ -110,10 +123,7 @@ cluster_plot <- function(data, samples, selected_columns,
           plot.margin=unit(c(0,0,0,0), "mm"))
   
   # Plot bar chart
-  p.barplot <- data %>%
-    rownames_to_column() %>%
-    arrange(as.character(factor(rowname, levels = dend_labels)), dend_labels) %>%
-    column_to_rownames("rowname") %>%
+  p.barplot <- data[dend_labels, ] %>%
     as.matrix() %>%
     melt() %>%
     rename(Sample=Var1, ITS2type=Var2, Abundance=value) %>%
@@ -136,14 +146,12 @@ cluster_plot <- function(data, samples, selected_columns,
   if(is.null(colors)) {
     colors <- rep(brewer.pal(brewer.pal.info["Set3", "maxcolors"], "Set3"), ceiling(nrow(samples)/12))
   }
-  p.sampleInfo <- samples %>%
+  p.sampleInfo <- samples[dend_labels, ] %>%
     select(all_of(selected_columns)) %>%
-    rownames_to_column() %>% 
-    arrange(as.character(factor(rowname, levels = dend_labels)), dend_labels) %>% 
-    column_to_rownames("rowname") %>% 
     as.matrix() %>% 
     melt() %>% 
     rename(Sample=Var1, MetaInfo=Var2, Value=value) %>% 
+    mutate(Value = factor(Value, levels=unique(Value))) %>%
     mutate(Count = 1) %>% 
     filter(MetaInfo!="PlugID") %>%
     ggplot(aes(x=Sample, y=Count, fill=Value)) + 
@@ -166,43 +174,35 @@ cluster_plot <- function(data, samples, selected_columns,
   comb <- plot_grid(p.dendr, p.barplot, p.sampleInfo, align = 'v', ncol = 1, axis = "lr", rel_heights = rel_heights)
   print(comb)
 }
+cluster_plot(admixture, annotations, colnames(annotations), colors=colors, x.label.font.size=6)
 ```
 
 
 ```{r plot_Admixture, echo=FALSE, message=FALSE}
 # Plot Admixture results. Use the admixture matrix to generate the degdrogram and sample order.
-cluster_plot(admixture, annotations, colnames(annotations), colors=colors, x.label.font.size=2)
+cluster_plot(admixture, annotations, colnames(annotations), colors=colors, x.label.font.size=6)
 ```
 
 
-```{r generate_eigen_vectors_IndAllelFreq, echo=FALSE, message=FALSE}
-# sort out the pca data
-# remove nuisance column
-pca <- pca[,-1]
-# set names
-names(pca)[1] <- "ind"
-names(pca)[2:ncol(pca)] <- paste0("PC", 1:(ncol(pca)-1))
+```{r plotly_PCA_PC1_PC2, echo=FALSE, message=FALSE}
+df <- merge(pca, annotations, by.x = "ind", by.y = "row.names")
+rownames(df) <- df$ind
 
-df <- cbind(df, annotations)
-```
-
-
-```{r plotly_IndAllelFreq_PC1_PC2, echo=FALSE, message=FALSE}
 # Plot PC1 and PC2 of PCAngsd results WITH estimated individual allele frequencies using the `plotly` package.
 # group_id
-p <- plot_ly(df, x=~V1, y=~V2, text=rownames(df), type = "scatter",
+p <- plot_ly(df, x=~PC1, y=~PC2, text=rownames(df), type = "scatter",
              mode="markers", color=~group_id, colors=colors, marker=list(size=11))
-p <- layout(p,title="Without individual allele frequency - colored by group_id",
-            xaxis=list(title="PC1"),
-            yaxis=list(title="PC2"))
+p <- layout(p,title="PCA colored by group_id",
+            xaxis=list(title=paste0("PC1 (", signif(pve$pve[1], 3), "%)")),
+            yaxis=list(title=paste0("PC2 (", signif(pve$pve[2], 3), "%)")))
 p
 
 # Ploidy
-p <- plot_ly(df, x=~V1, y=~V2, text=rownames(df), type = "scatter",
+p <- plot_ly(df, x=~PC1, y=~PC2, text=rownames(df), type = "scatter",
              mode="markers", color=~best_ploidy_model, colors=colors, marker=list(size=11))
-p <- layout(p,title="Without individual allele frequency - colored by best_ploidy_model",
-            xaxis=list(title="PC1"),
-            yaxis=list(title="PC2"))
+p <- layout(p,title="PCA colored by best_ploidy_model",
+            xaxis=list(title=paste0("PC1 (", signif(pve$pve[1], 3), "%)")),
+            yaxis=list(title=paste0("PC2 (", signif(pve$pve[2], 3), "%)")))
 p
 ```
 
