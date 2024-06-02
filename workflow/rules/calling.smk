@@ -93,7 +93,7 @@ rule calling_merge_VCFs:
 	params:
 		extra=config["calling_merge_VCFs"]["params"],
 		mem_gb=config["calling_merge_VCFs"]["memory"],
-		tmp=temp("results/logs/calling/GLnexus.DB"),
+		tmp=temp(directory("results/{project}/calling_merged/GLnexus.DB")),
 		bcf=temp("results/{project}/calling_merged/calls.unfiltered.bcf"),
 	threads: config["calling_merge_VCFs"]["threads"]
 	container:
