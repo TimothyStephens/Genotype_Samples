@@ -157,7 +157,7 @@ rule relatedness_plink_Admixture_prepData:
 		"../envs/plink.yaml"
 	shell:
 		"("
-		"plink --vcf {input.vcf} --make-bed --out {params.out} --allow-extra-chr; "
+		"plink --vcf {input.vcf} --double-id --vcf-half-call m --allow-extra-chr --make-bed --out {params.out}; "
 		"awk '{{$1=\"0\"; print $0}}' {params.out}.bim > {params.out}.bim.tmp; "
 		"mv {params.out}.bim.tmp {params.out}.bim"
 		") 1>{log} 2>&1"
