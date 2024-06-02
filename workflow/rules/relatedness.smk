@@ -133,11 +133,11 @@ rule relatedness_plink_PCA:
 		"../envs/plink.yaml"
 	shell:
 		"("
-		"plink --vcf {input.vcf} --double-id --allow-extra-chr"
+		"plink --vcf {input.vcf} --double-id --vcf-half-call m --allow-extra-chr"
 		" --set-missing-var-ids @:#"
 		" --indep-pairwise 50 10 0.1"
 		" --out {params.out}; "
-		"plink --vcf {input.vcf} --double-id --allow-extra-chr"
+		"plink --vcf {input.vcf} --double-id --vcf-half-call m --allow-extra-chr"
 		" --set-missing-var-ids @:#"
 		" --extract {params.out}.prune.in"
 		" --make-bed --pca --out {params.out}"
