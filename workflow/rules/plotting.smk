@@ -31,7 +31,7 @@ rule plotting_Relatedness_results:
 
 rule plotting_raw_VCF:
 	input:
-		rules.calling_merge_VCFs.output,
+		rules.calling_merge_VCFs.output.gzvcf,
 		rules.calling_merged_VCF_stats.output.lqual,
 		rules.calling_merged_VCF_stats.output.ldepth,
 		rules.calling_merged_VCF_stats.output.lmiss,
@@ -69,7 +69,7 @@ rule plotting_raw_VCF:
 
 rule plotting_filtered_VCF:
 	input:
-		rules.calling_merge_VCFs.output,
+		rules.calling_merge_VCFs.output.gzvcf,
 		rules.calling_merged_filtered_VCF_stats.output.lqual,
 		rules.calling_merged_filtered_VCF_stats.output.ldepth,
 		rules.calling_merged_filtered_VCF_stats.output.lmiss,

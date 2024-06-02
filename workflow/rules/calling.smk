@@ -87,14 +87,14 @@ rule calling_merge_VCFs:
 			sample=samples.sample_id.unique()
 		),
 	output:
-		"results/{project}/calling_merged/calls.unfiltered.vcf.gz",
+		gzvcf="results/{project}/calling_merged/calls.unfiltered.vcf.gz",
+		tmp=temp(directory("results/{project}/calling_merged/GLnexus.DB")),
+		bcf=temp("results/{project}/calling_merged/calls.unfiltered.bcf"),
 	log:
 		"results/logs/{project}/calling_merged/VCFs_merge.log",
 	params:
 		extra=config["calling_merge_VCFs"]["params"],
 		mem_gb=config["calling_merge_VCFs"]["memory"],
-		tmp=temp(directory("results/{project}/calling_merged/GLnexus.DB")),
-		bcf=temp("results/{project}/calling_merged/calls.unfiltered.bcf"),
 	threads: config["calling_merge_VCFs"]["threads"]
 	container:
 		"docker://quay.io/mlin/glnexus:v1.3.1"
@@ -103,18 +103,18 @@ rule calling_merge_VCFs:
 		"glnexus_cli"
 		" {params.extra}"
 		" --config DeepVariant"
-		" --dir {params.tmp}"
+		" --dir {output.tmp}"
 		" --mem-gbytes {params.mem_gb}"
 		" --threads {threads}"
 		" {input.calls}"
-		" > {params.bcf};"
-		"bcftools view {params.bcf} | gzip -c > {output}"
+		" > {output.bcf};"
+		"bcftools view {output.bcf} | gzip -c > {output.zcf}"
 		") 1>{log} 2>&1"
 
 
 rule calling_merged_VCF_stats:
 	input:
-		rules.calling_merge_VCFs.output,
+		rules.calling_merge_VCFs.output.gzvcf,
 	output:
 		lqual  = "results/{project}/calling_merged/calls.unfiltered.lqual",
 		ldepth = "results/{project}/calling_merged/calls.unfiltered.ldepth.mean",
@@ -178,7 +178,7 @@ rule calling_VCF_index:
 
 rule calling_filter_merged_VCF:
 	input:
-		rules.calling_merge_VCFs.output,
+		rules.calling_merge_VCFs.output.gzvcf,
 	output:
 		"results/{project}/calling_merged/calls.filtered.vcf.gz",
 	log:
