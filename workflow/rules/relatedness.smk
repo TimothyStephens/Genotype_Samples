@@ -182,7 +182,17 @@ rule relatedness_plink_Admixture:
 		"("
 		" ( cd {params.out_dir}; for i in {{{params.Kmin}..{params.Kmax}}}; do echo \"admixture --cv {params.out_prefix}.bed $i 1>{params.out_prefix}.$i.log\" 2>&1; done | parallel --progress -j {threads} ); "
 		"min_CV=99999999999999; "
-		"for i in {{{params.Kmin}..{params.Kmax}}}; do grep \"CV\" {params.out_dir}/{params.out_prefix}.$i.log | awk '{{print $4}}' > {params.out_dir}/{params.out_prefix}.$i.CV; CV=$(sed -e 's/^0.//' {params.out_dir}/{params.out_prefix}.$i.CV); CV=$(printf %.0f $(echo \"$CV * 1000000\" | bc)); if [[ $CV -lt $min_CV ]]; then min_CV=$CV; cp {params.out_dir}/{params.out_prefix}.$i.Q {output.best}; fi; done; "
+		"for i in {{{params.Kmin}..{params.Kmax}}}; do"
+		"  grep \"CV\" {params.out_dir}/{params.out_prefix}.$i.log | awk '{{print $4}}' > {params.out_dir}/{params.out_prefix}.$i.CV;"
+		"  CV=$(cat {params.out_dir}/{params.out_prefix}.$i.CV);"
+		# Multiple by 1 million to get from float to int (unix if cant do floating point math)
+		"  CV=$(printf %.0f $(echo \"$CV * 1000000\" | bc));"
+		# Check if smaller then min and not zero (zero could be due to "-nan" in CV file - possible error/bug in admixture)
+		"  if [[ $CV -lt $min_CV && $CV -ne 0 ]]; then"
+		"    min_CV=$CV;"
+		"    cp {params.out_dir}/{params.out_prefix}.$i.Q {output.best};"
+		"  fi; "
+		"done"
 		") 1>{log} 2>&1"
 
 
