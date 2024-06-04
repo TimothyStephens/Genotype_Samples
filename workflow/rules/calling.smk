@@ -108,7 +108,7 @@ rule calling_merge_VCFs:
 		" --threads {threads}"
 		" {input.calls}"
 		" > {output.bcf};"
-		"bcftools view {output.bcf} | gzip -c > {output.zcf}"
+		"bcftools view {output.bcf} | gzip -c > {output.gzvcf}"
 		") 1>{log} 2>&1"
 
 
