@@ -290,8 +290,8 @@ relatedness_NgsRelate:
 
 relatedness_plink_Admixture:
   Kmin: 2
-  Kmax: 20
-  threads: 19
+  Kmax: 12
+  threads: 12
 
 
 ################################
