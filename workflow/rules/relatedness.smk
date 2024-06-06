@@ -175,8 +175,8 @@ rule relatedness_plink_Admixture:
 		out_prefix="plink.Admixture",
 		Kmin=config["relatedness_plink_Admixture"]["Kmin"],
 		Kmax=config["relatedness_plink_Admixture"]["Kmax"],
-		njobs=config["relatedness_plink_Admixture"]["njobs"]
-		threads=config["relatedness_plink_Admixture"]["threads"]
+		njobs=config["relatedness_plink_Admixture"]["njobs"],
+		threads=config["relatedness_plink_Admixture"]["threads"],
 	conda:
 		"../envs/admixture.yaml"
 	threads: config["relatedness_plink_Admixture"]["threads"] * config["relatedness_plink_Admixture"]["njobs"]
