@@ -175,12 +175,13 @@ rule relatedness_plink_Admixture:
 		out_prefix="plink.Admixture",
 		Kmin=config["relatedness_plink_Admixture"]["Kmin"],
 		Kmax=config["relatedness_plink_Admixture"]["Kmax"],
+		njobs=config["relatedness_plink_Admixture"]["njobs"]
 	conda:
 		"../envs/admixture.yaml"
-	threads: config["relatedness_plink_Admixture"]["threads"]
+	threads: config["relatedness_plink_Admixture"]["threads"] * config["relatedness_plink_Admixture"]["njobs"]
 	shell:
 		"("
-		" ( cd {params.out_dir}; for i in {{{params.Kmin}..{params.Kmax}}}; do echo \"admixture --cv {params.out_prefix}.bed $i 1>{params.out_prefix}.$i.log\" 2>&1; done | parallel --progress -j {threads} ); "
+		" ( cd {params.out_dir}; for i in {{{params.Kmin}..{params.Kmax}}}; do echo \"admixture --seed 42 -j{threads} -cv {params.out_prefix}.bed $i 1>{params.out_prefix}.$i.log\" 2>&1; done | parallel --progress -j {threads} ); "
 		"min_CV=99999999999999; "
 		"for i in {{{params.Kmin}..{params.Kmax}}}; do"
 		"  grep \"CV\" {params.out_dir}/{params.out_prefix}.$i.log | awk '{{print $4}}' > {params.out_dir}/{params.out_prefix}.$i.CV;"
