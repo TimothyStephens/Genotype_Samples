@@ -59,7 +59,7 @@ def check_user_max_mem(user_max_mem):
 @click.option(
 	"--module",
 	required=True,
-	type=click.Choice(['genotyping', 'cross_mapping', 'kmer_analysis']),
+	type=click.Choice(['call_variants', 'genotyping', 'cross_mapping', 'kmer_analysis']),
 	help="Module/workflow to run",
 )
 @click.option(
@@ -100,7 +100,8 @@ def workflow(module, configfile, cores, max_downloads, max_memory, snakemake_arg
 	
 	\b
 	Modules:
-	  genotyping		Exploring genotype + ploidy of samples
+      call_variants     Call variants and plot
+	  genotyping		Call variants, call genotypes and clones, determine ploidy, and generate results plots of samples
 	  cross_mapping		Cross-mapping of samples to multiple genomes
 	  kmer_analysis		K-mer ploidy analysis
 	
