@@ -100,7 +100,7 @@ def workflow(module, configfile, cores, max_downloads, max_memory, snakemake_arg
 	
 	\b
 	Modules:
-      call_variants     Call variants and plot
+	  call_variant		sCall variants and plot
 	  genotyping		Call variants, call genotypes and clones, determine ploidy, and generate results plots of samples
 	  cross_mapping		Cross-mapping of samples to multiple genomes
 	  kmer_analysis		K-mer ploidy analysis

@@ -33,7 +33,7 @@ DONE_WORKFLOW = "results/{project_name}/{module_name}.done".format(
 
 localrules:
 	all,
-    call_variants,
+	call_variants,
 	genotyping,
 	cross_mapping,
 	kmer_analysis,
@@ -45,12 +45,12 @@ rule all:
 
 
 rule call_variants:
-    input:
-        rules.calling_merged_VCF.output,
-        rules.multiqc_reads.output,
-        rules.plotting_raw_VCF.output.html,
-    output:
-        touch("results/{project}/call_variants.done"),
+	input:
+		rules.calling_merge_VCFs.output,
+		rules.multiqc_reads.output,
+		rules.plotting_raw_VCF.output.html,
+	output:
+		touch("results/{project}/call_variants.done"),
 
 
 rule genotyping:
