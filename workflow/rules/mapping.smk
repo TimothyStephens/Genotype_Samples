@@ -150,7 +150,7 @@ rule mapping_RNA_pe:
 		mapping_extra=config["mapping_RNA_pe"]["mapping_params"],
 		mapping_threads=config["mapping_RNA_pe"]["mapping_threads"],
 		sjdbOverhang=config["mapping_RNA_pe"]["sjdbOverhang"],
-		ulimit=config["mapping_RNA_pe"]["ulimit"]+";",
+		ulimit=config["mapping_RNA_pe"]["ulimit"]+";" if config["mapping_RNA_pe"]["ulimit"]!="" else "",
 	threads: config["mapping_RNA_pe"]["mapping_threads"]
 	resources:
 		mem_gb=config["mapping_RNA_pe"]["mapping_memory"]
@@ -193,7 +193,7 @@ rule mapping_RNA_se:
 		mapping_extra=config["mapping_RNA_se"]["mapping_params"],
 		mapping_threads=config["mapping_RNA_se"]["mapping_threads"],
 		sjdbOverhang=config["mapping_RNA_se"]["sjdbOverhang"],
-		ulimit=config["mapping_RNA_se"]["ulimit"]+";",
+		ulimit=config["mapping_RNA_se"]["ulimit"]+";" if config["mapping_RNA_pe"]["ulimit"]!="" else "",
 	threads: config["mapping_RNA_se"]["mapping_threads"]
 	resources:
 		mem_gb=config["mapping_RNA_se"]["mapping_memory"]

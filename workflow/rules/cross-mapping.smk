@@ -154,7 +154,7 @@ rule crossMapping_RNA_pe:
 		sjdbOverhang=config["crossMapping_RNA_pe"]["sjdbOverhang"],
 		stats_extra=config["crossMapping_RNA_pe"]["stats_params"],
 		stats_threads=config["crossMapping_RNA_pe"]["stats_threads"],
-		ulimit=config["crossMapping_RNA_pe"]["ulimit"]+"; ",
+		ulimit=config["crossMapping_RNA_pe"]["ulimit"]+"; " if config["crossMapping_RNA_pe"]["ulimit"]!="" else "",
 	threads: config["crossMapping_RNA_pe"]["mapping_threads"] + config["crossMapping_RNA_pe"]["stats_threads"]
 	resources:
 		mem_gb=config["crossMapping_RNA_pe"]["mapping_memory"]
@@ -200,7 +200,7 @@ rule crossMapping_RNA_se:
 		sjdbOverhang=config["crossMapping_RNA_se"]["sjdbOverhang"],
 		stats_extra=config["crossMapping_RNA_se"]["stats_params"],
 		stats_threads=config["crossMapping_RNA_se"]["stats_threads"],
-		ulimit=config["crossMapping_RNA_se"]["ulimit"]+"; ",
+		ulimit=config["crossMapping_RNA_se"]["ulimit"]+"; " if config["crossMapping_RNA_se"]["ulimit"]!="" else "",
 	threads: config["crossMapping_RNA_se"]["mapping_threads"] + config["crossMapping_RNA_se"]["stats_threads"]
 	resources:
 		mem_gb=config["crossMapping_RNA_se"]["mapping_memory"]
