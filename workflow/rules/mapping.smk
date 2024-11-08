@@ -150,6 +150,7 @@ rule mapping_RNA_pe:
 		mapping_extra=config["mapping_RNA_pe"]["mapping_params"],
 		mapping_threads=config["mapping_RNA_pe"]["mapping_threads"],
 		sjdbOverhang=config["mapping_RNA_pe"]["sjdbOverhang"],
+		ulimit=config["mapping_RNA_pe"]["ulimit"]+";",
 	threads: config["mapping_RNA_pe"]["mapping_threads"]
 	resources:
 		mem_gb=config["mapping_RNA_pe"]["mapping_memory"]
@@ -158,7 +159,7 @@ rule mapping_RNA_pe:
 	shell:
 		"("
 		"rm -fr {output.tmpdir}/tmp; "
-		"ulimit -n 100000; "
+		"{params.ulimit} "
 		"STAR"
 		" --runThreadN {params.mapping_threads}"
 		" --genomeDir {input.idx}"
@@ -192,6 +193,7 @@ rule mapping_RNA_se:
 		mapping_extra=config["mapping_RNA_se"]["mapping_params"],
 		mapping_threads=config["mapping_RNA_se"]["mapping_threads"],
 		sjdbOverhang=config["mapping_RNA_se"]["sjdbOverhang"],
+		ulimit=config["mapping_RNA_se"]["ulimit"]+";",
 	threads: config["mapping_RNA_se"]["mapping_threads"]
 	resources:
 		mem_gb=config["mapping_RNA_se"]["mapping_memory"]
@@ -200,7 +202,7 @@ rule mapping_RNA_se:
 	shell:
 		"("
 		"rm -fr {output.tmpdir}/tmp; "
-		"ulimit -n 100000; "
+		"{params.ulimit} "
 		"STAR"
 		" --runThreadN {params.mapping_threads}"
 		" --genomeDir {input.idx}"

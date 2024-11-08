@@ -154,6 +154,7 @@ rule crossMapping_RNA_pe:
 		sjdbOverhang=config["crossMapping_RNA_pe"]["sjdbOverhang"],
 		stats_extra=config["crossMapping_RNA_pe"]["stats_params"],
 		stats_threads=config["crossMapping_RNA_pe"]["stats_threads"],
+		ulimit=config["crossMapping_RNA_pe"]["ulimit"]+"; ",
 	threads: config["crossMapping_RNA_pe"]["mapping_threads"] + config["crossMapping_RNA_pe"]["stats_threads"]
 	resources:
 		mem_gb=config["crossMapping_RNA_pe"]["mapping_memory"]
@@ -162,7 +163,7 @@ rule crossMapping_RNA_pe:
 	shell:
 		"("
 		"rm -fr {output.tmpdir}/tmp; "
-		"ulimit -n 100000; "
+		"{params.ulimit} "
 		"STAR"
 		" --runThreadN {params.mapping_threads}"
 		" --genomeDir {input.idx}"
@@ -199,6 +200,7 @@ rule crossMapping_RNA_se:
 		sjdbOverhang=config["crossMapping_RNA_se"]["sjdbOverhang"],
 		stats_extra=config["crossMapping_RNA_se"]["stats_params"],
 		stats_threads=config["crossMapping_RNA_se"]["stats_threads"],
+		ulimit=config["crossMapping_RNA_se"]["ulimit"]+"; ",
 	threads: config["crossMapping_RNA_se"]["mapping_threads"] + config["crossMapping_RNA_se"]["stats_threads"]
 	resources:
 		mem_gb=config["crossMapping_RNA_se"]["mapping_memory"]
@@ -207,7 +209,7 @@ rule crossMapping_RNA_se:
 	shell:
 		"("
 		"rm -fr {output.tmpdir}/tmp; "
-		"ulimit -n 100000; "
+		"{params.ulimit} "
 		"STAR"
 		" --runThreadN {params.mapping_threads}"
 		" --genomeDir {input.idx}"
