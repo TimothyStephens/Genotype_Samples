@@ -133,7 +133,7 @@ crossMapping_RNA_pe:
   mapping_threads: 24
   mapping_memory: 20 # GB
   stats_threads: 2
-  ulimit: "ulimit -n 100000"
+  ulimit: "" #"ulimit -n 100000"
 
 crossMapping_RNA_se:
   sjdbOverhang: 150
@@ -142,7 +142,7 @@ crossMapping_RNA_se:
   mapping_threads: 24
   mapping_memory: 20 # GB
   stats_threads: 2
-  ulimit: "ulimit -n 100000"
+  ulimit: "" #"ulimit -n 100000"
 
 # Long reads
 crossMapping_DNA_long:
@@ -208,14 +208,14 @@ mapping_RNA_pe:
   mapping_params: '--twopassMode Basic'
   mapping_threads: 24
   mapping_memory: 20 # GB
-  ulimit: "ulimit -n 100000"
+  ulimit: "" # "ulimit -n 100000"
 
 mapping_RNA_se:
   sjdbOverhang: 150
   mapping_params: '--twopassMode Basic'
   mapping_threads: 24
   mapping_memory: 20 # GB
-  ulimit: "ulimit -n 100000"
+  ulimit: "" # "ulimit -n 100000"
 
 # Long reads
 mapping_DNA_long:
@@ -291,6 +291,12 @@ relatedness_ANGSD_for_NgsRelate:
 relatedness_NgsRelate:
   params: ''
   threads: 2
+
+relatedness_plink_PCA:
+  params: '--double-id --vcf-half-call m --allow-extra-chr --set-missing-var-ids @:#'
+
+relatedness_plink_Admixture_prepData:
+  params: '--double-id --vcf-half-call m --allow-extra-chr --make-bed --geno 0.1'
 
 relatedness_plink_Admixture:
   Kmin: 2

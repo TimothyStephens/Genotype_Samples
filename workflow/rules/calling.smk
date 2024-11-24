@@ -63,6 +63,7 @@ rule calling_variants:
 	shell:
 		"run_deepvariant"
 		" {params.model_params}"
+        " {params.extra}"
 		" --ref {input.ref}"
 		" --reads {input.bam}"
 		" --sample_name {wildcards.sample}"
@@ -116,13 +117,13 @@ rule calling_merged_VCF_stats:
 	input:
 		rules.calling_merge_VCFs.output.gzvcf,
 	output:
-		lqual  = "results/{project}/calling_merged/calls.unfiltered.lqual",
-		ldepth = "results/{project}/calling_merged/calls.unfiltered.ldepth.mean",
-		lmiss  = "results/{project}/calling_merged/calls.unfiltered.lmiss",
-		frq    = "results/{project}/calling_merged/calls.unfiltered.frq",
-		idepth = "results/{project}/calling_merged/calls.unfiltered.idepth",
-		imiss  = "results/{project}/calling_merged/calls.unfiltered.imiss",
-		het    = "results/{project}/calling_merged/calls.unfiltered.het",
+		frq    = "results/{project}/calling_merged/calls.unfiltered.frq.gz",
+		idepth = "results/{project}/calling_merged/calls.unfiltered.idepth.gz",
+		ldepth = "results/{project}/calling_merged/calls.unfiltered.ldepth.mean.gz",
+		lqual  = "results/{project}/calling_merged/calls.unfiltered.lqual.gz",
+		imiss  = "results/{project}/calling_merged/calls.unfiltered.imiss.gz",
+		lmiss  = "results/{project}/calling_merged/calls.unfiltered.lmiss.gz",
+		het    = "results/{project}/calling_merged/calls.unfiltered.het.gz",
 	log:
 		"results/logs/{project}/calling_merged/merged_VCF_stats.log",
 	params:
@@ -132,25 +133,25 @@ rule calling_merged_VCF_stats:
 	shell:
 		"("
 		# Calculate allele frequency
-		"vcftools --gzvcf {input} --freq2 --out {params.out} --max-alleles 2; "
+		"vcftools --gzvcf {input} --freq2 --max-alleles 2 --stdout | gzip -c > {output.frq}; "
 		
 		# Calculate mean depth per individual
-		"vcftools --gzvcf {input} --depth --out {params.out}; "
+		"vcftools --gzvcf {input} --depth --stdout | gzip -c > {output.idepth}; "
 		
 		# Calculate mean depth per site
-		"vcftools --gzvcf {input} --site-mean-depth --out {params.out}; "
+		"vcftools --gzvcf {input} --site-mean-depth --stdout | gzip -c > {output.ldepth}; "
 		
 		# Calculate site quality
-		"vcftools --gzvcf {input} --site-quality --out {params.out}; "
+		"vcftools --gzvcf {input} --site-quality --stdout | gzip -c > {output.lqual}; "
 		
 		# Calculate proportion of missing data per individual
-		"vcftools --gzvcf {input} --missing-indv --out {params.out}; "
+		"vcftools --gzvcf {input} --missing-indv --stdout | gzip -c > {output.imiss}; "
 		
 		# Calculate proportion of missing data per site
-		"vcftools --gzvcf {input} --missing-site --out {params.out}; "
+		"vcftools --gzvcf {input} --missing-site --stdout | gzip -c > {output.lmiss}; "
 		
 		# Calculate heterozygosity and inbreeding coefficient per individual
-		"vcftools --gzvcf {input} --het --out {params.out} "
+		"vcftools --gzvcf {input} --het --stdout | gzip -c > {output.het} "
 		
 		") 1>{log} 2>&1"
 
@@ -203,13 +204,13 @@ rule calling_merged_filtered_VCF_stats:
 	input:
 		rules.calling_filter_merged_VCF.output,
 	output:
-		lqual  = "results/{project}/calling_merged/calls.filtered.lqual",
-		ldepth = "results/{project}/calling_merged/calls.filtered.ldepth.mean",
-		lmiss  = "results/{project}/calling_merged/calls.filtered.lmiss",
-		frq    = "results/{project}/calling_merged/calls.filtered.frq",
-		idepth = "results/{project}/calling_merged/calls.filtered.idepth",
-		imiss  = "results/{project}/calling_merged/calls.filtered.imiss",
-		het    = "results/{project}/calling_merged/calls.filtered.het",
+		frq    = "results/{project}/calling_merged/calls.filtered.frq.gz",
+		idepth = "results/{project}/calling_merged/calls.filtered.idepth.gz",
+		ldepth = "results/{project}/calling_merged/calls.filtered.ldepth.mean.gz",
+		lqual  = "results/{project}/calling_merged/calls.filtered.lqual.gz",
+		imiss  = "results/{project}/calling_merged/calls.filtered.imiss.gz",
+		lmiss  = "results/{project}/calling_merged/calls.filtered.lmiss.gz",
+		het    = "results/{project}/calling_merged/calls.filtered.het.gz",
 	log:
 		"results/logs/{project}/calling_merged/filtered_VCF_stats.log",
 	params:
@@ -219,25 +220,25 @@ rule calling_merged_filtered_VCF_stats:
 	shell:
 		"("
 		# Calculate allele frequency
-		"vcftools --gzvcf {input} --freq2 --out {params.out} --max-alleles 2; "
+		"vcftools --gzvcf {input} --freq2 --max-alleles 2 --stdout | gzip -c > {output.frq}; "
 		
 		# Calculate mean depth per individual
-		"vcftools --gzvcf {input} --depth --out {params.out}; "
+		"vcftools --gzvcf {input} --depth --stdout | gzip -c > {output.idepth}; "
 		
 		# Calculate mean depth per site
-		"vcftools --gzvcf {input} --site-mean-depth --out {params.out}; "
+		"vcftools --gzvcf {input} --site-mean-depth --stdout | gzip -c > {output.ldepth}; "
 		
 		# Calculate site quality
-		"vcftools --gzvcf {input} --site-quality --out {params.out}; "
+		"vcftools --gzvcf {input} --site-quality --stdout | gzip -c > {output.lqual}; "
 		
 		# Calculate proportion of missing data per individual
-		"vcftools --gzvcf {input} --missing-indv --out {params.out}; "
+		"vcftools --gzvcf {input} --missing-indv --stdout | gzip -c > {output.imiss}; "
 		
 		# Calculate proportion of missing data per site
-		"vcftools --gzvcf {input} --missing-site --out {params.out}; "
+		"vcftools --gzvcf {input} --missing-site --stdout | gzip -c > {output.lmiss}; "
 		
 		# Calculate heterozygosity and inbreeding coefficient per individual
-		"vcftools --gzvcf {input} --het --out {params.out} "
+		"vcftools --gzvcf {input} --het --stdout | gzip -c > {output.het} "
 		
 		") 1>{log} 2>&1"
 

@@ -133,14 +133,14 @@ rule relatedness_plink_PCA:
 		"../envs/plink.yaml"
 	shell:
 		"("
-		"plink --vcf {input.vcf} --double-id --vcf-half-call m --allow-extra-chr"
-		" --set-missing-var-ids @:#"
+		"plink --vcf {input.vcf}"
+		" {params.extra}"
 		" --indep-pairwise 50 10 0.1"
 		" --out {params.out}; "
-		"plink --vcf {input.vcf} --double-id --vcf-half-call m --allow-extra-chr"
-		" --set-missing-var-ids @:#"
-		" --extract {params.out}.prune.in"
-		" --make-bed --pca --out {params.out}"
+		"plink --vcf {input.vcf}"
+		" {params.extra}"
+        " --make-bed --pca --extract {params.out}.prune.in"
+        " --out {params.out}"
 		") 1>{log} 2>&1"
 
 
@@ -153,11 +153,12 @@ rule relatedness_plink_Admixture_prepData:
 		"results/logs/{project}/relatedness/plink.Admixture.prepData.log",
 	params:
 		out="results/{project}/relatedness/plink.Admixture",
+		extra=config["relatedness_plink_Admixture_prepData"]["params"],
 	conda:
 		"../envs/plink.yaml"
 	shell:
 		"("
-		"plink --vcf {input.vcf} --double-id --vcf-half-call m --allow-extra-chr --make-bed --out {params.out}; "
+		"plink {params.extra} --vcf {input.vcf} --out {params.out}; "
 		"awk '{{$1=\"0\"; print $0}}' {params.out}.bim > {params.out}.bim.tmp; "
 		"mv {params.out}.bim.tmp {params.out}.bim"
 		") 1>{log} 2>&1"
