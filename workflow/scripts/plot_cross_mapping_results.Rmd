@@ -36,6 +36,11 @@ colors.file <- "colors.tsv"
 data <- read.table(data.file, header=T, sep='\t', comment.char='', check.names=FALSE) %>%
   column_to_rownames(var = "sample_id")
 
+# Need >=2 columns for `heatmaply`, add an extra dummy column if only a single column to force this to be true.
+if (ncol(data) == 1){
+  data <- data %>% mutate(dummy_column = 1)
+}
+
 #*Annotations matrix*
 annotations <- read.table(annotations.file, header=T, sep='\t', comment.char='#', check.names=FALSE) %>% 
   mutate(Name = paste(sample_id, unit, sep="-")) %>%
@@ -58,7 +63,7 @@ rownames.ordered <- annotations %>%
 
 # Plot matrix heatmap
 heatmaply(
-  data[rownames.ordered, ],
+  data[rownames.ordered, , drop=FALSE],
   plot_method = "plotly",
   width = 1000,
   height = 4000,
